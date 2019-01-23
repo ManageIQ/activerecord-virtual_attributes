@@ -1,3 +1,6 @@
+require "active_support/concern"
+require "active_record"
+
 module VirtualIncludes
   extend ActiveSupport::Concern
 
@@ -780,3 +783,6 @@ module ActiveRecord
     }
   end
 end
+
+require "virtual_attributes/virtual_total"
+require "virtual_attributes/arel_groups"
