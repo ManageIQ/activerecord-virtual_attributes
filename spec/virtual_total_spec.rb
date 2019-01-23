@@ -1,4 +1,4 @@
-describe VirtualTotal do
+describe VirtualAttributes::VirtualTotal do
   before do
     # rubocop:disable Style/SingleLineMethods, Layout/EmptyLineBetweenDefs, Naming/AccessorMethodName
     class VitualTotalTestBase < ActiveRecord::Base
@@ -7,12 +7,6 @@ describe VirtualTotal do
       establish_connection :adapter => 'sqlite3', :database => ':memory:'
 
       include VirtualFields
-
-      # HACK:  not sure the right way to do this
-      def self.id_increment
-        @id_increment ||= 0
-        @id_increment  += 1
-      end
     end
 
     ActiveRecord::Schema.define do
@@ -20,16 +14,22 @@ describe VirtualTotal do
       def self.set_pk_sequence!(*); end
       self.verbose = false
 
-      create_table :vt_authors do |t|
+      create_table :vt_authors, :force => true, :id => :integer do |t|
         t.string   :name
       end
 
-      create_table :vt_books do |t|
+      create_table :vt_books, :force => true, :id => :integer do |t|
         t.integer  :author_id
         t.string   :name
         t.boolean  :published, :default => false
         t.boolean  :special,   :default => false
         t.integer  :rating
+        t.datetime :created_on
+      end
+
+      create_table :vt_bookmarks, :force => true, :id => :integer do |t|
+        t.integer  :book_id
+        t.string   :name
         t.datetime :created_on
       end
     end
@@ -38,15 +38,32 @@ describe VirtualTotal do
       def self.connection; VitualTotalTestBase.connection; end
 
       has_many :books,                             :class_name => "VtBook", :foreign_key => "author_id"
+      has_many :ordered_books,   -> { ordered },   :class_name => "VtBook", :foreign_key => "author_id"
       has_many :published_books, -> { published }, :class_name => "VtBook", :foreign_key => "author_id"
       has_many :wip_books,       -> { wip },       :class_name => "VtBook", :foreign_key => "author_id"
+      has_many :bookmarks,                         :class_name => "VtBookmark", :through => :books
 
       virtual_total :total_books, :books
       virtual_total :total_books_published, :published_books
       virtual_total :total_books_in_progress, :wip_books
+      # same as total_books, but going through a relation with order
+      virtual_total :total_ordered_books, :ordered_books
+      # virtual total using through
+      virtual_total :total_bookmarks, :bookmarks
+      alias v_total_bookmarks total_bookmarks
+
+      # virtual_total using a virtual_has_many
+      def named_books
+        # I didn't have the creativity needed to find a good ruby only check here
+        books.select { |b| b.name }
+      end
+
+      virtual_has_many :named_books
+      virtual_total :total_named_books, :named_books
+      alias v_total_named_books total_named_books
 
       def self.create_with_books(count = 0)
-        create!(:name => "foo", :id => id_increment).tap { |author| author.create_books(count) }
+        create!(:name => "foo").tap { |author| author.create_books(count) }
       end
 
       def create_books(count, create_attrs = {})
@@ -54,7 +71,6 @@ describe VirtualTotal do
           attrs = {
             :name   => "bar",
             :author => self,
-            :id     => VtBook.id_increment
           }.merge(create_attrs)
           VtBook.create(attrs)
         end
@@ -64,9 +80,32 @@ describe VirtualTotal do
     class VtBook < VitualTotalTestBase
       def self.connection; VitualTotalTestBase.connection end
 
-      belongs_to :author, :class_name => "VtAuthor"
+      has_many :bookmarks, :class_name => "VtBookmark", :foreign_key => "book_id"
+      belongs_to :author,  :class_name => "VtAuthor",   :foreign_key => "author_id"
+      scope :ordered,   -> { order(:created_on => :desc) }
       scope :published, -> { where(:published => true)  }
       scope :wip,       -> { where(:published => false) }
+
+      def self.create_with_bookmarks(count = 0)
+        a = VtAuthor.create(:name => "foo")
+        create!(:name => "book", :author => a).tap { |book| book.create_bookmarks(count) }
+      end
+
+      def create_bookmarks(count, create_attrs = {})
+        count.times do
+          attrs = {
+            :name   => "mark",
+            :book   => self,
+          }.merge(create_attrs)
+          VtBookmark.create(attrs)
+        end
+      end
+    end
+
+    class VtBookmark < VitualTotalTestBase
+      def self.connection; VitualTotalTestBase.connection end
+
+      belongs_to :book, :class_name => "VtBook", :foreign_key => "book_id"
     end
     # rubocop:enable Style/SingleLineMethods, Layout/EmptyLineBetweenDefs, Naming/AccessorMethodName
   end
@@ -75,6 +114,7 @@ describe VirtualTotal do
     VitualTotalTestBase.remove_connection
     Object.send(:remove_const, :VtAuthor)
     Object.send(:remove_const, :VtBook)
+    Object.send(:remove_const, :VtBookmark)
     Object.send(:remove_const, :VitualTotalTestBase)
   end
 
@@ -305,19 +345,19 @@ describe VirtualTotal do
   end
 
   describe ".virtual_total (with real has_many relation ems#total_vms)" do
-    let(:base_model) { ExtManagementSystem }
+    let(:base_model) { VtAuthor }
     it "sorts by total" do
-      ems0 = model_with_children(0)
-      ems2 = model_with_children(2)
-      ems1 = model_with_children(1)
+      author0 = model_with_children(0)
+      author2 = model_with_children(2)
+      author1 = model_with_children(1)
 
-      expect(base_model.order(:total_vms).pluck(:id))
-        .to eq([ems0, ems1, ems2].map(&:id))
+      expect(base_model.order(:total_books).pluck(:id))
+        .to eq([author0, author1, author2].map(&:id))
     end
 
     it "calculates totals locally" do
-      expect(model_with_children(0).total_vms).to eq(0)
-      expect(model_with_children(2).total_vms).to eq(2)
+      expect(model_with_children(0).total_books).to eq(0)
+      expect(model_with_children(2).total_books).to eq(2)
     end
 
     it "can bring back totals in primary query" do
@@ -326,97 +366,85 @@ describe VirtualTotal do
       m2 = model_with_children(2)
       mc = m1.class
       expect {
-        ms = mc.select(:id, mc.arel_attribute(:total_vms).as("total_vms"))
+        ms = mc.select(:id, mc.arel_attribute(:total_books).as("total_books"))
         expect(ms).to match_array([m3, m2, m1])
-        expect(ms.map(&:total_vms)).to match_array([3, 2, 1])
+        expect(ms.map(&:total_books)).to match_array([3, 2, 1])
       }.to match_query_limit_of(1)
     end
 
     def model_with_children(count)
-      FactoryBot.create(:ext_management_system).tap do |ems|
-        FactoryBot.create_list(:vm, count, :ext_management_system => ems) if count > 0
-      end
+      VtAuthor.create_with_books(count)
     end
   end
 
-  describe ".virtual_total (with virtual relation (resource_pool#total_vms)" do
-    let(:base_model) { ResourcePool }
+  describe ".virtual_total (with virtual relation (Author#total_named_books)" do
+    let(:base_model) { VtAuthor }
     # it can not sort by virtual
 
     it "calculates totals locally" do
-      expect(model_with_children(0).v_total_vms).to eq(0)
-      expect(model_with_children(2).v_total_vms).to eq(2)
+      expect(model_with_children(0).v_total_named_books).to eq(0)
+      expect(model_with_children(2).v_total_named_books).to eq(2)
     end
 
     it "is not defined in sql" do
-      expect(base_model.attribute_supported_by_sql?(:v_total_vms)).to be(false)
+      expect(base_model.attribute_supported_by_sql?(:total_named_books)).to be(false)
     end
 
     it "alias is not defined in sql" do
-      expect(base_model.attribute_supported_by_sql?(:total_vms)).to be(false)
+      expect(base_model.attribute_supported_by_sql?(:v_total_named_books)).to be(false)
     end
 
     def model_with_children(count)
-      FactoryBot.create(:resource_pool).tap do |pool|
-        count.times do |_i|
-          vm = FactoryBot.create(:vm)
-          vm.with_relationship_type("ems_metadata") { vm.set_parent pool }
-        end
-      end
+      VtAuthor.create_with_books(count)
     end
   end
 
   describe ".virtual_total (with through relation (ems#total_storages)" do
-    let(:base_model) { ExtManagementSystem }
+    let(:base_model) { VtAuthor }
 
     it "calculates totals locally" do
-      expect(model_with_children(0).total_storages).to eq(0)
-      expect(model_with_children(2).total_storages).to eq(2)
+      expect(model_with_children(0).total_bookmarks).to eq(0)
+      expect(model_with_children(2).total_bookmarks).to eq(4)
     end
 
     it "is not defined in sql" do
-      expect(base_model.attribute_supported_by_sql?(:total_storages)).to be(false)
+      expect(base_model.attribute_supported_by_sql?(:total_bookmarks)).to be(false)
     end
 
     def model_with_children(count)
-      FactoryBot.create(:ext_management_system).tap do |ems|
-        ems.hosts.create(FactoryBot.attributes_for(:host)).tap do |host|
-          count.times { host.storages.create(FactoryBot.attributes_for(:storage)) }
+      base_model.create_with_books(count).tap do |author|
+        author.books.each do |book|
+          book.create_bookmarks(2)
         end
       end.reload
     end
   end
 
-  # Duplicated from VmOrTemplateSpec#provisioned_storage since this can't be
-  # simulated in SQLite, since they allow you to have an ORDER BY with a column
+  # Causes an issue on postgres since it doesn't allow you to have an ORDER BY with a column
   # that isn't in the SELECT clause...
   #
-  # Keep this test here to confirm the virtual_aggregate works when an order
-  # exists on the scope, unless this is aggregate is deleted (then feel free to
-  # remove).
+  # sqlite works fine
   describe ".virtual_total (with real has_many relation and .order() in scope vm#provisioned_storage)" do
     context "with no hardware" do
-      let(:base_model) { Vm }
+      let(:base_model) { VtAuthor }
 
       it "calculates totals locally" do
-        expect(model_with_children(0).provisioned_storage).to eq(0.0)
-        expect(model_with_children(2).provisioned_storage).to eq(20.0)
+        expect(model_with_children(0).total_ordered_books).to eq(0)
+        expect(model_with_children(2).total_ordered_books).to eq(2)
       end
 
       it "uses calculated (inline) attribute" do
-        vm1   = model_with_children(0)
-        vm2   = model_with_children(2)
-        query = ManageIQ::Providers::Vmware::InfraManager::Vm.select(:id, :provisioned_storage).to_a
+        auth1 = model_with_children(0)
+        auth2 = model_with_children(2)
+        query = base_model.select(:id, :total_ordered_books).load
         expect do
-          expect(query).to match_array([vm1, vm2])
-          expect(query.map(&:provisioned_storage)).to match_array([0.0, 20.0])
+          expect(query).to match_array([auth1, auth2])
+          expect(query.map(&:total_ordered_books)).to match_array([0, 2])
         end.to match_query_limit_of(0)
       end
 
       def model_with_children(count)
-        FactoryBot.create(:vm_vmware, :hardware => FactoryBot.create(:hardware)).tap do |vm|
-          count.times { vm.hardware.disks.create(:size => 10.0) }
-        end.reload
+        VtAuthor.create_with_books(count).reload
       end
     end
   end
