@@ -1,0 +1,11 @@
+---
+sudo: false
+language: ruby
+cache: bundler
+rvm:
+  - 2.5
+
+gemfile:
+  - gemfiles/virtual_attributes_50.gemfile
+  - gemfiles/virtual_attributes_51.gemfile
+  - gemfiles/virtual_attributes_52.gemfile

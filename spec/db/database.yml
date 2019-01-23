@@ -1,0 +1,23 @@
+common: &common
+  database: virtual_attributes
+  encoding: utf8
+  host: localhost
+  pool: 3
+  wait_timeout: 5
+
+sqlite3:
+  <<: *common
+  adapter: sqlite3
+  database: ":memory:"
+
+pg:
+  <<: *common
+  adapter: postgresql
+  username: postgres
+  min_messages: WARNING
+  schema_search_path: public
+
+mysql2:
+  <<: *common
+  adapter: mysql2
+  username: root
