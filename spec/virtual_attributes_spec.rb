@@ -852,143 +852,132 @@ describe VirtualFields do
 
   describe "#follow_associations" do
     it "returns base class" do
-      expect(ExtManagementSystem.follow_associations([])).to eq(ExtManagementSystem)
+      expect(VtAuthor.follow_associations([])).to eq(VtAuthor)
     end
 
-    # Ems.has_many :vms
-    # Vms.belongs_to :host
+    # VtAuthor.has_many :books
+    # VtBook.has_many :bookmarks
     it "follows reflections" do
-      expect(ExtManagementSystem.follow_associations(%w(vms host))).to eq(Host)
+      expect(VtAuthor.follow_associations(%w(books bookmarks))).to eq(VtBookmark)
     end
 
-    # Ems.has_many :vms
-    # Vms.belongs_to :host
-    # Vms.virtual_has_many :processes
+    # VtBook.belongs_to :author
+    # VtAuthor.virtual_has_many :named_books
     it "stops at virtual reflections" do
-      expect(ExtManagementSystem.follow_associations(%w(vms processes))).to be_nil
+      expect(VtBook.follow_associations(%w(author named_books))).to be_nil
     end
   end
 
   describe "#follow_associations_with_virtual" do
     it "returns base class" do
-      expect(ExtManagementSystem.follow_associations_with_virtual([])).to eq(ExtManagementSystem)
+      expect(VtAuthor.follow_associations_with_virtual([])).to eq(VtAuthor)
     end
 
-    # Ems.has_many :vms
-    # Vms.belongs_to :host
+    # VtAuthor.has_many :books
+    # VtBook.has_many :bookmarks
     it "follows reflections" do
-      expect(ExtManagementSystem.follow_associations_with_virtual(%w(vms host))).to eq(Host)
+      expect(VtAuthor.follow_associations_with_virtual(%w(books bookmarks))).to eq(VtBookmark)
     end
 
-    # Ems.has_many :vms
-    # Vms.belongs_to :host
-    # Vms.virtual_has_many :processes
+    # VtBook.belongs_to :author
+    # VtAuthor.virtual_has_many :named_books, :class_name => VtBook
     it "follows virtual reflections" do
-      expect(ExtManagementSystem.follow_associations_with_virtual(%w(vms processes))).to eq(OsProcess)
+      expect(VtBook.follow_associations_with_virtual(%w(author named_books))).to eq(VtBook)
     end
   end
 
   describe "collect_reflections" do
     it "returns base class" do
-      expect(ExtManagementSystem.collect_reflections([])).to eq([])
+      expect(VtAuthor.collect_reflections([])).to eq([])
     end
 
-    # Ems.has_many :vms
-    # Vms.belongs_to :host
+    # VtAuthor.has_many :books
+    # VtBook.has_many :bookmarks
     it "follows reflections" do
-      expect(ExtManagementSystem.collect_reflections(%w(vms host))).to eq([
-        ExtManagementSystem.reflect_on_association(:vms), Vm.reflect_on_association(:host)
+      expect(VtAuthor.collect_reflections(%w(books bookmarks))).to eq([
+        VtAuthor.reflect_on_association(:books), VtBook.reflect_on_association(:bookmarks)
       ])
     end
 
-    # Ems.has_many :vms
-    # Vms.belongs_to :host
-    # Vms.virtual_has_many :processes
+    # VtBook.belongs_to :author
+    # VtAuthor.virtual_has_many :named_books
     it "stops at virtual reflections" do
-      expect(ExtManagementSystem.collect_reflections(%w(vms processes))).to eq(
-        [ExtManagementSystem.reflect_on_association(:vms)]
-      )
+      expect(VtBook.collect_reflections(%w(author named_books))).to eq([
+        VtBook.reflect_on_association(:author)
+      ])
     end
   end
 
   describe "collect_reflections_with_virtual" do
     it "returns base class" do
-      expect(ExtManagementSystem.collect_reflections_with_virtual([])).to eq([])
+      expect(VtBook.collect_reflections_with_virtual([])).to eq([])
     end
 
-    # Ems.has_many :vms
-    # Vms.belongs_to :host
+    # VtAuthor.has_many :books
+    # VtBook.has_many :bookmarks
     it "follows reflections" do
-      expect(ExtManagementSystem.collect_reflections_with_virtual(%w(vms host))).to eq([
-        ExtManagementSystem.reflect_on_association(:vms), Vm.reflect_on_association(:host)
+      expect(VtAuthor.collect_reflections_with_virtual(%w(books bookmarks))).to eq([
+        VtAuthor.reflect_on_association(:books), VtBook.reflect_on_association(:bookmarks)
       ])
     end
 
-    # Ems.has_many :vms
-    # Vms.belongs_to :host
-    # Vms.virtual_has_many :processes
-    it "stops at virtual reflections" do
-      expect(ExtManagementSystem.collect_reflections_with_virtual(%w(vms processes))).to eq([
-        ExtManagementSystem.reflect_on_association(:vms), Vm.reflection_with_virtual(:processes)
+    # VtBook.belongs_to :author
+    # VtAuthor.virtual_has_many :named_books
+    it "follows virtual reflections" do
+      expect(VtBook.collect_reflections_with_virtual(%w(author named_books))).to eq([
+        VtBook.reflect_on_association(:author), VtAuthor.reflection_with_virtual(:named_books)
       ])
     end
   end
 
   context "preloading" do
     before do
-      FactoryBot.create(:vm_vmware,
-                         :hardware         => FactoryBot.create(:hardware),
-                         :operating_system => FactoryBot.create(:operating_system),
-                         :host             => FactoryBot.create(:host,
-                                                                 :hardware         => FactoryBot.create(:hardware),
-                                                                 :operating_system => FactoryBot.create(:operating_system)
-                                                                )
-                        )
+      VtAuthor.create_with_books(3).books.first.create_bookmarks(2)
     end
 
     context "virtual column" do
       it "as Symbol" do
-        expect { Vm.includes(:platform).load }.not_to raise_error
+        expect { VtAuthor.includes(:nick_or_name).load }.not_to raise_error
       end
 
       it "as Array" do
-        expect { Vm.includes([:platform]).load }.not_to raise_error
-        expect { Vm.includes([:platform, :host]).load }.not_to raise_error
+        expect { VtAuthor.includes([:nick_or_name]).load }.not_to raise_error
+        expect { VtAuthor.includes([:nick_or_name, :bookmarks]).load }.not_to raise_error
       end
 
       it "as Hash" do
-        expect { Vm.includes(:platform => {}).load }.not_to raise_error
-        expect { Vm.includes(:platform => {}, :host => :hardware).load }.not_to raise_error
+        expect { VtAuthor.includes(:nick_or_name => {}).load }.not_to raise_error
+        expect { VtAuthor.includes(:nick_or_name => {}, :bookmarks => :book).load }.not_to raise_error
       end
     end
 
     context "virtual reflection" do
       it "as Symbol" do
-        expect { Vm.includes(:lans).load }.not_to raise_error
+        expect { VtAuthor.includes(:named_books).load }.not_to raise_error
       end
 
       it "as Array" do
-        expect { Vm.includes([:lans]).load }.not_to raise_error
-        expect { Vm.includes([:lans, :host]).load }.not_to raise_error
+        expect { VtAuthor.includes([:named_books]).load }.not_to raise_error
+        expect { VtAuthor.includes([:named_books, :bookmarks]).load }.not_to raise_error
       end
 
       it "as Hash" do
-        expect { Vm.includes(:lans => :switch).load }.not_to raise_error
-        expect { Vm.includes(:lans => :switch, :host => :hardware).load }.not_to raise_error
+        expect { VtAuthor.includes(:named_books => {}).load }.not_to raise_error
+        expect { VtAuthor.includes(:named_books => {}, :bookmarks => :book).load }.not_to raise_error
       end
     end
 
     it "nested virtual fields" do
-      expect { Vm.includes(:host => :ems_cluster).load }.not_to raise_error
+      expect { VtAuthor.includes(:host => :ems_cluster).load }.not_to raise_error
     end
 
     it "virtual field that has nested virtual fields in its :uses clause" do
-      expect { Vm.includes(:ems_cluster).load }.not_to raise_error
+      expect { VtAuthor.includes(:ems_cluster).load }.not_to raise_error
     end
 
     it "should handle virtual fields in :include when :conditions are also present in calculations" do
-      expect { Vm.includes([:platform, :host]).references(:host).where("hosts.name = 'test'").count }.not_to raise_error
-      expect { Vm.includes([:platform, :host]).references(:host).where("hosts.id IS NOT NULL").count }.not_to raise_error
+      expect { VtBook.includes([:author_name, :author]).references(:author).where("vt_authors.name = 'test'").count }.not_to raise_error
+      expect { VtBook.includes([:author_name, :author]).references(:author).where("vt_authors.id IS NOT NULL").count }.not_to raise_error
     end
   end
 

@@ -36,9 +36,17 @@ class VtAuthor < VitualTotalTestBase
     books.select { |b| b.name }
   end
 
-  virtual_has_many :named_books
+  virtual_has_many :named_books, :class_name => "VtBook"
   virtual_total :total_named_books, :named_books
   alias v_total_named_books total_named_books
+
+  def nick_or_name
+    nickname || name
+  end
+
+  virtual_attribute :nick_or_name, :string do |t|
+    t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [t[:nickname], t[:name]]))
+  end
 
   def self.create_with_books(count = 0)
     create!(:name => "foo").tap { |author| author.create_books(count) }
@@ -63,6 +71,8 @@ class VtBook < VitualTotalTestBase
   scope :ordered,   -> { order(:created_on => :desc) }
   scope :published, -> { where(:published => true)  }
   scope :wip,       -> { where(:published => false) }
+
+  virtual_delegate :name, :to => :author, :prefix => true
 
   def self.create_with_bookmarks(count = 0)
     a = VtAuthor.create(:name => "foo")

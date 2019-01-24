@@ -6,6 +6,7 @@ ActiveRecord::Schema.define(:version => 0) do
   # tables for virtual totals
   create_table "vt_authors", :force => true, :id => :integer do |t|
     t.string   "name"
+    t.string   "nickname"
   end
 
   create_table "vt_books", :force => true, :id => :integer do |t|
