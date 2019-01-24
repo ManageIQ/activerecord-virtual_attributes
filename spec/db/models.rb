@@ -12,31 +12,6 @@ class VitualTotalTestBase < ActiveRecord::Base
   include VirtualFields
 end
 
-ActiveRecord::Schema.define do
-  def self.connection; VitualTotalTestBase.connection; end
-  def self.set_pk_sequence!(*); end
-  self.verbose = false
-
-  create_table :vt_authors, :force => true, :id => :integer do |t|
-    t.string   :name
-  end
-
-  create_table :vt_books, :force => true, :id => :integer do |t|
-    t.integer  :author_id
-    t.string   :name
-    t.boolean  :published, :default => false
-    t.boolean  :special,   :default => false
-    t.integer  :rating
-    t.datetime :created_on
-  end
-
-  create_table :vt_bookmarks, :force => true, :id => :integer do |t|
-    t.integer  :book_id
-    t.string   :name
-    t.datetime :created_on
-  end
-end
-
 class VtAuthor < VitualTotalTestBase
   def self.connection; VitualTotalTestBase.connection; end
 
