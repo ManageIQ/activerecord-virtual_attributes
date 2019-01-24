@@ -1,36 +1,36 @@
 describe VirtualAttributes::VirtualTotal do
   before do
-    VtAuthor.delete_all
-    VtBook.delete_all
-    VtBookmark.delete_all
+    Author.delete_all
+    Book.delete_all
+    Bookmark.delete_all
   end
 
   describe ".virtual_total" do
     context "with a standard has_many" do
       it "sorts by total" do
-        author2 = VtAuthor.create_with_books(2)
-        author0 = VtAuthor.create_with_books(0)
-        author1 = VtAuthor.create_with_books(1)
+        author2 = Author.create_with_books(2)
+        author0 = Author.create_with_books(0)
+        author1 = Author.create_with_books(1)
 
-        expect(VtAuthor.order(:total_books).pluck(:id))
+        expect(Author.order(:total_books).pluck(:id))
           .to eq([author0, author1, author2].map(&:id))
       end
 
       it "calculates totals locally" do
-        author0_id = VtAuthor.create_with_books(0).id
-        author2_id = VtAuthor.create_with_books(2).id
+        author0_id = Author.create_with_books(0).id
+        author2_id = Author.create_with_books(2).id
         expect do
-          expect(VtAuthor.find(author0_id).total_books).to eq(0)
-          expect(VtAuthor.find(author2_id).total_books).to eq(2)
+          expect(Author.find(author0_id).total_books).to eq(0)
+          expect(Author.find(author2_id).total_books).to eq(2)
         end.to match_query_limit_of(4)
       end
 
       it "can bring back totals in primary query" do
-        author3 = VtAuthor.create_with_books(3)
-        author1 = VtAuthor.create_with_books(1)
-        author2 = VtAuthor.create_with_books(2)
+        author3 = Author.create_with_books(3)
+        author1 = Author.create_with_books(1)
+        author2 = Author.create_with_books(2)
         expect do
-          author_query = VtAuthor.select(:id, :total_books)
+          author_query = Author.select(:id, :total_books)
           expect(author_query).to match_array([author3, author1, author2])
           expect(author_query.map(&:total_books)).to match_array([3, 1, 2])
         end.to match_query_limit_of(1)
@@ -39,45 +39,45 @@ describe VirtualAttributes::VirtualTotal do
 
     context "with a has_many that includes a scope" do
       it "sorts by total" do
-        author2 = VtAuthor.create_with_books(2)
+        author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true)
-        author0 = VtAuthor.create_with_books(0)
+        author0 = Author.create_with_books(0)
         author0.create_books(2, :published => true)
-        author1 = VtAuthor.create_with_books(1)
+        author1 = Author.create_with_books(1)
 
-        expect(VtAuthor.order(:total_books_published).pluck(:id))
+        expect(Author.order(:total_books_published).pluck(:id))
           .to eq([author1, author2, author0].map(&:id))
-        expect(VtAuthor.order(:total_books_in_progress).pluck(:id))
+        expect(Author.order(:total_books_in_progress).pluck(:id))
           .to eq([author0, author1, author2].map(&:id))
       end
 
       it "calculates totals locally" do
-        author0 = VtAuthor.create_with_books(0)
+        author0 = Author.create_with_books(0)
         author0.create_books(2, :published => true)
-        author2 = VtAuthor.create_with_books(2)
+        author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true)
 
         expect do
-          expect(VtAuthor.find(author0.id).total_books).to eq(2)
-          expect(VtAuthor.find(author0.id).total_books_published).to eq(2)
-          expect(VtAuthor.find(author0.id).total_books_in_progress).to eq(0)
-          expect(VtAuthor.find(author2.id).total_books).to eq(3)
-          expect(VtAuthor.find(author2.id).total_books_published).to eq(1)
-          expect(VtAuthor.find(author2.id).total_books_in_progress).to eq(2)
+          expect(Author.find(author0.id).total_books).to eq(2)
+          expect(Author.find(author0.id).total_books_published).to eq(2)
+          expect(Author.find(author0.id).total_books_in_progress).to eq(0)
+          expect(Author.find(author2.id).total_books).to eq(3)
+          expect(Author.find(author2.id).total_books_published).to eq(1)
+          expect(Author.find(author2.id).total_books_in_progress).to eq(2)
         end.to match_query_limit_of(12)
       end
 
       it "can bring back totals in primary query" do
-        author3 = VtAuthor.create_with_books(3)
+        author3 = Author.create_with_books(3)
         author3.create_books(4, :published => true)
-        author1 = VtAuthor.create_with_books(1)
+        author1 = Author.create_with_books(1)
         author1.create_books(5, :published => true)
-        author2 = VtAuthor.create_with_books(2)
+        author2 = Author.create_with_books(2)
         author2.create_books(6, :published => true)
 
         expect do
           cols = %i(id total_books total_books_published total_books_in_progress)
-          author_query = VtAuthor.select(*cols).to_a
+          author_query = Author.select(*cols).to_a
           expect(author_query).to match_array([author3, author1, author2])
           expect(author_query.map(&:total_books)).to match_array([7, 6, 8])
           expect(author_query.map(&:total_books_published)).to match_array([4, 5, 6])
@@ -88,10 +88,10 @@ describe VirtualAttributes::VirtualTotal do
 
     context "with order clauses in the relation" do
       before do
-        # Monkey patching VtAuthor for these specs
-        class VtAuthor < VitualTotalTestBase
+        # Monkey patching Author for these specs
+        class Author < VitualTotalTestBase
           has_many :recently_published_books, -> { published.order(:created_on => :desc) },
-                   :class_name => "VtBook", :foreign_key => "author_id"
+                   :class_name => "Book", :foreign_key => "author_id"
 
           virtual_total :total_recently_published_books, :recently_published_books
           virtual_aggregate :sum_recently_published_books_rating, :recently_published_books, :sum, :rating
@@ -99,43 +99,43 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "sorts by total" do
-        author2 = VtAuthor.create_with_books(2)
+        author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true, :rating => 5)
-        author0 = VtAuthor.create_with_books(0)
+        author0 = Author.create_with_books(0)
         author0.create_books(2, :published => true, :rating => 2)
-        author1 = VtAuthor.create_with_books(1)
+        author1 = Author.create_with_books(1)
 
-        expect(VtAuthor.order(:total_recently_published_books).pluck(:id))
+        expect(Author.order(:total_recently_published_books).pluck(:id))
           .to eq([author1, author2, author0].map(&:id))
-        expect(VtAuthor.order(:sum_recently_published_books_rating).pluck(:id))
+        expect(Author.order(:sum_recently_published_books_rating).pluck(:id))
           .to eq([author1, author0, author2].map(&:id))
       end
 
       it "calculates totals locally" do
-        author0 = VtAuthor.create_with_books(0)
+        author0 = Author.create_with_books(0)
         author0.create_books(2, :published => true, :rating => 2)
-        author2 = VtAuthor.create_with_books(2)
+        author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true, :rating => 5)
 
         expect do
-          expect(VtAuthor.find(author0.id).total_recently_published_books).to eq(2)
-          expect(VtAuthor.find(author0.id).sum_recently_published_books_rating).to eq(4)
-          expect(VtAuthor.find(author2.id).total_recently_published_books).to eq(1)
-          expect(VtAuthor.find(author2.id).sum_recently_published_books_rating).to eq(5)
+          expect(Author.find(author0.id).total_recently_published_books).to eq(2)
+          expect(Author.find(author0.id).sum_recently_published_books_rating).to eq(4)
+          expect(Author.find(author2.id).total_recently_published_books).to eq(1)
+          expect(Author.find(author2.id).sum_recently_published_books_rating).to eq(5)
         end.to match_query_limit_of(8)
       end
 
       it "can bring back totals in primary query" do
-        author3 = VtAuthor.create_with_books(3)
+        author3 = Author.create_with_books(3)
         author3.create_books(2, :published => true, :rating => 2)
-        author1 = VtAuthor.create_with_books(1)
+        author1 = Author.create_with_books(1)
         author1.create_books(3, :published => true, :rating => 1)
-        author2 = VtAuthor.create_with_books(2)
+        author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true, :rating => 5)
 
         expect do
           cols = %i(id total_recently_published_books sum_recently_published_books_rating)
-          author_query = VtAuthor.select(*cols).to_a
+          author_query = Author.select(*cols).to_a
           expect(author_query).to match_array([author3, author1, author2])
           expect(author_query.map(&:total_recently_published_books)).to match_array([2, 3, 1])
           expect(author_query.map(&:sum_recently_published_books_rating)).to match_array([4, 3, 5])
@@ -145,18 +145,18 @@ describe VirtualAttributes::VirtualTotal do
 
     context "with a special books class" do
       before do
-        class SpecialVtBook < VtBook
+        class SpecialBook < Book
           default_scope { where(:special => true) }
 
-          self.table_name = 'vt_books'
+          self.table_name = 'books'
         end
 
-        # Monkey patching VtAuthor for these specs
-        class VtAuthor < VitualTotalTestBase
+        # Monkey patching Author for these specs
+        class Author < VitualTotalTestBase
           has_many :special_books,
-                   :class_name => "SpecialVtBook", :foreign_key => "author_id"
+                   :class_name => "SpecialBook", :foreign_key => "author_id"
           has_many :published_special_books, -> { published },
-                   :class_name => "SpecialVtBook", :foreign_key => "author_id"
+                   :class_name => "SpecialBook", :foreign_key => "author_id"
 
           virtual_total :total_special_books, :special_books
           virtual_total :total_special_books_published, :published_special_books
@@ -164,50 +164,50 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       after do
-        Object.send(:remove_const, :SpecialVtBook)
+        Object.send(:remove_const, :SpecialBook)
       end
 
       context "with a has_many that includes a scope" do
         it "sorts by total" do
-          author2 = VtAuthor.create_with_books(2)
+          author2 = Author.create_with_books(2)
           author2.create_books(5, :special => true)
           author2.create_books(1, :special => true, :published => true)
-          author0 = VtAuthor.create_with_books(0)
+          author0 = Author.create_with_books(0)
           author0.create_books(2, :special => true)
           author0.create_books(2, :special => true, :published => true)
-          author1 = VtAuthor.create_with_books(1)
+          author1 = Author.create_with_books(1)
 
-          expect(VtAuthor.order(:total_special_books).pluck(:id))
+          expect(Author.order(:total_special_books).pluck(:id))
             .to eq([author1, author0, author2].map(&:id))
-          expect(VtAuthor.order(:total_special_books_published).pluck(:id))
+          expect(Author.order(:total_special_books_published).pluck(:id))
             .to eq([author1, author2, author0].map(&:id))
         end
 
         it "calculates totals locally" do
-          author0 = VtAuthor.create_with_books(0)
+          author0 = Author.create_with_books(0)
           author0.create_books(2, :special => true)
           author0.create_books(2, :special => true, :published => true)
-          author2 = VtAuthor.create_with_books(2)
+          author2 = Author.create_with_books(2)
           author2.create_books(5, :special => true)
           author2.create_books(1, :special => true, :published => true)
 
           expect do
-            expect(VtAuthor.find(author0.id).total_books).to eq(4)
-            expect(VtAuthor.find(author0.id).total_special_books).to eq(4)
-            expect(VtAuthor.find(author0.id).total_special_books_published).to eq(2)
-            expect(VtAuthor.find(author2.id).total_books).to eq(8)
-            expect(VtAuthor.find(author2.id).total_special_books).to eq(6)
-            expect(VtAuthor.find(author2.id).total_special_books_published).to eq(1)
+            expect(Author.find(author0.id).total_books).to eq(4)
+            expect(Author.find(author0.id).total_special_books).to eq(4)
+            expect(Author.find(author0.id).total_special_books_published).to eq(2)
+            expect(Author.find(author2.id).total_books).to eq(8)
+            expect(Author.find(author2.id).total_special_books).to eq(6)
+            expect(Author.find(author2.id).total_special_books_published).to eq(1)
           end.to match_query_limit_of(12)
         end
 
         it "can bring back totals in primary query" do
-          author3 = VtAuthor.create_with_books(3)
+          author3 = Author.create_with_books(3)
           author3.create_books(4, :published => true)
-          author1 = VtAuthor.create_with_books(1)
+          author1 = Author.create_with_books(1)
           author1.create_books(2, :special => true)
           author1.create_books(2, :special => true, :published => true)
-          author2 = VtAuthor.create_with_books(2)
+          author2 = Author.create_with_books(2)
           author2.create_books(5, :special => true)
           author2.create_books(1, :special => true, :published => true)
 
@@ -219,7 +219,7 @@ describe VirtualAttributes::VirtualTotal do
               total_special_books
               total_special_books_published
             )
-            author_query = VtAuthor.select(*cols).to_a
+            author_query = Author.select(*cols).to_a
             expect(author_query).to match_array([author3, author1, author2])
             expect(author_query.map(&:total_books)).to match_array([7, 5, 8])
             expect(author_query.map(&:total_books_published)).to match_array([4, 2, 1])
@@ -232,7 +232,7 @@ describe VirtualAttributes::VirtualTotal do
   end
 
   describe ".virtual_total (with real has_many relation ems#total_vms)" do
-    let(:base_model) { VtAuthor }
+    let(:base_model) { Author }
     it "sorts by total" do
       author0 = model_with_children(0)
       author2 = model_with_children(2)
@@ -260,12 +260,12 @@ describe VirtualAttributes::VirtualTotal do
     end
 
     def model_with_children(count)
-      VtAuthor.create_with_books(count)
+      Author.create_with_books(count)
     end
   end
 
   describe ".virtual_total (with virtual relation (Author#total_named_books)" do
-    let(:base_model) { VtAuthor }
+    let(:base_model) { Author }
     # it can not sort by virtual
 
     it "calculates totals locally" do
@@ -282,12 +282,12 @@ describe VirtualAttributes::VirtualTotal do
     end
 
     def model_with_children(count)
-      VtAuthor.create_with_books(count)
+      Author.create_with_books(count)
     end
   end
 
   describe ".virtual_total (with through relation (ems#total_storages)" do
-    let(:base_model) { VtAuthor }
+    let(:base_model) { Author }
 
     it "calculates totals locally" do
       expect(model_with_children(0).total_bookmarks).to eq(0)
@@ -313,7 +313,7 @@ describe VirtualAttributes::VirtualTotal do
   # sqlite works fine
   describe ".virtual_total (with real has_many relation and .order() in scope vm#provisioned_storage)" do
     context "with no hardware" do
-      let(:base_model) { VtAuthor }
+      let(:base_model) { Author }
 
       it "calculates totals locally" do
         expect(model_with_children(0).total_ordered_books).to eq(0)
@@ -331,7 +331,7 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       def model_with_children(count)
-        VtAuthor.create_with_books(count).reload
+        Author.create_with_books(count).reload
       end
     end
   end

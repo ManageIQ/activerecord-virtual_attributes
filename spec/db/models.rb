@@ -1,10 +1,3 @@
-class Sample < ActiveRecord::Base
-  def to_s
-    name
-  end
-end
-
-####
 # rubocop:disable Style/SingleLineMethods, Layout/EmptyLineBetweenDefs, Naming/AccessorMethodName
 class VitualTotalTestBase < ActiveRecord::Base
   self.abstract_class = true
@@ -12,14 +5,14 @@ class VitualTotalTestBase < ActiveRecord::Base
   include VirtualFields
 end
 
-class VtAuthor < VitualTotalTestBase
+class Author < VitualTotalTestBase
   def self.connection; VitualTotalTestBase.connection; end
 
-  has_many :books,                             :class_name => "VtBook", :foreign_key => "author_id"
-  has_many :ordered_books,   -> { ordered },   :class_name => "VtBook", :foreign_key => "author_id"
-  has_many :published_books, -> { published }, :class_name => "VtBook", :foreign_key => "author_id"
-  has_many :wip_books,       -> { wip },       :class_name => "VtBook", :foreign_key => "author_id"
-  has_many :bookmarks,                         :class_name => "VtBookmark", :through => :books
+  has_many :books,                             :class_name => "Book", :foreign_key => "author_id"
+  has_many :ordered_books,   -> { ordered },   :class_name => "Book", :foreign_key => "author_id"
+  has_many :published_books, -> { published }, :class_name => "Book", :foreign_key => "author_id"
+  has_many :wip_books,       -> { wip },       :class_name => "Book", :foreign_key => "author_id"
+  has_many :bookmarks,                         :class_name => "Bookmark", :through => :books
 
   virtual_total :total_books, :books
   virtual_total :total_books_published, :published_books
@@ -36,7 +29,7 @@ class VtAuthor < VitualTotalTestBase
     books.select { |b| b.name }
   end
 
-  virtual_has_many :named_books, :class_name => "VtBook"
+  virtual_has_many :named_books, :class_name => "Book"
   virtual_total :total_named_books, :named_books
   alias v_total_named_books total_named_books
 
@@ -58,16 +51,16 @@ class VtAuthor < VitualTotalTestBase
         :name   => "bar",
         :author => self,
       }.merge(create_attrs)
-      VtBook.create(attrs)
+      Book.create(attrs)
     end
   end
 end
 
-class VtBook < VitualTotalTestBase
+class Book < VitualTotalTestBase
   def self.connection; VitualTotalTestBase.connection end
 
-  has_many :bookmarks, :class_name => "VtBookmark", :foreign_key => "book_id"
-  belongs_to :author,  :class_name => "VtAuthor",   :foreign_key => "author_id"
+  has_many :bookmarks, :class_name => "Bookmark", :foreign_key => "book_id"
+  belongs_to :author,  :class_name => "Author",   :foreign_key => "author_id"
   scope :ordered,   -> { order(:created_on => :desc) }
   scope :published, -> { where(:published => true)  }
   scope :wip,       -> { where(:published => false) }
@@ -75,7 +68,7 @@ class VtBook < VitualTotalTestBase
   virtual_delegate :name, :to => :author, :prefix => true
 
   def self.create_with_bookmarks(count = 0)
-    a = VtAuthor.create(:name => "foo")
+    a = Author.create(:name => "foo")
     create!(:name => "book", :author => a).tap { |book| book.create_bookmarks(count) }
   end
 
@@ -85,14 +78,14 @@ class VtBook < VitualTotalTestBase
         :name   => "mark",
         :book   => self,
       }.merge(create_attrs)
-      VtBookmark.create(attrs)
+      Bookmark.create(attrs)
     end
   end
 end
 
-class VtBookmark < VitualTotalTestBase
+class Bookmark < VitualTotalTestBase
   def self.connection; VitualTotalTestBase.connection end
 
-  belongs_to :book, :class_name => "VtBook", :foreign_key => "book_id"
+  belongs_to :book, :class_name => "Book", :foreign_key => "book_id"
 end
 # rubocop:enable Style/SingleLineMethods, Layout/EmptyLineBetweenDefs, Naming/AccessorMethodName

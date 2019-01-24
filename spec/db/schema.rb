@@ -4,12 +4,12 @@ ActiveRecord::Schema.define(:version => 0) do
   self.verbose = false
 
   # tables for virtual totals
-  create_table "vt_authors", :force => true, :id => :integer do |t|
+  create_table "authors", :force => true, :id => :integer do |t|
     t.string   "name"
     t.string   "nickname"
   end
 
-  create_table "vt_books", :force => true, :id => :integer do |t|
+  create_table "books", :force => true, :id => :integer do |t|
     t.integer  "author_id"
     t.string   "name"
     t.boolean  "published", :default => false
@@ -17,15 +17,15 @@ ActiveRecord::Schema.define(:version => 0) do
     t.integer  "rating"
     t.datetime "created_on"
   end
-  #add_index "vt_books", "author_id"
-  add_foreign_key("vt_books", "vt_authors", :column => "author_id")
+  #add_index "books", "author_id"
+  add_foreign_key("books", "authors", :column => "author_id")
 
-  create_table "vt_bookmarks", :force => true, :id => :integer do |t|
+  create_table "bookmarks", :force => true, :id => :integer do |t|
     t.integer  "book_id"
     t.string   "name"
     t.datetime "created_on"
   end
-  #add_index "vt_bookmarks", "book_id"
-  add_foreign_key("vt_bookmarks", "vt_books", :column => "book_id")
+  #add_index "bookmarks", "book_id"
+  add_foreign_key("bookmarks", "books", :column => "book_id")
 end
 
