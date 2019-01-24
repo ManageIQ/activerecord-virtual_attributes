@@ -1,8 +1,11 @@
 # VirtualAttributes
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/virtual_attributes`. To experiment with that code, run `bin/console` for an interactive prompt.
+Sometimes you have a model with an attribute defined in ruby. But you want to sort by it or filter by it.
+Well, to filter by that attribute, you need to fetch all rows from the database and filter it in ruby.
+This allows you to also represent the attribute in sql so order and filters work.
 
-TODO: Delete this and the text above, and describe your gem
+This also allows you to calculate counts, to get rid of the N+1 problem of running a `count(*)` on a subcollection for
+each row
 
 ## Installation
 
@@ -32,7 +35,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/virtual_attributes.
+Bug reports and pull requests are welcome on GitHub at https://github.com/kbrock/virtual_attributes.
 
 ## License
 
