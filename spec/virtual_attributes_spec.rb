@@ -1,46 +1,5 @@
 describe VirtualFields do
-  context "TestClass" do
-    before do
-      class TestClassBase < ActiveRecord::Base
-        self.abstract_class = true
-
-        establish_connection :adapter => 'sqlite3', :database => ':memory:'
-
-        include VirtualFields
-      end
-
-      ActiveRecord::Schema.define do
-        def self.connection
-          TestClassBase.connection
-        end
-        def self.set_pk_sequence!(*); end
-        self.verbose = false
-
-        create_table :test_classes do |t|
-          t.integer :col1
-        end
-
-        create_table :test_other_classes do |t|
-          t.integer :ocol1
-          t.string  :ostr
-        end
-      end
-
-      require 'ostruct'
-      class TestClass < TestClassBase
-        def self.connection
-          TestClassBase.connection
-        end
-        belongs_to :ref1, :class_name => 'TestClass', :foreign_key => :col1
-      end
-    end
-
-    after do
-      TestClassBase.remove_connection
-      Object.send(:remove_const, :TestClass)
-      Object.send(:remove_const, :TestClassBase)
-    end
-
+  context "TestClass", :with_test_class do
     it "should not have any virtual columns" do
       expect(TestClass.virtual_attribute_names).to be_empty
 
@@ -1033,7 +992,7 @@ describe VirtualFields do
     end
   end
 
-  it "doesn't botch up the attributes" do
+  it "doesn't botch up the attributes", :with_test_class do
     tc = TestClass.select(:id, :str).find(TestClass.create(:str => "abc", :col1 => 55).id)
     expect(tc.attributes.size).to eq(2)
     tc.save

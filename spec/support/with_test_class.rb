@@ -1,0 +1,57 @@
+require 'active_record'
+
+##
+# Creates a database schema for the test, in memory, builds up models, and
+# removes them once finished.
+#
+# Example:
+#
+#  ```
+#  describe "Book#where", :with_test_class
+#  end
+#  ```
+#
+shared_context 'with test_class', :with_test_class do
+  before do
+    class TestClassBase < ActiveRecord::Base
+      self.abstract_class = true
+
+      establish_connection :adapter => 'sqlite3', :database => ':memory:'
+
+      include VirtualFields
+    end
+
+    ActiveRecord::Schema.define do
+      def self.connection ; TestClassBase.connection ; end
+      def self.set_pk_sequence!(*); end
+      self.verbose = false
+
+      create_table :test_classes, :id => :integer, :force => true do |t|
+        t.integer :col1
+        t.string  :str
+      end
+
+      create_table :test_other_classes, :id => :integer, :force => true do |t|
+        t.integer :ocol1
+        t.string  :ostr
+      end
+    end
+
+    require 'ostruct'
+    class TestClass < TestClassBase
+      def self.connection ; TestClassBase.connection ; end
+      belongs_to :ref1, :class_name => 'TestClass', :foreign_key => :col1
+    end
+  end
+
+  after do
+    TestClassBase.remove_connection
+    Object.send(:remove_const, :TestClass)
+    Object.send(:remove_const, :TestClassBase)
+  end
+end
+
+RSpec.configure do |rspec|
+  rspec.include_context 'with test_class',
+                        :with_test_class => true
+end
