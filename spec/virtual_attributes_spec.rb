@@ -609,7 +609,6 @@ describe VirtualFields do
         end
 
         after do
-          TestOtherClass.remove_connection
           Object.send(:remove_const, :TestOtherClass)
         end
 
@@ -638,7 +637,6 @@ describe VirtualFields do
         end
 
         after do
-          TestOtherClass.remove_connection
           Object.send(:remove_const, :TestOtherClass)
         end
 
@@ -771,7 +769,6 @@ describe VirtualFields do
       end
 
       after do
-        TestOtherClass.remove_connection
         Object.send(:remove_const, :TestOtherClass)
       end
 

@@ -6,8 +6,6 @@ class VitualTotalTestBase < ActiveRecord::Base
 end
 
 class Author < VitualTotalTestBase
-  def self.connection; VitualTotalTestBase.connection; end
-
   has_many :books,                             :class_name => "Book", :foreign_key => "author_id"
   has_many :ordered_books,   -> { ordered },   :class_name => "Book", :foreign_key => "author_id"
   has_many :published_books, -> { published }, :class_name => "Book", :foreign_key => "author_id"
@@ -57,8 +55,6 @@ class Author < VitualTotalTestBase
 end
 
 class Book < VitualTotalTestBase
-  def self.connection; VitualTotalTestBase.connection end
-
   has_many :bookmarks, :class_name => "Bookmark", :foreign_key => "book_id"
   belongs_to :author,  :class_name => "Author",   :foreign_key => "author_id"
   scope :ordered,   -> { order(:created_on => :desc) }
@@ -84,8 +80,6 @@ class Book < VitualTotalTestBase
 end
 
 class Bookmark < VitualTotalTestBase
-  def self.connection; VitualTotalTestBase.connection end
-
   belongs_to :book, :class_name => "Book", :foreign_key => "book_id"
 end
 # rubocop:enable Style/SingleLineMethods, Layout/EmptyLineBetweenDefs, Naming/AccessorMethodName

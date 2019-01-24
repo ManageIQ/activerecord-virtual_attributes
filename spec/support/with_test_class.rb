@@ -16,13 +16,10 @@ shared_context 'with test_class', :with_test_class do
     class TestClassBase < ActiveRecord::Base
       self.abstract_class = true
 
-      establish_connection :adapter => 'sqlite3', :database => ':memory:'
-
       include VirtualFields
     end
 
     ActiveRecord::Schema.define do
-      def self.connection ; TestClassBase.connection ; end
       def self.set_pk_sequence!(*); end
       self.verbose = false
 
@@ -39,13 +36,11 @@ shared_context 'with test_class', :with_test_class do
 
     require 'ostruct'
     class TestClass < TestClassBase
-      def self.connection ; TestClassBase.connection ; end
       belongs_to :ref1, :class_name => 'TestClass', :foreign_key => :col1
     end
   end
 
   after do
-    TestClassBase.remove_connection
     Object.send(:remove_const, :TestClass)
     Object.send(:remove_const, :TestClassBase)
   end
