@@ -3,20 +3,28 @@
 ActiveRecord::Schema.define(:version => 0) do
   self.verbose = false
 
-  create_table "samples", :force => true do |t|
-    t.string "name"
+  # tables for virtual totals
+  create_table "vt_authors", :force => true, :id => :integer do |t|
+    t.string   "name"
   end
 
-  add_index "samples", [:name], :unique => true
-#  add_index "label_hierarchies", [:ancestor_id, :descendant_id, :generations], :unique => true, :name => "lh_anc_desc_idx"
-#  add_foreign_key(:menu_item_hierarchies, :menu_items, :column => 'descendant_id')
-
-  create_table :test_classes, :force => true do |t|
-    t.integer :col1
+  create_table "vt_books", :force => true, :id => :integer do |t|
+    t.integer  "author_id"
+    t.string   "name"
+    t.boolean  "published", :default => false
+    t.boolean  "special",   :default => false
+    t.integer  "rating"
+    t.datetime "created_on"
   end
+  #add_index "vt_books", "author_id"
+  add_foreign_key("vt_books", "vt_authors", :column => "author_id")
 
-  create_table :test_other_classes, :force => true do |t|
-    t.integer :ocol1
-    t.string  :ostr
+  create_table "vt_bookmarks", :force => true, :id => :integer do |t|
+    t.integer  "book_id"
+    t.string   "name"
+    t.datetime "created_on"
   end
+  #add_index "vt_bookmarks", "book_id"
+  add_foreign_key("vt_bookmarks", "vt_books", :column => "book_id")
 end
+
