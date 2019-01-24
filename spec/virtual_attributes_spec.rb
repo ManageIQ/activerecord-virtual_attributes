@@ -100,49 +100,38 @@ describe VirtualFields do
         TestClass.virtual_column :vcol1, :type => :boolean, :arel => -> (t) { t[:vcol].lower }
         expect(TestClass.arel_attribute("vcol1").to_sql).to eq(%{LOWER("test_classes"."vcol")})
       end
-    end
 
-    context ".virtual_columns=" do
-      it "can have multiple virtual columns" do
+      it "can have multiple virtual columns defined by string or symbol" do
         TestClass.virtual_column :existing_vcol, :type => :string
-
-        {
-          :vcol1  => {:type => :string},
-          "vcol2" => {:type => :string},
-        }.each do |name, options|
-          TestClass.virtual_column name, options
-        end
+        TestClass.virtual_column :vcol1, :type => :string
+        TestClass.virtual_column "vcol2", :type => :string
 
         expect(TestClass.virtual_attribute_names).to match_array(%w(existing_vcol vcol1 vcol2))
       end
     end
 
     context ".virtual_attribute_names" do
-      it "has virtual attributes" do
+      it "has virtual attributes (string or symbol)" do
         TestClass.virtual_column :existing_vcol, :type => :string
+        TestClass.virtual_column :vcol1, :type => :string
+        TestClass.virtual_column "vcol2", :type => :string
 
-        {
-          :vcol1  => {:type => :string},
-          "vcol2" => {:type => :string},
-        }.each do |name, options|
-          TestClass.virtual_column name, options
-        end
-
-        expect(TestClass.virtual_attribute_names).to match_array(["existing_vcol", "vcol1", "vcol2"])
+        expect(TestClass.virtual_attribute_names).to match_array(%w(existing_vcol vcol1 vcol2))
       end
 
       it "does not have aliases" do
         TestClass.virtual_attribute :existing_vcol, :string
         TestClass.alias_attribute :col2, :col1
-        expect(TestClass.virtual_attribute_names).to match_array(["existing_vcol"])
+
+        expect(TestClass.virtual_attribute_names).not_to include("col2")
       end
 
       it "supports virtual_column aliases" do
         TestClass.virtual_attribute :existing_vcol, :string
-        TestClass.alias_attribute :col2, :col1
-        TestClass.virtual_attribute :col2, :integer
+        TestClass.alias_attribute :col3, :col1
+        TestClass.virtual_attribute :col3, :integer
 
-        expect(TestClass.virtual_attribute_names).to match_array(%w(existing_vcol col2))
+        expect(TestClass.virtual_attribute_names).to include("col3")
       end
     end
 
@@ -228,7 +217,7 @@ describe VirtualFields do
 
         @vcols_strs = ["vcol1", "vcol2"]
         @vcols_syms = [:vcol1, :vcol2]
-        @cols_strs  = @vcols_strs + ["id", "col1"]
+        @cols_strs  = @vcols_strs + ["id", "col1", "str"]
         @cols_syms  = @vcols_syms + [:id, :col1]
       end
 
@@ -244,7 +233,7 @@ describe VirtualFields do
           test_sub_class
           @vcols_sub_strs = @vcols_strs + ["vcolsub1"]
           @vcols_sub_syms = @vcols_syms + [:vcolsub1]
-          @cols_sub_strs  = @vcols_sub_strs + ["id", "col1"]
+          @cols_sub_strs  = @vcols_sub_strs + ["id", "col1", "str"]
           @cols_sub_syms  = @vcols_sub_syms + [:id, :col1]
         end
 
@@ -537,26 +526,26 @@ describe VirtualFields do
         expect(TestClass.attribute_supported_by_sql?(:bogus_junk)).to be_falsey
       end
 
-      it "supports on an aaar class" do
-        c = Class.new(ActsAsArModel)
+      # it "supports on an aaar class" do
+      #   c = Class.new(ActsAsArModel)
 
-        expect(c.attribute_supported_by_sql?(:col)).to eq(false)
-      end
+      #   expect(c.attribute_supported_by_sql?(:col)).to eq(false)
+      # end
     end
 
     describe ".virtual_delegate" do
       # double purposing col1. It has an actual value in the child class
-      let(:parent) { TestClass.create(:id => 1, :col1 => 4) }
+      let(:parent) { TestClass.create(:col1 => 4) }
 
       it "delegates to parent" do
         TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
-        tc = TestClass.new(:id => 2, :ref1 => parent)
+        tc = TestClass.new(:ref1 => parent)
         expect(tc.parent_col1).to eq(4)
       end
 
       it "delegates to nil parent" do
         TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true
-        tc = TestClass.new(:id => 2)
+        tc = TestClass.new
         expect(tc.parent_col1).to be_nil
       end
 
@@ -567,7 +556,7 @@ describe VirtualFields do
 
       it "delegates to parent (sql)" do
         TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
-        TestClass.create(:id => 2, :ref1 => parent)
+        TestClass.create(:ref1 => parent)
         tcs = TestClass.all.select(:id, :col1, TestClass.arel_attribute(:parent_col1).as("x"))
         expect(tcs.map(&:x)).to match_array([nil, 4])
       end
@@ -577,17 +566,17 @@ describe VirtualFields do
           TestClass.has_one :ref2, :class_name => 'TestClass', :foreign_key => :col1, :inverse_of => :ref1
         end
         # child.col1 will be getting parent's (aka tc's) id
-        let(:child) { TestClass.create(:id => 1) }
+        let(:child) { TestClass.create }
 
         it "delegates to child" do
           TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
-          tc = TestClass.create(:id => 2, :ref2 => child)
-          expect(tc.child_col1).to eq(2)
+          tc = TestClass.create(:ref2 => child)
+          expect(tc.child_col1).to eq(tc.id)
         end
 
         it "delegates to nil child" do
           TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :allow_nil => true
-          tc = TestClass.new(:id => 2)
+          tc = TestClass.new
           expect(tc.child_col1).to be_nil
         end
 
@@ -598,9 +587,9 @@ describe VirtualFields do
 
         it "delegates to child (sql)" do
           TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
-          TestClass.create(:id => 2, :ref2 => child)
+          tc = TestClass.create(:ref2 => child)
           tcs = TestClass.all.select(:id, :col1, :child_col1).to_a
-          expect { expect(tcs.map(&:child_col1)).to match_array([nil, 2]) }.to match_query_limit_of(0)
+          expect { expect(tcs.map(&:child_col1)).to match_array([nil, tc.id]) }.to match_query_limit_of(0)
         end
 
         # this may fail in the future as our way of building queries may change
@@ -612,19 +601,68 @@ describe VirtualFields do
         end
       end
 
-      context "with has_many and select" do
+      context "with self join has_one and select" do
         before do
           TestClass.has_one :ref2, -> { select(:col1) }, :class_name => 'TestClass', :foreign_key => :col1
         end
         # child.col1 will be getting parent's (aka tc's) id
-        let(:child) { TestClass.create(:id => 1) }
+        let(:child) { TestClass.create }
 
         # ensure virtual attribute referencing a relation with a select()
         # does not throw an exception due to multi-column select
         it "properly generates sub select" do
           TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
-          TestClass.create(:id => 2, :ref2 => child)
-          expect { TestClass.all.select(:id, :col1, :child_col1).to_a }.to_not raise_error
+          TestClass.create(:ref2 => child)
+          expect { TestClass.all.select(:id, :child_col1).to_a }.to_not raise_error
+        end
+      end
+
+      context "with self join has_one and order (self join)" do
+        before do
+          # TODO: , -> { order(:col1) }
+          TestClass.has_one :ref2, :class_name => 'TestClass', :foreign_key => :col1
+        end
+        # child.col1 will be getting parent's (aka tc's) id
+        let(:child) { TestClass.create }
+
+        # ensure virtual attribute referencing a relation with a select()
+        # does not throw an exception due to multi-column select
+        it "properly generates sub select" do
+          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+          TestClass.create(:ref2 => child)
+          expect { TestClass.all.select(:id, :child_col1).to_a }.to_not raise_error
+        end
+      end
+
+      context "with has_one and order (and many records)" do
+        before do
+          class TestOtherClass < ActiveRecord::Base # OperatingSystem (child)
+            def self.connection
+              TestClassBase.connection
+            end
+            belongs_to :parent, :class_name => 'TestClass', :foreign_key => :ocol1
+
+            include VirtualFields
+          end
+          # TODO: -> { order(:col1) }
+          TestClass.has_one :child, :class_name => 'TestOtherClass', :foreign_key => :ocol1
+          TestClass.virtual_delegate :child_str, :to => "child.ostr"
+        end
+
+        after do
+          TestOtherClass.remove_connection
+          Object.send(:remove_const, :TestOtherClass)
+        end
+
+        # ensure virtual attribute referencing a relation with has_one and order()
+        # works properly
+        it "properly generates sub select" do
+          parent = TestClass.create(:str => "p")
+          child1 = TestOtherClass.create(:parent => parent, :ostr => "c1")
+          TestOtherClass.create(:parent => parent, :ostr => "c2")
+
+          puts TestClass.select(:id, :child_str).to_sql
+          expect(TestClass.select(:id, :child_str).find_by(:id => parent.id).child_str).to eq(child1.ostr)
         end
       end
 
@@ -638,25 +676,17 @@ describe VirtualFields do
 
             include VirtualFields
           end
-
-          class CompSys < ComputerSystem
-            has_one :first_os, -> { order(:name) },
-                    :class_name  => "OperatingSystem",
-                    :foreign_key => "computer_system_id",
-                    :dependent   => :destroy
-          end
         end
 
         after do
           TestOtherClass.remove_connection
           Object.send(:remove_const, :TestOtherClass)
-          Object.send(:remove_const, :CompSys)
         end
 
         it "delegates to another table" do
           TestOtherClass.virtual_delegate :col1, :to => :oref1
-          TestOtherClass.create(:id => 4, :oref1 => TestClass.create(:id => 3))
-          TestOtherClass.create(:id => 3, :oref1 => TestClass.create(:id => 2, :col1 => 99))
+          TestOtherClass.create(:oref1 => TestClass.create)
+          TestOtherClass.create(:oref1 => TestClass.create(:col1 => 99))
           tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x"))
           expect(tcs.map(&:x)).to match_array([nil, 99])
         end
@@ -667,15 +697,6 @@ describe VirtualFields do
           TestOtherClass.virtual_delegate :col1, :to => :oref1
           sql = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x")).to_sql
           expect(sql).to match(/"test_classes"."col1"/i)
-        end
-
-        it "delegates has_one relationships with limit 1" do
-          CompSys.virtual_delegate :first_os_name, :to => 'first_os.name'
-          comp_sys = CompSys.create!
-          OperatingSystem.create(:name => "foo", :computer_system_id => comp_sys.id)
-          OperatingSystem.create(:name => "bar", :computer_system_id => comp_sys.id)
-          query = CompSys.all.select(:id, :first_os_name)
-          expect(query.map(&:first_os_name)).to match_array(["bar"])
         end
       end
     end
@@ -755,7 +776,7 @@ describe VirtualFields do
           end
         end
 
-        TestClass.create(:id => 2, :col1 => 20)
+        TestClass.create(:col1 => 20)
         expect(TestClass.select(:col2).first[:col2]).to eq(20)
       end
 
@@ -774,35 +795,51 @@ describe VirtualFields do
           end
         end
 
-        TestClass.create(:id => 2, :col1 => 20)
+        TestClass.create(:col1 => 20)
         expect(TestClass.select(:col2).first[:col2]).to eq(20)
       end
 
-      it "supports #includes with #references" do
-        vm           = FactoryBot.create :vm_vmware
-        table        = Vm.arel_table
-        dash         = Arel::Nodes::SqlLiteral.new("'-'")
-        name_dash_id = Arel::Nodes::NamedFunction.new("CONCAT", [table[:name], dash, table[:id]])
-                                                 .as("name_dash_id")
-        result       = Vm.select(name_dash_id).includes(:tags => {}).references(:tags => {})
+      before do
+        class TestOtherClass < ActiveRecord::Base # OperatingSystem (child)
+          def self.connection
+            TestClassBase.connection
+          end
+          belongs_to :parent, :class_name => 'TestClass', :foreign_key => :ocol1
 
-        expect(result.first.attributes["name_dash_id"]).to eq("#{vm.name}-#{vm.id}")
+          include VirtualFields
+        end
+        TestClass.has_many :children, :class_name => 'TestOtherClass', :foreign_key => :ocol1
+      end
+
+      after do
+        TestOtherClass.remove_connection
+        Object.send(:remove_const, :TestOtherClass)
+      end
+
+      it "supports #includes with #references" do
+        vm     = TestClass.create
+        klass  = vm.class
+        table  = klass.arel_table
+        str_id = Arel::Nodes::NamedFunction.new("CAST", [table[:id].as("varchar")]).as("str_id")
+        result = klass.select(str_id).includes(:children => {}).references(:children => {})
+
+        expect(result.first.attributes["str_id"]).to eq(vm.id.to_s)
       end
     end
 
     describe ".virtual_delegate" do
       # double purposing col1. It has an actual value in the child class
-      let(:parent) { TestClass.create(:id => 1, :col1 => 4) }
+      let(:parent) { TestClass.create(:col1 => 4) }
 
       it "delegates to child" do
         TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
-        tc = TestClass.new(:id => 2, :ref1 => parent)
+        tc = TestClass.new(:ref1 => parent)
         expect(tc.parent_col1).to eq(4)
       end
 
       it "delegates to nil child" do
         TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true
-        tc = TestClass.new(:id => 2)
+        tc = TestClass.new
         expect(tc.parent_col1).to be_nil
       end
 
@@ -813,25 +850,25 @@ describe VirtualFields do
 
       it "defines with a new name" do
         TestClass.virtual_delegate 'funky_name', :to => "ref1.col1"
-        tc = TestClass.new(:id => 2, :ref1 => parent)
+        tc = TestClass.new(:ref1 => parent)
         expect(tc.funky_name).to eq(4)
       end
 
       it "defaults for to nil child (array)" do
         TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => []
-        tc = TestClass.new(:id => 2)
+        tc = TestClass.new
         expect(tc.parent_col1).to eq([])
       end
 
       it "defaults for to nil child (integer)" do
         TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => 0
-        tc = TestClass.new(:id => 2)
+        tc = TestClass.new
         expect(tc.parent_col1).to eq(0)
       end
 
       it "defaults for to nil child (string)" do
         TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => "def"
-        tc = TestClass.new(:id => 2)
+        tc = TestClass.new
         expect(tc.parent_col1).to eq("def")
       end
     end
@@ -845,9 +882,9 @@ describe VirtualFields do
           end
         end
 
-        TestClass.create(:id => 1, :col1 => nil)
-        TestClass.create(:id => 2, :col1 => 20)
-        TestClass.create(:id => 3, :col1 => 30)
+        TestClass.create(:col1 => nil)
+        TestClass.create(:col1 => 20)
+        TestClass.create(:col1 => 30)
 
         expect(TestClass.sum(:col2)).to eq(50)
       end
@@ -995,43 +1032,11 @@ describe VirtualFields do
       expect { Vm.includes([:platform, :host]).references(:host).where("hosts.id IS NOT NULL").count }.not_to raise_error
     end
   end
-end
 
-describe "ActiveRecord attributes" do
   it "doesn't botch up the attributes" do
-    hardware = Hardware.select(:id, :model).find(FactoryBot.create(:hardware).id)
-    expect(hardware.attributes.size).to eq(2)
-    hardware.save
-    expect(hardware.attributes.size).to eq(2)
-  end
-end
-
-describe "ApplicationRecord class" do
-  describe ".virtual_attribute_names" do
-    it "class immediately under ApplicationRecord" do
-      result = Host.virtual_attribute_names
-      expect(result).to include("region_number")
-      expect(result.count("region_number")).to eq(1)
-    end
-
-    it "class not immediately under ApplicationRecord" do
-      result = MiqTemplate.virtual_attribute_names
-      expect(result).to include("region_number")
-      expect(result.count("region_number")).to eq(1)
-    end
-  end
-
-  describe ".attribute_names" do
-    it "class immediately under ApplicationRecord" do
-      result = ExtManagementSystem.attribute_names
-      expect(result).to include("region_number")
-      expect(result.count("region_number")).to eq(1)
-    end
-
-    it "class not immediately under ApplicationRecord" do
-      result = EmsCloud.attribute_names
-      expect(result).to include("region_number")
-      expect(result.count("region_number")).to eq(1)
-    end
+    tc = TestClass.select(:id, :str).find(TestClass.create(:str => "abc", :col1 => 55).id)
+    expect(tc.attributes.size).to eq(2)
+    tc.save
+    expect(tc.attributes.size).to eq(2)
   end
 end
