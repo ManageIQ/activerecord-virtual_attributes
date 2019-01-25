@@ -97,7 +97,6 @@ describe VirtualAttributes::VirtualTotal do
 
         expect(Author.order(:total_recently_published_books).pluck(:id))
           .to eq([author1, author2, author0].map(&:id))
-        puts Author.order(:sum_recently_published_books_rating).to_sql
         expect(Author.order(:sum_recently_published_books_rating).pluck(:id))
           .to eq([author1, author0, author2].map(&:id))
       end

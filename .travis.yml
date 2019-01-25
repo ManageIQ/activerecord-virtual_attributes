@@ -5,17 +5,23 @@ language: ruby
 #  bundler: true
 rvm:
   - 2.4.1
-#  - 2.4
 #  - 2.5
 
-gemfile:
-  - gemfiles/virtual_attributes_50.gemfile
-
-
-before_script:
-  - sh -c "if [ '$DB' = 'pg' ]; then travis_setup_postgresql ; psql -c 'DROP DATABASE IF EXISTS virtual_attributes; CREATE DATABASE virtual_attributes;'; fi"
-  - sh -c "if [ '$DB' = 'mysql2' ]; then mysql -e 'CREATE DATABASE IF NOT EXISTS virtual_attributes;'; fi"
+services:
+ - postgresql
+ - mysql
 
 env:
   - DB=sqlite3
   - DB=pg
+  - DB=mysql2
+
+gemfile:
+  - gemfiles/virtual_attributes_50.gemfile
+#  - gemfiles/virtual_attributes_51.gemfile
+#  - gemfiles/virtual_attributes_52.gemfile
+
+
+before_script:
+  - sh -c "if [ '$DB' = 'pg' ]; then psql -c 'DROP DATABASE IF EXISTS virtual_attributes;' ; psql -c ' CREATE DATABASE virtual_attributes;' ; fi"
+  - sh -c "if [ '$DB' = 'mysql2' ]; then mysql -e 'DROP DATABASE IF EXISTS virtual_attributes; CREATE DATABASE virtual_attributes;'; fi"

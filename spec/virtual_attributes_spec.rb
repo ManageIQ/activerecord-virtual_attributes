@@ -57,7 +57,7 @@ describe VirtualFields do
 
       it "with arel" do
         TestClass.virtual_column :vcol1, :type => :boolean, :arel => -> (t) { t[:vcol].lower }
-        expect(TestClass.arel_attribute("vcol1").to_sql).to eq(%{LOWER("test_classes"."vcol")})
+        expect(TestClass.arel_attribute("vcol1").to_sql).to match(/LOWER\(["`]test_classes["`].["`]vcol["`]\)/)
       end
 
       it "can have multiple virtual columns defined by string or symbol" do
@@ -556,7 +556,7 @@ describe VirtualFields do
         it "uses table alias for subquery" do
           TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
           sql = TestClass.all.select(:id, :col1, :child_col1).to_sql
-          expect(sql).to match(/"test_classes_[^"]*"."col1"/i)
+          expect(sql).to match(/["`]test_classes_[^"`]*["`][.]["`]col1["`]/i)
         end
       end
 
@@ -619,7 +619,6 @@ describe VirtualFields do
           child1 = TestOtherClass.create(:parent => parent, :ostr => "c1")
           TestOtherClass.create(:parent => parent, :ostr => "c2")
 
-          puts TestClass.select(:id, :child_str).to_sql
           expect(TestClass.select(:id, :child_str).find_by(:id => parent.id).child_str).to eq(child1.ostr)
         end
       end
@@ -653,7 +652,7 @@ describe VirtualFields do
         it "delegates to another table without alias" do
           TestOtherClass.virtual_delegate :col1, :to => :oref1
           sql = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x")).to_sql
-          expect(sql).to match(/"test_classes"."col1"/i)
+          expect(sql).to match(/["`]test_classes["`].["`]col1["`]/i)
         end
       end
     end
@@ -776,7 +775,7 @@ describe VirtualFields do
         vm     = TestClass.create
         klass  = vm.class
         table  = klass.arel_table
-        str_id = Arel::Nodes::NamedFunction.new("CAST", [table[:id].as("varchar")]).as("str_id")
+        str_id = Arel::Nodes::NamedFunction.new("CAST", [table[:id].as("CHAR")]).as("str_id")
         result = klass.select(str_id).includes(:children => {}).references(:children => {})
 
         expect(result.first.attributes["str_id"]).to eq(vm.id.to_s)

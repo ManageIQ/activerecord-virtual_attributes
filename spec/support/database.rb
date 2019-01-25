@@ -12,8 +12,10 @@ class Database
   end
 
   def setup
-    I18n.enforce_available_locales = false if defined?(I18n) && I18n.respond_to?(:enforce_available_locales=)
-
+    if defined?(I18n)
+      I18n.enforce_available_locales = false  if I18n.respond_to?(:enforce_available_locales=)
+      #I18n.fallbacks = [I18n.default_locale] if I18n.respond_to?(:fallbacks=)
+    end
     log = Logger.new(STDERR)
     # log = Logger.new('db.log')
     # log.sev_threshold = Logger::DEBUG
