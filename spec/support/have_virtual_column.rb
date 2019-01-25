@@ -1,3 +1,5 @@
+# TODO: expose this to classes that include this gem
+
 RSpec::Matchers.define :have_virtual_column do |name, type|
   match do |klass|
     expect(klass.has_attribute?(name)).to be_truthy

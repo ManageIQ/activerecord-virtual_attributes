@@ -21,6 +21,12 @@ class Author < VitualTotalTestBase
   virtual_total :total_bookmarks, :bookmarks
   alias v_total_bookmarks total_bookmarks
 
+  has_many :recently_published_books, -> { published.order(:created_on => :desc) },
+           :class_name => "Book", :foreign_key => "author_id"
+
+  virtual_total :total_recently_published_books, :recently_published_books
+  virtual_aggregate :sum_recently_published_books_rating, :recently_published_books, :sum, :rating
+
   # virtual_total using a virtual_has_many
   def named_books
     # I didn't have the creativity needed to find a good ruby only check here

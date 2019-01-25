@@ -23,12 +23,12 @@ shared_context 'with test_class', :with_test_class do
       def self.set_pk_sequence!(*); end
       self.verbose = false
 
-      create_table :test_classes, :id => :integer, :force => true do |t|
+      create_table :test_classes, :force => true do |t|
         t.integer :col1
         t.string  :str
       end
 
-      create_table :test_other_classes, :id => :integer, :force => true do |t|
+      create_table :test_other_classes, :force => true do |t|
         t.integer :ocol1
         t.string  :ostr
       end
