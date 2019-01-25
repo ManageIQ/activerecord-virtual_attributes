@@ -176,7 +176,7 @@ module ActiveRecord
       end
     end
 
-    include Module.new {
+    include(Module.new {
       # From ActiveRecord::FinderMethods
       def find_with_associations
         real = without_virtual_includes
@@ -221,6 +221,6 @@ module ActiveRecord
 
         real.calculate(operation, attribute_name)
       end
-    }
+    })
   end
 end
