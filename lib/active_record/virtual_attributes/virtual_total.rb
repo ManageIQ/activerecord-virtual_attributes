@@ -110,7 +110,11 @@ module VirtualAttributes
 
           foreign_table = reflection.klass.arel_table
           # need db access for the keys, so delaying all this lookup until call time
-          join_keys = reflection.join_keys(reflection.klass)
+          if ActiveRecord.version.to_s >= "5.1"
+            join_keys = reflection.join_keys
+          else
+            join_keys = reflection.join_keys(reflection.klass)
+          end
           query       = query.where(t[join_keys.foreign_key].eq(foreign_table[join_keys.key]))
 
           arel_column = if method_name == :size

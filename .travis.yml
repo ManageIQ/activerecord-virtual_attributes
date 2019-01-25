@@ -18,7 +18,7 @@ env:
 
 gemfile:
   - gemfiles/virtual_attributes_50.gemfile
-#  - gemfiles/virtual_attributes_51.gemfile
+  - gemfiles/virtual_attributes_51.gemfile
 #  - gemfiles/virtual_attributes_52.gemfile
 
 
