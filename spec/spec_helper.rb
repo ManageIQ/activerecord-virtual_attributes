@@ -2,6 +2,8 @@ $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../lib')
 
 require "bundler/setup"
 require "virtual_attributes"
+require "virtual_attributes/rspec"
+
 Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
 
 RSpec.configure do |config|
