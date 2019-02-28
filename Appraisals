@@ -3,7 +3,7 @@
   appraise "#{db_gem}-#{ar_version.split('.').first(2).join}" do
     gem "activerecord", "~> #{ar_version}"
 
-    if ar_version >= "5.0"
+    if ar_version >= "5.1"
       gem "pg"
       gem "mysql2"
       gem "sqlite3"
