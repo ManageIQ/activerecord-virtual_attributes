@@ -784,5 +784,5 @@ module ActiveRecord
   end
 end
 
-require "virtual_attributes/virtual_total"
-require "virtual_attributes/arel_groups"
+require "active_record/virtual_attributes/virtual_total"
+require "active_record/virtual_attributes/arel_groups"

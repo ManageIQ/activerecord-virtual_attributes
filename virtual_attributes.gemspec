@@ -1,6 +1,6 @@
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.push(lib) unless $LOAD_PATH.include?(lib)
-require "virtual_attributes/version"
+require "active_record/virtual_attributes/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "virtual_attributes"
