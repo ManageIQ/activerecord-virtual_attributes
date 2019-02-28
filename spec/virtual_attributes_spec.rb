@@ -1,4 +1,4 @@
-describe VirtualFields do
+describe ActiveRecord::VirtualAttributes::VirtualFields do
   context "TestClass", :with_test_class do
     it "should not have any virtual columns" do
       expect(TestClass.virtual_attribute_names).to be_empty
@@ -29,19 +29,19 @@ describe VirtualFields do
 
       it "with symbol type" do
         TestClass.virtual_column :vcol1, :type => :symbol
-        expect(TestClass.type_for_attribute("vcol1")).to be_kind_of(VirtualAttributes::Type::Symbol)
+        expect(TestClass.type_for_attribute("vcol1")).to be_kind_of(ActiveRecord::VirtualAttributes::Type::Symbol)
         expect(TestClass.type_for_attribute("vcol1").type).to eq(:symbol)
       end
 
       it "with string_set type" do
         TestClass.virtual_column :vcol1, :type => :string_set
-        expect(TestClass.type_for_attribute("vcol1")).to be_kind_of(VirtualAttributes::Type::StringSet)
+        expect(TestClass.type_for_attribute("vcol1")).to be_kind_of(ActiveRecord::VirtualAttributes::Type::StringSet)
         expect(TestClass.type_for_attribute("vcol1").type).to eq(:string_set)
       end
 
       it "with numeric_set type" do
         TestClass.virtual_column :vcol1, :type => :numeric_set
-        expect(TestClass.type_for_attribute("vcol1")).to be_kind_of(VirtualAttributes::Type::NumericSet)
+        expect(TestClass.type_for_attribute("vcol1")).to be_kind_of(ActiveRecord::VirtualAttributes::Type::NumericSet)
         expect(TestClass.type_for_attribute("vcol1").type).to eq(:numeric_set)
       end
 
