@@ -126,6 +126,7 @@ require "active_record/virtual_attributes/virtual_fields"
 #
 
 # this patch is no longer necessary for 5.2
+if ActiveRecord.version.to_s < "5.2"
 require "active_record/attribute"
 module ActiveRecord
   # This is a bug in rails 5.0 and 5.1, but it is made much worse by virtual attributes
@@ -135,6 +136,7 @@ module ActiveRecord
       initialized? ? self.class.from_database(name, value, type) : self
     end
   end
+end
 end
 
 require "active_record/virtual_attributes/virtual_total"
