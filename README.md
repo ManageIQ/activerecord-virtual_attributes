@@ -1,18 +1,22 @@
 # VirtualAttributes
 
-Sometimes you have a model with an attribute defined in ruby. But you want to sort by it or filter by it.
-Well, to filter by that attribute, you need to fetch all rows from the database and filter it in ruby.
-This allows you to also represent the attribute in sql so order and filters work.
+This allows you to define a ruby method that acts like an attribute or relation.
 
-This also allows you to calculate counts, to get rid of the N+1 problem of running a `count(*)` on a subcollection for
-each row
+Sometimes you have a model with an attribute defined in ruby, but you want to sort by it or filter by it.
+Well, to filter by that attribute, you need to fetch all the rows from the database and filter it in ruby.
+For large tables, this is slow and takes up a lot of memory
+
+This gem allows you to represent these attribute in sql so `ORDER BY` `WHERE` claues work work.
+
+This gem also allows you to calculate counts, and treat those counts as a field accessible with `select(:child_count)`
+to get rid of the N+1 problem of running a `count(*)` on a subcollection for each row.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'virtual_attributes'
+gem 'active_record-virtual_attributes'
 ```
 
 And then execute:
@@ -21,7 +25,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install virtual_attributes
+    $ gem install active_record-virtual_attributes
 
 ## Usage
 
@@ -35,7 +39,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/kbrock/virtual_attributes.
+Bug reports and pull requests are welcome on GitHub at https://github.com/kbrock/active_record-virtual_attributes .
 
 ## License
 
