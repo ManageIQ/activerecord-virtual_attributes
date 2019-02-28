@@ -1,5 +1,11 @@
 module ActiveRecord
   module VirtualAttributes
+    # VirtualDelegate is the same as delegate, but adds sql support, and a default when a value is not found
+    #
+    # Model.belongs_to :association
+    # Model.virtual_delegate :field1, :field2, to: :association
+    #
+    # Model.select(:field1) # now works
     module VirtualDelegates
       extend ActiveSupport::Concern
 

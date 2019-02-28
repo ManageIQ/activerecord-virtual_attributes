@@ -1,5 +1,14 @@
 module ActiveRecord
   module VirtualAttributes
+    # VirtualArel associates arel with an attribute
+    #
+    # Model.virtual_attribute :field, :string, :arel => -> (t) { t.grouping(t[:field2]) } }
+    # Model.select(:field)
+    #
+    # is equivalent to:
+    #
+    # Model.select(Model.arel_table.grouping(Model.arel_table[:field2]).as(:field))
+    # Model.attribute_supported_by_sql?(:field) # => true
     module VirtualArel
       extend ActiveSupport::Concern
 

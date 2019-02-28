@@ -1,5 +1,13 @@
 module ActiveRecord
   module VirtualAttributes
+    # VirtualIncludes associates an includes with an attribute
+    #
+    # Model.virtual_attribute :field, :string, :includes => :table
+    # Model.includes(:field)
+    #
+    # is equivalent to:
+    #
+    # Model.includes(:table)
     module VirtualIncludes
       extend ActiveSupport::Concern
 
