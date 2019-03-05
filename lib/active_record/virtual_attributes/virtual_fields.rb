@@ -86,7 +86,7 @@ module ActiveRecord
     # rubocop:disable Style/BlockDelimiters, Layout/SpaceAfterComma, Style/HashSyntax
     # rubocop:disable Layout/AlignHash, Metrics/AbcSize, Metrics/MethodLength
     class JoinDependency
-      def instantiate(result_set, aliases)
+      def instantiate(result_set, *_, &block)
         primary_key = aliases.column_alias(join_root, join_root.primary_key)
 
         seen = Hash.new { |i, object_id|
@@ -154,7 +154,7 @@ module ActiveRecord
         message_bus.instrument('instantiation.active_record', payload) do
           result_set.each { |row_hash|
             parent_key = primary_key ? row_hash[primary_key] : row_hash
-            parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases)
+            parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, &block)
             construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
           }
         end
@@ -176,15 +176,23 @@ module ActiveRecord
       end
     end
 
-    include Module.new {
+    include(Module.new {
       # From ActiveRecord::FinderMethods
       def find_with_associations
         real = without_virtual_includes
         return super if real.equal?(self)
 
-        recs = real.find_with_associations
+        if ActiveRecord.version.to_s >= "5.1"
+          recs, join_dep = real.find_with_associations { |relation, join_dependency| [relation, join_dependency] }
+        else
+          recs = real.find_with_associations
+        end
         MiqPreloader.preload(recs, preload_values + includes_values) if includes_values
 
+        # when 5.0 support is dropped, assume a block given
+        if block_given?
+          yield recs, join_dep
+        end
         recs
       end
 
@@ -221,6 +229,6 @@ module ActiveRecord
 
         real.calculate(operation, attribute_name)
       end
-    }
+    })
   end
 end
