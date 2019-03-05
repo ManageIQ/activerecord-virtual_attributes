@@ -6,7 +6,7 @@ Sometimes you have a model with an attribute defined in ruby, but you want to so
 Well, to filter by that attribute, you need to fetch all the rows from the database and filter it in ruby.
 For large tables, this is slow and takes up a lot of memory
 
-This gem allows you to represent these attribute in sql so `ORDER BY` `WHERE` claues work work.
+This gem allows you to represent these attribute in sql so `ORDER BY` `WHERE` clauses will work.
 
 This gem also allows you to calculate counts, and treat those counts as a field accessible with `select(:child_count)`
 to get rid of the N+1 problem of running a `count(*)` on a subcollection for each row.
@@ -16,7 +16,7 @@ to get rid of the N+1 problem of running a `count(*)` on a subcollection for eac
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'active_record-virtual_attributes'
+gem 'activerecord-virtual_attributes'
 ```
 
 And then execute:
@@ -25,7 +25,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install active_record-virtual_attributes
+    $ gem install activerecord-virtual_attributes
 
 ## Usage
 
@@ -39,7 +39,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/kbrock/active_record-virtual_attributes .
+Bug reports and pull requests are welcome on GitHub at https://github.com/ManageIQ/activerecord-virtual_attributes .
 
 ## License
 
