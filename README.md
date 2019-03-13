@@ -1,5 +1,10 @@
 # VirtualAttributes
 
+[![Build Status](https://travis-ci.org/ManageIQ/activerecord-virtual_attributes.svg?branch=master)](https://travis-ci.org/ManageIQ/activerecord-virtual_attributes)
+[![Maintainability](https://api.codeclimate.com/v1/badges/e1a0c26941c00f4edb55/maintainability)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/e1a0c26941c00f4edb55/test_coverage)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/test_coverage)
+[![Security](https://hakiri.io/github/ManageIQ/activerecord-virtual_attributes/master.svg)](https://hakiri.io/github/ManageIQ/activerecord-virtual_attributes/master)
+
 This allows you to define a ruby method that acts like an attribute or relation.
 
 Sometimes you have a model with an attribute defined in ruby, but you want to sort by it or filter by it.
@@ -43,4 +48,5 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/Manage
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+This project is available as open source under the terms of the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+

@@ -1,3 +1,8 @@
+if ENV['CI']
+  require 'simplecov'
+  SimpleCov.start
+end
+
 $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../lib')
 
 require "bundler/setup"
