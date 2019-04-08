@@ -100,14 +100,6 @@ module VirtualAttributes
                     reflection.klass.all
                   end
 
-          # ordering will probably screw up aggregations, so clear this out from
-          # any calls
-          #
-          # only clear this out if this isn't a `:size` call as well, since doing
-          # a COUNT(*) will allow any ORDER BY to still work properly.  This is
-          # to avoid any possible edge cases by clearing out the order clause.
-          query.order_values = [] if method_name != :size
-
           foreign_table = reflection.klass.arel_table
           # need db access for the keys, so delaying all this lookup until call time
           if ActiveRecord.version.to_s >= "5.1"
@@ -115,7 +107,7 @@ module VirtualAttributes
           else
             join_keys = reflection.join_keys(reflection.klass)
           end
-          query       = query.where(t[join_keys.foreign_key].eq(foreign_table[join_keys.key]))
+          query       = query.except(:order).where(t[join_keys.foreign_key].eq(foreign_table[join_keys.key]))
 
           arel_column = if method_name == :size
                           Arel.star.count
