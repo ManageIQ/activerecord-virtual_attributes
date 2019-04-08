@@ -58,7 +58,7 @@ module ActiveRecord
 
   module Associations
     class Preloader
-      prepend Module.new {
+      prepend(Module.new {
         def preloaders_for_one(association, records, scope)
           klass_map = records.compact.group_by(&:class)
 
@@ -67,14 +67,14 @@ module ActiveRecord
             preload(subset, virtuals)
           end
 
-          records_with_association = klass_map.select { |k, rs| k.reflect_on_association(association) }.flat_map { |k, rs| rs }
+          records_with_association = klass_map.select { |k, _rs| k.reflect_on_association(association) }.flat_map { |_k, rs| rs }
           if records_with_association.any?
             loaders.concat(super(association, records_with_association, scope))
           end
 
           loaders
         end
-      }
+      })
     end
 
     # FIXME: Hopefully we can get this into Rails core so this is no longer
