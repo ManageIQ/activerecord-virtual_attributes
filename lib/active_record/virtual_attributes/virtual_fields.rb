@@ -195,8 +195,9 @@ module ActiveRecord
         # when 5.0 support is dropped, assume a block given
         if block_given?
           yield recs, join_dep
+        else
+          recs
         end
-        recs
       end
 
       # From ActiveRecord::QueryMethods

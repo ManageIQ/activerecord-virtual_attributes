@@ -983,4 +983,13 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
     tc.save
     expect(tc.attributes.size).to eq(2)
   end
+
+  it "doesn't botch up the attributes with includes.references", :with_test_class do
+    TestClass.virtual_attribute :vattr, :string
+    TestClass.create(:str => "abc", :col1 => 55)
+
+    tc = TestClass.includes(:vattr).references(:vattr).first
+
+    expect(tc.attributes.keys).to match_array(%w(id str col1))
+  end
 end
