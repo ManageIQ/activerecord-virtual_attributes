@@ -187,13 +187,17 @@ module ActiveRecord
         else
           recs = real.find_with_associations
         end
-        MiqPreloader.preload(recs, preload_values + includes_values) if includes_values
+
+        if includes_values
+          ActiveRecord::Associations::Preloader.new.preload(recs, preload_values + includes_values)
+        end
 
         # when 5.0 support is dropped, assume a block given
         if block_given?
           yield recs, join_dep
+        else
+          recs
         end
-        recs
       end
 
       # From ActiveRecord::QueryMethods
