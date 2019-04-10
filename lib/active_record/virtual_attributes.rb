@@ -141,3 +141,12 @@ end
 
 require "active_record/virtual_attributes/virtual_total"
 require "active_record/virtual_attributes/arel_groups"
+
+# legacy support for sql types
+module VirtualAttributes
+  module Type
+    Symbol      = ActiveRecord::VirtualAttributes::Type::Symbol
+    StringSet   = ActiveRecord::VirtualAttributes::Type::StringSet
+    NumericSet  = ActiveRecord::VirtualAttributes::Type::NumericSet
+  end
+end
