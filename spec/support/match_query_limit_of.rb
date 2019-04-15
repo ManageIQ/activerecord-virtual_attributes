@@ -9,7 +9,7 @@ RSpec::Matchers.define :match_query_limit_of do |expected|
   end
 
   failure_message do |_actual|
-    "Expected #{expected} queries, got #{@query_count}"
+    "Expected #{expected} queries, got #{@counter.query_count}"
   end
 
   description do
