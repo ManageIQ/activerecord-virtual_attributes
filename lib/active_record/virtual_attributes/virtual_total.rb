@@ -72,21 +72,22 @@ module VirtualAttributes
       def define_virtual_aggregate_method(name, relation, method_name, column)
         if method_name == :size
           define_method(name) do
-            (attribute_present?(name) ? self[name] : nil) || send(relation).try(:size) || 0
+            has_attribute?(name) ? self[name] : (send(relation).try(:size) || 0)
           end
         else
           define_method(name) do
-            (attribute_present?(name) ? self[name] : nil) ||
-              begin
-                rel = send(relation)
-                if rel.loaded?
-                  rel.blank? ? nil : rel.map { |t| t.send(column) }.compact.send(method_name)
-                else
-                  # aggregates are not smart enough to handle virtual attributes
-                  arel_column = rel.klass.arel_attribute(column)
-                  rel.try(method_name, arel_column) || 0
-                end
+            if has_attribute?(name)
+              self[name]
+            else
+              rel = send(relation)
+              if rel.loaded?
+                rel.blank? ? nil : rel.map { |t| t.send(column) }.compact.send(method_name)
+              else
+                # virtual attributes support for aggregates
+                arel_column = rel.klass.arel_attribute(column)
+                rel.try(method_name, arel_column) || 0
               end
+            end
           end
         end
       end
