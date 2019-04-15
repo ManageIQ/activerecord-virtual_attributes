@@ -128,7 +128,9 @@ module VirtualAttributes
                  end
 
           # add () around query
-          t.grouping(Arel::Nodes::SqlLiteral.new(sql))
+          query = t.grouping(Arel::Nodes::SqlLiteral.new(sql))
+          # add coalesce to ensure correct value comes out
+          t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [query, Arel::Nodes::SqlLiteral.new("0")]))
         end
       end
     end
