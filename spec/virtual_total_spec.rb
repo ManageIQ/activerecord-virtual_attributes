@@ -579,6 +579,12 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           end.to_not make_database_queries
         end
       end
+
+      it "orders by values with a nil (having the nil (defaulted to 0) first" do
+        authors
+        query = Author.order(:sum_recently_published_books_rating)
+        expect(query.map(&:id)).to eq([author3, author4, author2, author].map(&:id))
+      end
     end
   end
 end
