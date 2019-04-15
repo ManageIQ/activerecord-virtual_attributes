@@ -79,7 +79,7 @@ module VirtualAttributes
 
       def define_virtual_size_method(name, relation)
         define_method(name) do
-          (attribute_present?(name) ? self[name] : nil) || send(relation).try(:size) || 0
+          (has_attribute?(name) ? self[name] : send(relation).try(:size)) || 0
         end
       end
 
