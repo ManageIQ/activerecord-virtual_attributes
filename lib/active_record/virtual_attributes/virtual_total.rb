@@ -90,7 +90,7 @@ module VirtualAttributes
           else
             rel = send(relation)
             if rel.loaded?
-              rel.blank? ? nil : (rel.map { |t| t.send(column).to_i } || 0).send(method_name)
+              rel.blank? ? nil : rel.map { |t| t.send(column).to_i }.send(method_name)
             else
               rel.try(method_name, column) || 0
             end
