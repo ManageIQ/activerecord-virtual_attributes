@@ -366,7 +366,7 @@ describe VirtualAttributes::VirtualTotal do
 
   describe ".virtual_aggregation" do
     context "with a standard has_many" do
-      let(:authors) { [author, author2, author3] }
+      let(:authors) { [author, author2, author3, author4] }
       let(:author) do
         Author.create_with_books(1).tap do |author|
           author.create_books(1, :published => true, :rating => 4)
@@ -382,25 +382,22 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       let(:author3) { Author.create }
+      let(:author4) { Author.create.tap { |a| a.create_books(1, :published => true) } }
 
+      # NOTE: rails converts the nil to a 0
       it "calculates sum with one off query" do
         authors
+
         expect do
-          expect(author.sum_recently_published_books_rating).to eq(6)
-          expect(author2.sum_recently_published_books_rating).to eq(5)
-          expect(author3.sum_recently_published_books_rating).to eq(0)
-        end.to match_query_limit_of(3)
+          expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
+        end.to match_query_limit_of(4)
       end
 
       it "calculates sum from preloaded association" do
-        author.recently_published_books.load
-        author2.recently_published_books.load
-        author3.recently_published_books.load
+        authors.each { |a| a.recently_published_books.load }
 
         expect do
-          expect(author.sum_recently_published_books_rating).to eq(6)
-          expect(author2.sum_recently_published_books_rating).to eq(5)
-          expect(author3.sum_recently_published_books_rating).to be_nil
+          expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, 0])
         end.to match_query_limit_of(0)
       end
 
@@ -408,15 +405,15 @@ describe VirtualAttributes::VirtualTotal do
         authors
         query = Author.select(:id, :sum_recently_published_books_rating).order(:id).load
         expect do
-          expect(query.map(&:sum_recently_published_books_rating)).to match_array([6, 5, 0])
-        end.to match_query_limit_of(1)
+          expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
+        end.to match_query_limit_of(2)
       end
 
-      it "with no associated records calculates sum from attribute (and preloaded association)" do
+      it "calculates sum from attribute (and preloaded association)" do
         authors
-        query = Author.includes(:recently_published_books).select(:id, :sum_recently_published_books_rating).load
+        query = Author.includes(:recently_published_books).select(:id, :sum_recently_published_books_rating).order(:id).load
         expect do
-          expect(query.map(&:sum_recently_published_books_rating)).to match_array([6, 5, nil])
+          expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, 0])
         end.to match_query_limit_of(0)
       end
     end
