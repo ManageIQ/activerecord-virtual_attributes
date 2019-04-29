@@ -3,7 +3,7 @@ language: ruby
 cache: bundler
 rvm:
 - 2.4.1
-- 2.5.3
+- 2.5.5
 services:
 - postgresql
 - mysql
@@ -14,7 +14,7 @@ env:
 gemfile:
 - gemfiles/virtual_attributes_50.gemfile
 - gemfiles/virtual_attributes_51.gemfile
-#- gemfiles/virtual_attributes_52.gemfile
+- gemfiles/virtual_attributes_52.gemfile
 before_install:
 - 'echo ''gem: --no-ri --no-rdoc --no-document'' > ~/.gemrc'
 before_script:
