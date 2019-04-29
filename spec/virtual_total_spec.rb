@@ -397,7 +397,7 @@ describe VirtualAttributes::VirtualTotal do
         authors.each { |a| a.recently_published_books.load }
 
         expect do
-          expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, 0])
+          expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, nil])
         end.to match_query_limit_of(0)
       end
 

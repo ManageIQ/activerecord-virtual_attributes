@@ -81,11 +81,10 @@ module VirtualAttributes
             else
               rel = send(relation)
               if rel.loaded?
-                rel.blank? ? nil : rel.map { |t| t.send(column) }.compact.send(method_name)
+                rel_values = rel.map { |t| t.send(column) }.compact
+                rel_values.blank? ? nil : rel_values.send(method_name)
               else
-                # virtual attributes support for aggregates
-                arel_column = rel.klass.arel_attribute(column)
-                rel.try(method_name, arel_column) || 0
+                rel.try(method_name, rel.klass.arel_attribute(column))
               end
             end
           end
