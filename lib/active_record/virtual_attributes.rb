@@ -93,7 +93,11 @@ module ActiveRecord
           # change necessary for rails 5.0 and 5.1 - (changed/introduced in https://github.com/rails/rails/pull/31894)
           defaults = defaults.except(*virtual_attribute_names)
           # end change
-          @attributes_builder = ActiveRecord::AttributeSet::Builder.new(attribute_types, defaults)
+          @attributes_builder = if ActiveRecord.version.to_s >= "5.2"
+                                  ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
+                                else
+                                  ActiveRecord::AttributeSet::Builder.new(attribute_types, defaults)
+                                end
         end
         @attributes_builder
       end
