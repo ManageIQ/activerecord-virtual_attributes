@@ -4,7 +4,7 @@
 #   expect { MyModel.do_the_queries }.to match_query_limit_of(5)
 
 RSpec::Matchers.define :match_query_limit_of do |expected|
-  match do |block|
+  match(:notify_expectation_failures => true) do |block|
     query_count(&block) == expected
   end
 
