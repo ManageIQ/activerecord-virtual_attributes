@@ -9,7 +9,7 @@ describe VirtualAttributes::VirtualTotal do
     context "with a standard has_many" do
       it "sorts by total attribute" do
         author2 = Author.create_with_books(2)
-        author0 = Author.create_with_books(0)
+        author0 = Author.create
         author1 = Author.create_with_books(1)
 
         expect(Author.order(:total_books).pluck(:id))
@@ -17,7 +17,7 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "calculates totals using a query" do
-        author0 = Author.create_with_books(0).reload
+        author0 = Author.create.reload
         author2 = Author.create_with_books(2).reload
         expect do
           expect(author0.total_books).to eq(0)
@@ -35,7 +35,7 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "calculates totals with preloaded associations with no associated records" do
-        author_id = Author.create_with_books(0).id
+        author_id = Author.create.id
         author = Author.includes(:books).find(author_id)
 
         expect do
@@ -67,7 +67,7 @@ describe VirtualAttributes::VirtualTotal do
       it "sorts by total" do
         author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true)
-        author0 = Author.create_with_books(0)
+        author0 = Author.create
         author0.create_books(2, :published => true)
         author1 = Author.create_with_books(1)
 
@@ -78,7 +78,7 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "calculates totals locally" do
-        author0 = Author.create_with_books(0)
+        author0 = Author.create
         author0.create_books(2, :published => true)
         author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true)
@@ -117,7 +117,7 @@ describe VirtualAttributes::VirtualTotal do
         skip("fix order in scopes") if ENV["DB"] == "pg"
         author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true, :rating => 5)
-        author0 = Author.create_with_books(0)
+        author0 = Author.create
         author0.create_books(2, :published => true, :rating => 2)
         author1 = Author.create_with_books(1)
 
@@ -128,7 +128,7 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "calculates totals locally" do
-        author0 = Author.create_with_books(0)
+        author0 = Author.create
         author0.create_books(2, :published => true, :rating => 2)
         author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true, :rating => 5)
@@ -190,7 +190,7 @@ describe VirtualAttributes::VirtualTotal do
           author2 = Author.create_with_books(2)
           author2.create_books(5, :special => true)
           author2.create_books(1, :special => true, :published => true)
-          author0 = Author.create_with_books(0)
+          author0 = Author.create
           author0.create_books(2, :special => true)
           author0.create_books(2, :special => true, :published => true)
           author1 = Author.create_with_books(1)
@@ -202,7 +202,7 @@ describe VirtualAttributes::VirtualTotal do
         end
 
         it "calculates totals locally" do
-          author0 = Author.create_with_books(0)
+          author0 = Author.create
           author0.create_books(2, :special => true)
           author0.create_books(2, :special => true, :published => true)
           author2 = Author.create_with_books(2)
@@ -366,7 +366,7 @@ describe VirtualAttributes::VirtualTotal do
 
   describe ".virtual_aggregation" do
     context "with a standard has_many" do
-      let(:authors) { [author, author2, author3] }
+      let(:authors) { [author, author2, author3, author4] }
       let(:author) do
         Author.create_with_books(1).tap do |author|
           author.create_books(1, :published => true, :rating => 4)
@@ -382,25 +382,22 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       let(:author3) { Author.create }
+      let(:author4) { Author.create.tap { |a| a.create_books(1, :published => true) } }
 
+      # NOTE: rails converts the nil to a 0
       it "calculates sum with one off query" do
         authors
+
         expect do
-          expect(author.sum_recently_published_books_rating).to eq(6)
-          expect(author2.sum_recently_published_books_rating).to eq(5)
-          expect(author3.sum_recently_published_books_rating).to eq(0)
-        end.to match_query_limit_of(3)
+          expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
+        end.to match_query_limit_of(4)
       end
 
       it "calculates sum from preloaded association" do
-        author.recently_published_books.load
-        author2.recently_published_books.load
-        author3.recently_published_books.load
+        authors.each { |a| a.recently_published_books.load }
 
         expect do
-          expect(author.sum_recently_published_books_rating).to eq(6)
-          expect(author2.sum_recently_published_books_rating).to eq(5)
-          expect(author3.sum_recently_published_books_rating).to be_nil
+          expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, 0])
         end.to match_query_limit_of(0)
       end
 
@@ -408,15 +405,15 @@ describe VirtualAttributes::VirtualTotal do
         authors
         query = Author.select(:id, :sum_recently_published_books_rating).order(:id).load
         expect do
-          expect(query.map(&:sum_recently_published_books_rating)).to match_array([6, 5, 0])
-        end.to match_query_limit_of(1)
+          expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
+        end.to match_query_limit_of(2)
       end
 
-      it "with no associated records calculates sum from attribute (and preloaded association)" do
+      it "calculates sum from attribute (and preloaded association)" do
         authors
-        query = Author.includes(:recently_published_books).select(:id, :sum_recently_published_books_rating).load
+        query = Author.includes(:recently_published_books).select(:id, :sum_recently_published_books_rating).order(:id).load
         expect do
-          expect(query.map(&:sum_recently_published_books_rating)).to match_array([6, 5, nil])
+          expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, 0])
         end.to match_query_limit_of(0)
       end
     end
