@@ -45,17 +45,13 @@ class Author < VitualTotalTestBase
     t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [t[:nickname], t[:name]]))
   end
 
-  def self.create_with_books(count = 0)
+  def self.create_with_books(count)
     create!(:name => "foo").tap { |author| author.create_books(count) }
   end
 
   def create_books(count, create_attrs = {})
-    count.times do
-      attrs = {
-        :name   => "bar",
-        :author => self,
-      }.merge(create_attrs)
-      Book.create(attrs)
+    Array.new(count) do
+      books.create({:name => "bar"}.merge(create_attrs))
     end
   end
 end
@@ -69,18 +65,13 @@ class Book < VitualTotalTestBase
 
   virtual_delegate :name, :to => :author, :prefix => true
 
-  def self.create_with_bookmarks(count = 0)
-    a = Author.create(:name => "foo")
-    create!(:name => "book", :author => a).tap { |book| book.create_bookmarks(count) }
+  def self.create_with_bookmarks(count)
+    Author.create(:name => "foo").books.create!(:name => "book").tap { |book| book.create_bookmarks(count) }
   end
 
   def create_bookmarks(count, create_attrs = {})
-    count.times do
-      attrs = {
-        :name   => "mark",
-        :book   => self,
-      }.merge(create_attrs)
-      Bookmark.create(attrs)
+    Array.new(count) do
+      bookmarks.create({:name => "mark"}.merge(create_attrs))
     end
   end
 end

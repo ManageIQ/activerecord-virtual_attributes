@@ -9,7 +9,7 @@ describe VirtualAttributes::VirtualTotal do
     context "with a standard has_many" do
       it "sorts by total attribute" do
         author2 = Author.create_with_books(2)
-        author0 = Author.create_with_books(0)
+        author0 = Author.create
         author1 = Author.create_with_books(1)
 
         expect(Author.order(:total_books).pluck(:id))
@@ -17,7 +17,7 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "calculates totals using a query" do
-        author0 = Author.create_with_books(0).reload
+        author0 = Author.create.reload
         author2 = Author.create_with_books(2).reload
         expect do
           expect(author0.total_books).to eq(0)
@@ -35,7 +35,7 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "calculates totals with preloaded associations with no associated records" do
-        author_id = Author.create_with_books(0).id
+        author_id = Author.create.id
         author = Author.includes(:books).find(author_id)
 
         expect do
@@ -67,7 +67,7 @@ describe VirtualAttributes::VirtualTotal do
       it "sorts by total" do
         author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true)
-        author0 = Author.create_with_books(0)
+        author0 = Author.create
         author0.create_books(2, :published => true)
         author1 = Author.create_with_books(1)
 
@@ -78,7 +78,7 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "calculates totals locally" do
-        author0 = Author.create_with_books(0)
+        author0 = Author.create
         author0.create_books(2, :published => true)
         author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true)
@@ -117,7 +117,7 @@ describe VirtualAttributes::VirtualTotal do
         skip("fix order in scopes") if ENV["DB"] == "pg"
         author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true, :rating => 5)
-        author0 = Author.create_with_books(0)
+        author0 = Author.create
         author0.create_books(2, :published => true, :rating => 2)
         author1 = Author.create_with_books(1)
 
@@ -128,7 +128,7 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "calculates totals locally" do
-        author0 = Author.create_with_books(0)
+        author0 = Author.create
         author0.create_books(2, :published => true, :rating => 2)
         author2 = Author.create_with_books(2)
         author2.create_books(1, :published => true, :rating => 5)
@@ -190,7 +190,7 @@ describe VirtualAttributes::VirtualTotal do
           author2 = Author.create_with_books(2)
           author2.create_books(5, :special => true)
           author2.create_books(1, :special => true, :published => true)
-          author0 = Author.create_with_books(0)
+          author0 = Author.create
           author0.create_books(2, :special => true)
           author0.create_books(2, :special => true, :published => true)
           author1 = Author.create_with_books(1)
@@ -202,7 +202,7 @@ describe VirtualAttributes::VirtualTotal do
         end
 
         it "calculates totals locally" do
-          author0 = Author.create_with_books(0)
+          author0 = Author.create
           author0.create_books(2, :special => true)
           author0.create_books(2, :special => true, :published => true)
           author2 = Author.create_with_books(2)
