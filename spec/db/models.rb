@@ -33,7 +33,7 @@ class Author < VitualTotalTestBase
     books.select { |b| b.name }
   end
 
-  virtual_has_many :named_books, :class_name => "Book"
+  virtual_has_many :named_books, :class_name => "Book", :uses => :books
   virtual_total :total_named_books, :named_books
   alias v_total_named_books total_named_books
 

@@ -933,38 +933,38 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
 
     context "virtual column" do
       it "as Symbol" do
-        expect { Author.includes(:nick_or_name).load }.not_to raise_error
+        expect { Author.includes(:nick_or_name).load }.to match_query_limit_of(1)
       end
 
       it "as Array" do
-        expect { Author.includes([:nick_or_name]).load }.not_to raise_error
-        expect { Author.includes([:nick_or_name, :bookmarks]).load }.not_to raise_error
+        expect { Author.includes([:nick_or_name]).load }.to match_query_limit_of(1)
+        expect { Author.includes([:nick_or_name, :bookmarks]).load }.to match_query_limit_of(3)
       end
 
       it "as Hash" do
-        expect { Author.includes(:nick_or_name => {}).load }.not_to raise_error
-        expect { Author.includes(:nick_or_name => {}, :bookmarks => :book).load }.not_to raise_error
+        expect { Author.includes(:nick_or_name => {}).load }.to match_query_limit_of(1)
+        expect { Author.includes(:nick_or_name => {}, :bookmarks => :book).load }.to match_query_limit_of(4)
       end
     end
 
     context "virtual reflection" do
       it "as Symbol" do
-        expect { Author.includes(:named_books).load }.not_to raise_error
+        expect { Author.includes(:named_books).load }.to match_query_limit_of(2)
       end
 
       it "as Array" do
-        expect { Author.includes([:named_books]).load }.not_to raise_error
-        expect { Author.includes([:named_books, :bookmarks]).load }.not_to raise_error
+        expect { Author.includes([:named_books]).load }.to match_query_limit_of(2)
+        expect { Author.includes([:named_books, :bookmarks]).load }.to match_query_limit_of(3)
       end
 
       it "as Hash" do
-        expect { Author.includes(:named_books => {}).load }.not_to raise_error
-        expect { Author.includes(:named_books => {}, :bookmarks => :book).load }.not_to raise_error
+        expect { Author.includes(:named_books => {}).load }.to match_query_limit_of(2)
+        expect { Author.includes(:named_books => {}, :bookmarks => :book).load }.to match_query_limit_of(4)
       end
     end
 
     it "nested virtual fields" do
-      expect { Author.includes(:books => :author_name).load }.not_to raise_error
+      expect { Author.includes(:books => :author_name).load }.to match_query_limit_of(3)
     end
 
     it "virtual field that has nested virtual fields in its :uses clause" do
