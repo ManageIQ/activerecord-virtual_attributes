@@ -964,7 +964,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
 
     it "nested virtual fields" do
-      expect { Author.includes(:host => :ems_cluster).load }.not_to raise_error
+      expect { Author.includes(:books => :author_name).load }.not_to raise_error
     end
 
     it "virtual field that has nested virtual fields in its :uses clause" do
@@ -972,8 +972,38 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
 
     it "should handle virtual fields in :include when :conditions are also present in calculations" do
-      expect { Book.includes([:author_name, :author]).references(:author).where("authors.name = 'test'").count }.not_to raise_error
-      expect { Book.includes([:author_name, :author]).references(:author).where("authors.id IS NOT NULL").count }.not_to raise_error
+      expect { Book.includes([:author_name, :author]).references(:author).where("authors.name = 'test'").count }.to match_query_limit_of(1)
+      expect { Book.includes([:author_name, :author]).references(:author).where("authors.id IS NOT NULL").count }.to match_query_limit_of(1)
+    end
+
+    it "should fetch virtual fields without includes" do
+      book = nil
+      expect { book = Book.select(:author_name).first }.to match_query_limit_of(1)
+      expect { expect(book.author_name).to eq("foo") }.to match_query_limit_of(0)
+    end
+
+    it "should fetch virtual field using includes" do
+      book = nil
+      expect { book = Book.includes(:author_name).first }.to match_query_limit_of(2)
+      expect { expect(book.author_name).to eq("foo") }.to match_query_limit_of(0)
+    end
+
+    it "should fetch virtual field using references" do
+      book = nil
+      expect { book = Book.includes(:author_name).references(:author_name).first }.to match_query_limit_of(2)
+      expect { expect(book.author_name).to eq("foo") }.to match_query_limit_of(0)
+    end
+
+    it "should fetch virtual field using all 3" do
+      book = nil
+      expect { book = Book.select(:author_name).includes(:author_name).references(:author_name).first }.to match_query_limit_of(2)
+      expect { expect(book.author_name).to eq("foo") }.to match_query_limit_of(0)
+    end
+
+    it "should leverage select for virtual fields" do
+      authors = nil
+      expect { authors = Author.includes(:books => :author_name).load }.to match_query_limit_of(3)
+      expect { expect(authors.first.books.first.author_name).to eq(authors.first.name) }.to match_query_limit_of(0)
     end
   end
 
