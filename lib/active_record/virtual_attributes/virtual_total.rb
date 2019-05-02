@@ -51,7 +51,7 @@ module VirtualAttributes
       #    # arel => (SELECT sum("disks"."size") where "hardware"."id" = "disks"."hardware_id")
 
       def virtual_aggregate(name, relation, method_name = :sum, column = nil, options = {})
-        define_virtual_aggregate_method(name, relation, method_name, column)
+        define_virtual_method(name, relation, method_name, column)
         reflection = reflect_on_association(relation)
 
         if options.key?(:arel)
@@ -69,23 +69,31 @@ module VirtualAttributes
         end
       end
 
-      def define_virtual_aggregate_method(name, relation, method_name, column)
+      def define_virtual_method(name, relation, method_name, column)
         if method_name == :size
-          define_method(name) do
-            has_attribute?(name) ? self[name] : (send(relation).try(:size) || 0)
-          end
+          define_virtual_size_method(name, relation)
         else
-          define_method(name) do
-            if has_attribute?(name)
-              self[name]
+          define_virtual_aggregate_method(name, relation, method_name, column)
+        end
+      end
+
+      def define_virtual_size_method(name, relation)
+        define_method(name) do
+          has_attribute?(name) ? self[name] : (send(relation).try(:size) || 0)
+        end
+      end
+
+      def define_virtual_aggregate_method(name, relation, method_name, column)
+        define_method(name) do
+          if has_attribute?(name)
+            self[name]
+          else
+            rel = send(relation)
+            if rel.loaded?
+              rel_values = rel.map { |t| t.send(column) }.compact
+              rel_values.blank? ? nil : rel_values.send(method_name)
             else
-              rel = send(relation)
-              if rel.loaded?
-                rel_values = rel.map { |t| t.send(column) }.compact
-                rel_values.blank? ? nil : rel_values.send(method_name)
-              else
-                rel.try(method_name, rel.klass.arel_attribute(column))
-              end
+              rel.try(method_name, rel.klass.arel_attribute(column))
             end
           end
         end
