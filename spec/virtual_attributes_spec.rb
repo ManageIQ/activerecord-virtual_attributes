@@ -928,6 +928,8 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
 
   context "preloading" do
     before do
+      Author.destroy_all
+      Book.destroy_all
       Author.create_with_books(3).books.first.create_bookmarks(2)
     end
 
@@ -1002,7 +1004,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
       expect { expect(book.author_name).to eq("foo") }.to match_query_limit_of(0)
     end
 
-    it "should leverage select for virtual fields" do
+    it "should leverage include for virtual fields" do
       authors = nil
       expect { authors = Author.includes(:books => :author_name).load }.to match_query_limit_of(3)
       expect { expect(authors.first.books.first.author_name).to eq(authors.first.name) }.to match_query_limit_of(0)
