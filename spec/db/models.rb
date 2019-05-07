@@ -63,7 +63,7 @@ class Book < VitualTotalTestBase
   scope :published, -> { where(:published => true)  }
   scope :wip,       -> { where(:published => false) }
 
-  virtual_delegate :name, :to => :author, :prefix => true
+  virtual_delegate :name, :to => :author, :prefix => true, :type => :string
 
   def self.create_with_bookmarks(count)
     Author.create(:name => "foo").books.create!(:name => "book").tap { |book| book.create_bookmarks(count) }

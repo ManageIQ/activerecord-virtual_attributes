@@ -72,7 +72,7 @@ module ActiveRecord
           end
 
           col = col.to_s
-          type = options[:type] || to_ref.klass.type_for_attribute(col)
+          type = options[:type]
           type = ActiveRecord::Type.lookup(type) if type.kind_of?(Symbol)
           raise "unknown attribute #{to}##{col} referenced in #{name}" unless type
           arel = virtual_delegate_arel(col, to_ref)

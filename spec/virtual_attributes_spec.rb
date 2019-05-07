@@ -476,7 +476,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
       end
 
       it "supports delegates" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
 
         expect(TestClass.attribute_supported_by_sql?(:parent_col1)).to be_truthy
       end
@@ -497,24 +497,24 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
       let(:parent) { TestClass.create(:col1 => 4) }
 
       it "delegates to parent" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
         tc = TestClass.new(:ref1 => parent)
         expect(tc.parent_col1).to eq(4)
       end
 
       it "delegates to nil parent" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :type => :integer
         tc = TestClass.new
         expect(tc.parent_col1).to be_nil
       end
 
       it "defines parent virtual attribute" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
         expect(TestClass.virtual_attribute_names).to include("parent_col1")
       end
 
       it "delegates to parent (sql)" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
         TestClass.create(:ref1 => parent)
         tcs = TestClass.all.select(:id, :col1, TestClass.arel_attribute(:parent_col1).as("x"))
         expect(tcs.map(&:x)).to match_array([nil, 4])
@@ -528,24 +528,24 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
         let(:child) { TestClass.create }
 
         it "delegates to child" do
-          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
           tc = TestClass.create(:ref2 => child)
           expect(tc.child_col1).to eq(tc.id)
         end
 
         it "delegates to nil child" do
-          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :allow_nil => true
+          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :allow_nil => true, :type => :integer
           tc = TestClass.new
           expect(tc.child_col1).to be_nil
         end
 
         it "defines child virtual attribute" do
-          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
           expect(TestClass.virtual_attribute_names).to include("child_col1")
         end
 
         it "delegates to child (sql)" do
-          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
           tc = TestClass.create(:ref2 => child)
           tcs = TestClass.all.select(:id, :col1, :child_col1).to_a
           expect { expect(tcs.map(&:child_col1)).to match_array([nil, tc.id]) }.to match_query_limit_of(0)
@@ -554,7 +554,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
         # this may fail in the future as our way of building queries may change
         # just want to make sure it changed due to intentional changes
         it "uses table alias for subquery" do
-          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
           sql = TestClass.all.select(:id, :col1, :child_col1).to_sql
           expect(sql).to match(/["`]test_classes_[^"`]*["`][.]["`]col1["`]/i)
         end
@@ -570,7 +570,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
         # ensure virtual attribute referencing a relation with a select()
         # does not throw an exception due to multi-column select
         it "properly generates sub select" do
-          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
           TestClass.create(:ref2 => child)
           expect { TestClass.all.select(:id, :child_col1).to_a }.to_not raise_error
         end
@@ -587,7 +587,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
         # ensure virtual attribute referencing a relation with a select()
         # does not throw an exception due to multi-column select
         it "properly generates sub select" do
-          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+          TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
           TestClass.create(:ref2 => child)
           expect { TestClass.all.select(:id, :child_col1).to_a }.to_not raise_error
         end
@@ -605,7 +605,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
           end
           # TODO: -> { order(:col1) }
           TestClass.has_one :child, :class_name => 'TestOtherClass', :foreign_key => :ocol1
-          TestClass.virtual_delegate :child_str, :to => "child.ostr"
+          TestClass.virtual_delegate :child_str, :to => "child.ostr", :type => :string
         end
 
         after do
@@ -640,7 +640,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
         end
 
         it "delegates to another table" do
-          TestOtherClass.virtual_delegate :col1, :to => :oref1
+          TestOtherClass.virtual_delegate :col1, :to => :oref1, :type => :integer
           TestOtherClass.create(:oref1 => TestClass.create)
           TestOtherClass.create(:oref1 => TestClass.create(:col1 => 99))
           tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x"))
@@ -653,7 +653,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
         # this may fail in the future as our way of building queries may change
         # just want to make sure it changed due to intentional changes
         it "delegates to another table without alias" do
-          TestOtherClass.virtual_delegate :col1, :to => :oref1
+          TestOtherClass.virtual_delegate :col1, :to => :oref1, :type => :integer
           sql = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x")).to_sql
           expect(sql).to match(/["`]test_classes["`].["`]col1["`]/i)
         end
@@ -724,7 +724,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
       end
 
       it "supports delegates" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
 
         expect(TestClass.attribute_supported_by_sql?(:parent_col1)).to be_truthy
       end
@@ -822,42 +822,42 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
       let(:parent) { TestClass.create(:col1 => 4) }
 
       it "delegates to child" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
         tc = TestClass.new(:ref1 => parent)
         expect(tc.parent_col1).to eq(4)
       end
 
       it "delegates to nil child" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :type => :integer
         tc = TestClass.new
         expect(tc.parent_col1).to be_nil
       end
 
       it "defines virtual attribute" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
         expect(TestClass.virtual_attribute_names).to include("parent_col1")
       end
 
       it "defines with a new name" do
-        TestClass.virtual_delegate 'funky_name', :to => "ref1.col1"
+        TestClass.virtual_delegate 'funky_name', :to => "ref1.col1", :type => :string
         tc = TestClass.new(:ref1 => parent)
         expect(tc.funky_name).to eq(4)
       end
 
       it "defaults for to nil child (array)" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => []
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => [], :type => :integer
         tc = TestClass.new
         expect(tc.parent_col1).to eq([])
       end
 
       it "defaults for to nil child (integer)" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => 0
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => 0, :type => :integer
         tc = TestClass.new
         expect(tc.parent_col1).to eq(0)
       end
 
       it "defaults for to nil child (string)" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => "def"
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => "def", :type => :integer
         tc = TestClass.new
         expect(tc.parent_col1).to eq("def")
       end
