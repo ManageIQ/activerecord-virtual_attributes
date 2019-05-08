@@ -143,9 +143,14 @@ module ActiveRecord
         #   See select_from_alias for examples
 
         def virtual_delegate_arel(col, to_ref)
-          # ensure the column has sql and the association is reachable via sql
+          # Ensure the association is reachable via sql
+          #
+          # But NOT ensuring the target column has sql
+          #   to_ref.klass.arel_attribute(col) loads the target classes' schema.
+          #   This cascades and causing a race condition
+          #
           # There is currently no way to propagate sql over a virtual association
-          if to_ref.klass.arel_attribute(col) && reflect_on_association(to_ref.name)
+          if reflect_on_association(to_ref.name)
             if to_ref.macro == :has_one || to_ref.macro == :belongs_to
               blk = ->(arel) { arel.limit = 1 } if to_ref.macro == :has_one
               lambda do |t|
@@ -248,6 +253,7 @@ module ActiveRecord
         to_table    = select_from_alias_table(to_ref.klass, src_model_id.relation)
         to_model_id = to_ref.klass.arel_attribute(to_model_col_name, to_table)
         to_column   = to_ref.klass.arel_attribute(col, to_table)
+        raise "invalid virtual delegate referencing #{to_ref.name}.#{col}" unless to_column
         arel        = query.except(:select).select(to_column).arel
                            .from(to_table)
                            .where(to_model_id.eq(src_model_id))

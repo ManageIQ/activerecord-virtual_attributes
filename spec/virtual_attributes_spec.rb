@@ -667,6 +667,21 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
         end
       end
 
+      it "doesn't reference target class when :type is specified" do
+        model = Class.new(TestClassBase) do
+          self.table_name = 'test_classes'
+          def self.name
+            "AnonymousType"
+          end
+          has_many :others, :class_name => "InvalidType"
+          virtual_delegate :col4, :to => :others, :type => :integer
+        end
+        # doesn't lookup InvalidType class with this model
+        expect { model.new }.not_to raise_error
+        # referencing the relation still accesses the model (which is invalid so blows up)
+        expect { model.new.col4 }.to raise_error(NameError)
+      end
+
       it "catches invalid references" do
         expect do
           Class.new(TestClassBase) do
