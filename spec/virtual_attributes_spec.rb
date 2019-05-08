@@ -645,6 +645,9 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
           TestOtherClass.create(:oref1 => TestClass.create(:col1 => 99))
           tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x"))
           expect(tcs.map(&:x)).to match_array([nil, 99])
+
+          expect { tcs = TestOtherClass.all.select(:id, :ocol1, :col1).load }.to match_query_limit_of(1)
+          expect(tcs.map(&:col1)).to match_array([nil, 99])
         end
 
         # this may fail in the future as our way of building queries may change
@@ -654,6 +657,23 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
           sql = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x")).to_sql
           expect(sql).to match(/["`]test_classes["`].["`]col1["`]/i)
         end
+
+        it "supports :type (and works when reference IS valid)" do
+          TestOtherClass.virtual_delegate :col1, :to => :oref1, :type => :integer
+          TestOtherClass.create(:oref1 => TestClass.create)
+          TestOtherClass.create(:oref1 => TestClass.create(:col1 => 99))
+          tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x"))
+          expect(tcs.map(&:x)).to match_array([nil, 99])
+        end
+      end
+
+      it "catches invalid references" do
+        expect do
+          Class.new(TestClassBase) do
+            self.table_name = 'test_classes'
+            virtual_delegate :col4, :to => :others, :type => :integer
+          end.new
+        end.to raise_error
       end
     end
 
