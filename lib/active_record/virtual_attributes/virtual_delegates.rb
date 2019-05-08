@@ -150,18 +150,16 @@ module ActiveRecord
           #   This cascades and causing a race condition
           #
           # There is currently no way to propagate sql over a virtual association
-          if reflect_on_association(to_ref.name)
-            if to_ref.macro == :has_one || to_ref.macro == :belongs_to
-              blk = ->(arel) { arel.limit = 1 } if to_ref.macro == :has_one
-              lambda do |t|
-                if ActiveRecord.version.to_s >= "5.1"
-                  join_keys = to_ref.join_keys
-                else
-                  join_keys = to_ref.join_keys(to_ref.klass)
-                end
-                src_model_id = arel_attribute(join_keys.foreign_key, t)
-                VirtualDelegates.select_from_alias(to_ref, col, join_keys.key, src_model_id, &blk)
+          if reflect_on_association(to_ref.name) && (to_ref.macro == :has_one || to_ref.macro == :belongs_to)
+            blk = ->(arel) { arel.limit = 1 } if to_ref.macro == :has_one
+            lambda do |t|
+              if ActiveRecord.version.to_s >= "5.1"
+                join_keys = to_ref.join_keys
+              else
+                join_keys = to_ref.join_keys(to_ref.klass)
               end
+              src_model_id = arel_attribute(join_keys.foreign_key, t)
+              VirtualDelegates.select_from_alias(to_ref, col, join_keys.key, src_model_id, &blk)
             end
           end
         end
