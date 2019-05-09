@@ -645,6 +645,9 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
           TestOtherClass.create(:oref1 => TestClass.create(:col1 => 99))
           tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x"))
           expect(tcs.map(&:x)).to match_array([nil, 99])
+
+          expect { tcs = TestOtherClass.all.select(:id, :ocol1, :col1).load }.to match_query_limit_of(1)
+          expect(tcs.map(&:col1)).to match_array([nil, 99])
         end
 
         # this may fail in the future as our way of building queries may change
@@ -653,6 +656,48 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
           TestOtherClass.virtual_delegate :col1, :to => :oref1
           sql = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x")).to_sql
           expect(sql).to match(/["`]test_classes["`].["`]col1["`]/i)
+        end
+
+        it "supports :type (and works when reference IS valid)" do
+          TestOtherClass.virtual_delegate :col1, :to => :oref1, :type => :integer
+          TestOtherClass.create(:oref1 => TestClass.create)
+          TestOtherClass.create(:oref1 => TestClass.create(:col1 => 99))
+          tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x"))
+          expect(tcs.map(&:x)).to match_array([nil, 99])
+        end
+
+        it "detects bad reference" do
+          TestOtherClass.virtual_delegate :bogus, :to => :oref1, :type => :integer
+          expect { TestOtherClass.new }.not_to raise_error
+          expect { TestOtherClass.new(:oref1 => TestClass.new).bogus }.to raise_error(NoMethodError)
+        end
+
+        it "detects bad reference in sql" do
+          TestOtherClass.virtual_delegate :bogus, :to => :oref1, :type => :integer
+          # any exception will do
+          expect { TestOtherClass.select(:bogus).first }.to raise_error(ActiveRecord::StatementInvalid)
+        end
+
+        it "doesn't reference target class when :type is specified" do
+          TestOtherClass.has_many :others, :class_name => "InvalidType"
+          TestOtherClass.virtual_delegate :col4, :to => :others, :type => :integer
+
+          # doesn't lookup InvalidType class with this model
+          expect { TestOtherClass.new }.not_to raise_error
+          # referencing the relation still accesses the model (which is invalid so blows up)
+          expect { TestOtherClass.new.col4 }.to raise_error(NameError)
+        end
+
+        it "catches invalid references" do
+          TestOtherClass.virtual_delegate :col4, :to => :others, :type => :integer
+
+          expect { model.new }.to raise_error(NameError)
+        end
+
+        it "catches invalid column" do
+          TestOtherClass.virtual_delegate :col4, :to => :oref1, :type => :integer
+
+          expect { model.new }.to raise_error(NameError)
         end
       end
     end

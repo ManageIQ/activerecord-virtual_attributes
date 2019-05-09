@@ -72,7 +72,8 @@ module ActiveRecord
           end
 
           col = col.to_s
-          type = to_ref.klass.type_for_attribute(col)
+          type = options[:type] || to_ref.klass.type_for_attribute(col)
+          type = ActiveRecord::Type.lookup(type) if type.kind_of?(Symbol)
           raise "unknown attribute #{to}##{col} referenced in #{name}" unless type
           arel = virtual_delegate_arel(col, to_ref)
           define_virtual_attribute(method_name, type, :uses => (options[:uses] || to), :arel => arel)
@@ -142,20 +143,23 @@ module ActiveRecord
         #   See select_from_alias for examples
 
         def virtual_delegate_arel(col, to_ref)
-          # ensure the column has sql and the association is reachable via sql
+          # Ensure the association is reachable via sql
+          #
+          # But NOT ensuring the target column has sql
+          #   to_ref.klass.arel_attribute(col) loads the target classes' schema.
+          #   This cascades and causing a race condition
+          #
           # There is currently no way to propagate sql over a virtual association
-          if to_ref.klass.arel_attribute(col) && reflect_on_association(to_ref.name)
-            if to_ref.macro == :has_one || to_ref.macro == :belongs_to
+          if reflect_on_association(to_ref.name) && (to_ref.macro == :has_one || to_ref.macro == :belongs_to)
+            lambda do |t|
+              join_keys = if ActiveRecord.version.to_s >= "5.1"
+                            to_ref.join_keys
+                          else
+                            to_ref.join_keys(to_ref.klass)
+                          end
+              src_model_id = arel_attribute(join_keys.foreign_key, t)
               blk = ->(arel) { arel.limit = 1 } if to_ref.macro == :has_one
-              lambda do |t|
-                if ActiveRecord.version.to_s >= "5.1"
-                  join_keys = to_ref.join_keys
-                else
-                  join_keys = to_ref.join_keys(to_ref.klass)
-                end
-                src_model_id = arel_attribute(join_keys.foreign_key, t)
-                VirtualDelegates.select_from_alias(to_ref, col, join_keys.key, src_model_id, &blk)
-              end
+              VirtualDelegates.select_from_alias(to_ref, col, join_keys.key, src_model_id, &blk)
             end
           end
         end
