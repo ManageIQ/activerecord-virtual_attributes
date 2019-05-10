@@ -85,8 +85,8 @@ module VirtualAttributes
 
       def define_virtual_aggregate_method(name, relation, method_name, column)
         define_method(name) do
-          if attribute_present?(name)
-            self[name]
+          if has_attribute?(name)
+            self[name] || 0
           elsif (rel = send(relation)).loaded?
             rel.blank? ? nil : rel.map { |t| t.send(column) }.compact.send(method_name)
           else

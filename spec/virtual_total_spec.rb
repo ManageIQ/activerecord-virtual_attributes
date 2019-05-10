@@ -457,14 +457,14 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         query = Author.select(:id, :sum_recently_published_books_rating).order(:id).load
         expect do
           expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
-        end.to make_database_queries(:count => 2)
+        end.to make_database_queries(:count => 0)
       end
 
       it "calculates sum from attribute (and preloaded association)" do
         authors
         query = Author.includes(:recently_published_books).select(:id, :sum_recently_published_books_rating).order(:id).load
         expect do
-          expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, 0])
+          expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
         end.to_not make_database_queries
       end
     end
