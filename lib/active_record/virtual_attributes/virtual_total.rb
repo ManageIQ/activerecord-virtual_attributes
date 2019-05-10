@@ -42,7 +42,7 @@ module VirtualAttributes
       #
       #    def allocated_disk_storage
       #      if disks.loaded?
-      #        disks.blank? ? nil : disks.map(&:size).compact.sum
+      #        disks.map(&:size).compact.sum
       #      else
       #        disks.sum(:size) || 0
       #      end
@@ -88,7 +88,7 @@ module VirtualAttributes
           if has_attribute?(name)
             self[name] || 0
           elsif (rel = send(relation)).loaded?
-            rel.blank? ? nil : rel.map { |t| t.send(column) }.compact.send(method_name)
+            rel.map { |t| t.send(column) }.compact.send(method_name)
           else
             rel.try(method_name, column) || 0
           end

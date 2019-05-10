@@ -448,7 +448,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         authors.each { |a| a.recently_published_books.load }
 
         expect do
-          expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, 0])
+          expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
         end.to_not make_database_queries
       end
 
