@@ -480,7 +480,6 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         # NOTE: rails converts the nil to a 0
         it "calculates avg with one off query" do
           authors
-
           expect do
             expect(authors.map(&:average_recently_published_books_rating)).to eq([3, 5, 0, 0])
           end.to make_database_queries(:count => 4)
