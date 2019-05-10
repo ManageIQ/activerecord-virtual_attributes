@@ -30,18 +30,30 @@ module ActiveRecord
           virtual_attribute?(name) || virtual_reflection?(name)
         end
 
-        def remove_virtual_fields(associations)
+        def replace_virtual_fields(associations)
+          return associations if associations.blank?
+
           case associations
           when String, Symbol
-            virtual_field?(associations) ? nil : associations
+            virtual_field?(associations) ? replace_virtual_fields(virtual_includes(associations)) : associations
           when Array
-            associations.collect { |association| remove_virtual_fields(association) }.compact
+            associations.collect { |association| replace_virtual_fields(association) }.compact
           when Hash
             associations.each_with_object({}) do |(parent, child), h|
-              next if virtual_field?(parent)
-              reflection = reflect_on_association(parent.to_sym)
-              raise ArgumentError, "Unknown association #{parent}" unless reflection
-              h[parent] = reflection.options[:polymorphic] ? {} : reflection.klass.remove_virtual_fields(child) || {} if reflection
+              if virtual_field?(parent) # form virtual_attribute => {}
+                case (new_includes = replace_virtual_fields(virtual_includes(parent)))
+                when String, Symbol
+                  h[new_includes] = {}
+                when Array
+                  new_includes.each { |association| h[association] = {} }
+                when Hash
+                  h.deep_merge!(new_includes)
+                end
+              elsif (reflection = reflect_on_association(parent.to_sym))
+                h[parent] = reflection.options[:polymorphic] ? {} : reflection.klass.replace_virtual_fields(child) || {}
+              else # throw an error
+                h[parent] = child
+              end
             end
           else
             associations
@@ -169,7 +181,7 @@ module ActiveRecord
 
   class Relation
     def without_virtual_includes
-      filtered_includes = includes_values && klass.remove_virtual_fields(includes_values)
+      filtered_includes = includes_values && klass.replace_virtual_fields(includes_values)
       if filtered_includes != includes_values
         spawn.tap { |other| other.includes_values = filtered_includes }
       else
@@ -179,25 +191,12 @@ module ActiveRecord
 
     include(Module.new {
       # From ActiveRecord::FinderMethods
-      def find_with_associations
+      def find_with_associations(&block)
         real = without_virtual_includes
-        return super if real.equal?(self)
-
-        if ActiveRecord.version.to_s >= "5.1"
-          recs, join_dep = real.find_with_associations { |relation, join_dependency| [relation, join_dependency] }
+        if real.equal?(self)
+          super
         else
-          recs = real.find_with_associations
-        end
-
-        if includes_values
-          ActiveRecord::Associations::Preloader.new.preload(recs, preload_values + includes_values)
-        end
-
-        # when 5.0 support is dropped, assume a block given
-        if block_given?
-          yield recs, join_dep
-        else
-          recs
+          real.find_with_associations(&block)
         end
       end
 
