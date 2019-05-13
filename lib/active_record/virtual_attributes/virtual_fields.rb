@@ -71,26 +71,6 @@ module ActiveRecord
   end
 
   module Associations
-    class Preloader
-      prepend(Module.new {
-        def preloaders_for_one(association, records, scope)
-          klass_map = records.compact.group_by(&:class)
-
-          loaders = klass_map.keys.group_by { |klass| klass.virtual_includes(association) }.flat_map do |virtuals, klasses|
-            subset = klasses.flat_map { |klass| klass_map[klass] }
-            preload(subset, virtuals)
-          end
-
-          records_with_association = klass_map.select { |k, _rs| k.reflect_on_association(association) }.flat_map { |_k, rs| rs }
-          if records_with_association.any?
-            loaders.concat(super(association, records_with_association, scope))
-          end
-
-          loaders
-        end
-      })
-    end
-
     # FIXME: Hopefully we can get this into Rails core so this is no longer
     # required in our codebase, but the rule that are broken here are mostly
     # due to the style of the Rails codebase conflicting with our own.
@@ -181,26 +161,7 @@ module ActiveRecord
   end
 
   class Relation
-    def without_virtual_includes
-      filtered_includes = includes_values && klass.replace_virtual_fields(includes_values)
-      if filtered_includes != includes_values
-        spawn.tap { |other| other.includes_values = filtered_includes }
-      else
-        self
-      end
-    end
-
     include(Module.new {
-      # From ActiveRecord::FinderMethods
-      def find_with_associations(&block)
-        real = without_virtual_includes
-        if real.equal?(self)
-          super
-        else
-          real.find_with_associations(&block)
-        end
-      end
-
       # From ActiveRecord::QueryMethods
       def select(*fields)
         return super if block_given? || fields.empty?
@@ -219,6 +180,14 @@ module ActiveRecord
         super
       end
 
+      def includes(args)
+        super(klass.replace_virtual_fields(args))
+      end
+
+      def references(args)
+        super(klass.replace_virtual_fields(args))
+      end
+
       # From ActiveRecord::Calculations
       def calculate(operation, attribute_name)
         # work around 1 until https://github.com/rails/rails/pull/25304 gets merged
@@ -227,12 +196,7 @@ module ActiveRecord
           attribute_name = arel
         end
         # end work around 1
-
-        # allow calculate to work when including a virtual attribute
-        real = without_virtual_includes
-        return super if real.equal?(self)
-
-        real.calculate(operation, attribute_name)
+        super
       end
     })
   end
