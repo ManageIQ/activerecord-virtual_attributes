@@ -39,6 +39,21 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
   end
 
+  # references follow a different path than just includes
+  context "preloads virtual_attribute with includes.references" do
+    it "preloads virtual_attribute (delegate defines :uses => :author)" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      expect(Book.includes(:author_name).references(:author_name => {})).to preload_values(:author_name, author_name)
+    end
+  end
+
+  context "preloads virtual_attribute with select.includes.references" do
+    it "preloads virtual_attribute (:uses => {:book => :author_name})" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      expect(Book.select(:author_name).includes(:author_name).references(:author_name)).to preload_values(:author_name, author_name)
+    end
+  end
+
   it "preloads virtual_attribute in :include when :conditions are also present in calculations" do
     skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.name = '#{author_name}'")).to preload_values(:author_name, author_name)
@@ -59,15 +74,5 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:named_books => {})).to preload_values(:named_books, named_books)
       expect(Author.includes(:named_books => {}, :bookmarks => :book)).to preload_values(:named_books, named_books)
     end
-  end
-
-  it "should fetch virtual field using references" do
-    skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
-    expect(Book.includes(:author_name).references(:author_name)).to preload_values(:author_name, author_name)
-  end
-
-  it "should fetch virtual field using all 3" do
-    skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
-    expect(Book.select(:author_name).includes(:author_name).references(:author_name)).to preload_values(:author_name, author_name)
   end
 end
