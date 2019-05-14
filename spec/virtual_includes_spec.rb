@@ -16,12 +16,12 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
     it "as Array" do
       expect(Author.includes([:nick_or_name])).to preload_values(:nick_or_name, author_name)
-      expect(Author.includes([:nick_or_name, :bookmarks])).to preload_values(:nick_or_name, author_name)
+      expect(Author.includes([:nick_or_name, :first_book_name])).to preload_values(:first_book_name, book_name)
     end
 
     it "as Hash" do
       expect(Author.includes(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
-      expect(Author.includes(:nick_or_name => {}, :bookmarks => :book)).to preload_values(:nick_or_name, author_name)
+      expect(Author.includes(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
     end
   end
 
