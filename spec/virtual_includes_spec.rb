@@ -139,18 +139,16 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.id IS NOT NULL")).to preload_values(:author_name, author_name)
   end
 
-  context "virtual reflection" do
-    it "as Symbol" do
+  context "preloads virtual_reflection with includes" do
+    it "preloads virtual_reflection (:uses => :books)" do
       expect(Author.includes(:named_books)).to preload_values(:named_books, named_books)
-    end
-
-    it "as Array" do
       expect(Author.includes([:named_books])).to preload_values(:named_books, named_books)
-      expect(Author.includes([:named_books, :bookmarks])).to preload_values(:named_books, named_books)
+
+      expect(Author.includes(:named_books => {})).to preload_values(:named_books, named_books)
     end
 
-    it "as Hash" do
-      expect(Author.includes(:named_books => {})).to preload_values(:named_books, named_books)
+    it "preloads virtual_reflectin (multiple)" do
+      expect(Author.includes([:named_books, :bookmarks])).to preload_values(:named_books, named_books)
       expect(Author.includes(:named_books => {}, :bookmarks => :book)).to preload_values(:named_books, named_books)
     end
   end
