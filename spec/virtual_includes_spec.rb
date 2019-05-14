@@ -6,21 +6,20 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   end
 
   let(:author_name) { "foo" }
+  let(:book_name) { "bar" }
   # NOTE: each of the 1 authors has an array of books. so this value is [[Book, Book]]
   let(:named_books) { [Book.where.not(:name => nil).order(:id).load] }
 
-  context "virtual column" do
-    it "as Symbol" do
+  context "preloads virtual_attributes with includes" do
+    it "preloads virtual_attribute (:uses => nil) (with a NO OP)" do
       expect(Author.includes(:nick_or_name)).to preload_values(:nick_or_name, author_name)
-    end
-
-    it "as Array" do
       expect(Author.includes([:nick_or_name])).to preload_values(:nick_or_name, author_name)
-      expect(Author.includes([:nick_or_name, :first_book_name])).to preload_values(:first_book_name, book_name)
+
+      expect(Author.includes(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
     end
 
-    it "as Hash" do
-      expect(Author.includes(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
+    it "preloads virtual_attribute (multiple)" do
+      expect(Author.includes([:nick_or_name, :first_book_name])).to preload_values(:first_book_name, book_name)
       expect(Author.includes(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
     end
   end
