@@ -14,14 +14,22 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "preloads virtual_attribute (:uses => nil) (with a NO OP)" do
       expect(Author.includes(:nick_or_name)).to preload_values(:nick_or_name, author_name)
       expect(Author.includes([:nick_or_name])).to preload_values(:nick_or_name, author_name)
-
       expect(Author.includes(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
+    end
+
+    it "preloads virtual_attribute (delegate defines :uses => :author)" do
+      expect(Book.includes(:author_name)).to preload_values(:author_name, author_name)
     end
 
     it "preloads virtual_attribute (multiple)" do
       expect(Author.includes([:nick_or_name, :first_book_name])).to preload_values(:first_book_name, book_name)
       expect(Author.includes(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
     end
+
+    it "preloads virtual_attribute (:uses => {:book => :author_name})" do
+      expect(Author.includes(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
+    end
+
   end
 
   context "virtual reflection" do
@@ -40,11 +48,6 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
   end
 
-  # FIX
-  it "virtual field that has nested virtual fields in its :uses clause" do
-    expect { Author.includes(:ems_cluster).load }.not_to raise_error
-  end
-
   it "should handle virtual fields in :include when :conditions are also present in calculations" do
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.name = 'test'")).to preload_values(:author_name, author_name)
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.id IS NOT NULL")).to preload_values(:author_name, author_name)
@@ -52,10 +55,6 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
   it "should fetch virtual fields without includes" do
     expect(Book.select(:author_name)).to preload_values(:author_name, author_name)
-  end
-
-  it "should fetch virtual field using includes" do
-    expect(Book.includes(:author_name)).to preload_values(:author_name, author_name)
   end
 
   it "should fetch virtual field using references" do
@@ -66,9 +65,5 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   it "should fetch virtual field using all 3" do
     skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
     expect(Book.select(:author_name).includes(:author_name).references(:author_name)).to preload_values(:author_name, author_name)
-  end
-
-  it "should leverage include for virtual fields" do
-    expect(Author.includes(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
   end
 end
