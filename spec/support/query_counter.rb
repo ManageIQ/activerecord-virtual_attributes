@@ -14,5 +14,11 @@ module ActiveRecord
     def callback(name, start, finish, message_id, values)
       @query_count += 1 unless %w(CACHE SCHEMA).include?(values[:name])
     end
+
+    def self.count(&block)
+      counter = ActiveRecord::QueryCounter.new
+      ActiveSupport::Notifications.subscribed(counter.to_proc, 'sql.active_record', &block)
+      counter.query_count
+    end
   end
 end
