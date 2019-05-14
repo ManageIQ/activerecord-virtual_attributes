@@ -41,7 +41,7 @@ module ActiveRecord
               next if virtual_field?(parent)
               reflection = reflect_on_association(parent.to_sym)
               raise ArgumentError, "Unknown association #{parent}" unless reflection
-              h[parent] = reflection.options[:polymorphic] ? nil : reflection.klass.remove_virtual_fields(child) if reflection
+              h[parent] = reflection.options[:polymorphic] ? {} : reflection.klass.remove_virtual_fields(child) || {} if reflection
             end
           else
             associations
