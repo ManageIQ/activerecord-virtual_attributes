@@ -10,6 +10,13 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   # NOTE: each of the 1 authors has an array of books. so this value is [[Book, Book]]
   let(:named_books) { [Book.where.not(:name => nil).order(:id).load] }
 
+  context "preloads virtual_attribute with select" do
+    it "preloads virtual_attribute (:uses => {:author})" do
+      expect(Book.select(:author_name)).to preload_values(:author_name, author_name)
+      expect(Book.select(:id, :author_name)).to preload_values(:author_name, author_name)
+    end
+  end
+
   context "preloads virtual_attributes with includes" do
     it "preloads virtual_attribute (:uses => nil) (with a NO OP)" do
       expect(Author.includes(:nick_or_name)).to preload_values(:nick_or_name, author_name)
@@ -51,10 +58,6 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   it "should handle virtual fields in :include when :conditions are also present in calculations" do
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.name = 'test'")).to preload_values(:author_name, author_name)
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.id IS NOT NULL")).to preload_values(:author_name, author_name)
-  end
-
-  it "should fetch virtual fields without includes" do
-    expect(Book.select(:author_name)).to preload_values(:author_name, author_name)
   end
 
   it "should fetch virtual field using references" do
