@@ -140,16 +140,41 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   end
 
   context "preloads virtual_reflection with includes" do
+    it "doesn't preload without includes" do
+      expect(Author).not_to preload_values(:named_books, named_books)
+    end
+
     it "preloads virtual_reflection (:uses => :books)" do
       expect(Author.includes(:named_books)).to preload_values(:named_books, named_books)
       expect(Author.includes([:named_books])).to preload_values(:named_books, named_books)
-
       expect(Author.includes(:named_books => {})).to preload_values(:named_books, named_books)
+    end
+
+    it "preloads virtual_reflection (:uses => {:books => :author_name})" do
+      expect(Author.includes(:books_with_authors)).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes([:books_with_authors])).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
     end
 
     it "preloads virtual_reflectin (multiple)" do
       expect(Author.includes([:named_books, :bookmarks])).to preload_values(:named_books, named_books)
       expect(Author.includes(:named_books => {}, :bookmarks => :book)).to preload_values(:named_books, named_books)
+    end
+  end
+
+  context "preloads virtual_reflection with includes.references" do
+    it "preloads virtual_reflection (:uses => [:books])" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      expect(Author.includes(:named_books).references(:named_books => {})).to preload_values(:named_books, named_books)
+      expect(Author.includes([:named_books]).references(:named_books => {})).to preload_values(:named_books, named_books)
+      expect(Author.includes(:named_books => {}).references(:named_books => {})).to preload_values(:named_books, named_books)
+    end
+
+    it "preloads virtual_reflection (:uses => {:books => :author_name})" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      expect(Author.includes(:books_with_authors).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes([:books_with_authors]).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books_with_authors => {}).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
     end
   end
 end
