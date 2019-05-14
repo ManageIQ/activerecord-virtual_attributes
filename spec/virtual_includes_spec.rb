@@ -17,6 +17,11 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
   end
 
+  it "doesn't preload without includes" do
+    expect(Author).not_to preload_values(:first_book_name, book_name)
+    expect(Book).not_to preload_values(:author_name, author_name)
+  end
+
   context "preloads virtual_attributes with includes" do
     it "preloads virtual_attribute (:uses => nil) (with a NO OP)" do
       expect(Author.includes(:nick_or_name)).to preload_values(:nick_or_name, author_name)
@@ -24,26 +29,100 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
     end
 
+    it "preloads virtual_attribute (:uses => [:book])" do
+      expect(Author.includes(:first_book_name)).to preload_values(:first_book_name, book_name)
+      expect(Author.includes([:first_book_name])).to preload_values(:first_book_name, book_name)
+      expect(Author.includes(:first_book_name => {})).to preload_values(:first_book_name, book_name)
+    end
+
     it "preloads virtual_attribute (delegate defines :uses => :author)" do
       expect(Book.includes(:author_name)).to preload_values(:author_name, author_name)
+      expect(Book.includes([:author_name])).to preload_values(:author_name, author_name)
+      expect(Book.includes(:author_name => {})).to preload_values(:author_name, author_name)
     end
 
     it "preloads virtual_attribute (multiple)" do
+      expect(Author.includes(:nick_or_name).includes(:first_book_name)).to preload_values(:first_book_name, book_name)
       expect(Author.includes([:nick_or_name, :first_book_name])).to preload_values(:first_book_name, book_name)
       expect(Author.includes(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
     end
 
     it "preloads virtual_attribute (:uses => {:book => :author_name})" do
+      expect(Author.includes(:first_book_author_name)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes([:first_book_author_name])).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
     end
 
+    it "uses included associations" do
+      expect(Author.includes(:books => :author)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => :author_name)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(Author.virtual_includes(:first_book_author_name))).to preload_values(:first_book_author_name, author_name)
+    end
   end
 
   # references follow a different path than just includes
   context "preloads virtual_attribute with includes.references" do
+    it "preloads virtual_attribute (:uses => nil) (with a NO OP)" do
+      expect(Author.includes(:nick_or_name).references(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
+      expect(Author.includes([:nick_or_name]).references(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
+      expect(Author.includes(:nick_or_name => {}).references(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
+    end
+
+    it "preloads virtual_attribute (:uses => :book)" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      expect(Author.includes(:first_book_name).references(:first_book_name => {})).to preload_values(:first_book_name, book_name)
+      expect(Author.includes([:first_book_name]).references(:first_book_name => {})).to preload_values(:first_book_name, book_name)
+      expect(Author.includes(:first_book_name => {}).references(:first_book_name => {})).to preload_values(:first_book_name, book_name)
+    end
+
     it "preloads virtual_attribute (delegate defines :uses => :author)" do
       skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
       expect(Book.includes(:author_name).references(:author_name => {})).to preload_values(:author_name, author_name)
+      expect(Book.includes([:author_name]).references(:author_name => {})).to preload_values(:author_name, author_name)
+      expect(Book.includes(:author_name => {}).references(:author_name => {})).to preload_values(:author_name, author_name)
+    end
+
+    it "preloads virtual_attribute (multiple)" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      expect(Author.includes(:nick_or_name).includes(:first_book_name).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
+      expect(Author.includes([:nick_or_name, :first_book_name]).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
+      expect(Author.includes(:nick_or_name => {}, :first_book_name => {}).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
+    end
+
+    it "preloads virtual_attribute (:uses => {:book => :author_name})" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      expect(Author.includes(:first_book_author_name).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes([:first_book_author_name]).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:first_book_author_name => {}).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "uses included associations" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      expect(Author.includes(:books => :author).references(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
+      # expect(Author.includes(:books => [:author]).references(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => {:author => {}}).references(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
+
+      # expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      # expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => {:author_name =>{}}).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "uses included fields" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      # expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      # expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => {:author_name => {}}).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "uses preloaded fields" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      # expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      # expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => {:author_name => {}}).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      # inc = Author.virtual_includes(:first_book_author_name)
+      # expect(Author.includes(inc).references(inc)).to preload_values(:first_book_author_name, author_name)
     end
   end
 
