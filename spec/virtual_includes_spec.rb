@@ -101,28 +101,28 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "uses included associations" do
       skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
       expect(Author.includes(:books => :author).references(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
-      # expect(Author.includes(:books => [:author]).references(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => [:author]).references(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:books => {:author => {}}).references(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
 
-      # expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
-      # expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:books => {:author_name =>{}}).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
     end
 
     it "uses included fields" do
       skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
-      # expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
-      # expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:books => {:author_name => {}}).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
     end
 
     it "uses preloaded fields" do
       skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
-      # expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
-      # expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:books => {:author_name => {}}).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
-      # inc = Author.virtual_includes(:first_book_author_name)
-      # expect(Author.includes(inc).references(inc)).to preload_values(:first_book_author_name, author_name)
+      inc = Author.virtual_includes(:first_book_author_name)
+      expect(Author.includes(inc).references(inc)).to preload_values(:first_book_author_name, author_name)
     end
 
     it "detects errors" do
