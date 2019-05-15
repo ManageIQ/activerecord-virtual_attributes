@@ -37,7 +37,6 @@ module ActiveRecord
     end
 
     module ClassMethods
-
       #
       # Definition
       #

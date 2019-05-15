@@ -37,6 +37,7 @@ module ActiveRecord
           try(:attribute_alias?, name) ||
             (has_attribute?(name) && (!virtual_attribute?(name) || !!_virtual_arel[name.to_s]))
         end
+
         private
 
         def define_virtual_arel(name, arel)
