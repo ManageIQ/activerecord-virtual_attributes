@@ -114,12 +114,12 @@ describe VirtualAttributes::VirtualTotal do
 
     context "with a has_many that includes an order" do
       it "sorts by total" do
-        skip("fix order in scopes") if ENV["DB"] == "pg"
         author2 = Author.create_with_books(2)
-        author2.create_books(1, :published => true, :rating => 5)
+        author2.create_books(2, :published => true, :rating => 5)
         author0 = Author.create
-        author0.create_books(2, :published => true, :rating => 2)
+        author0.create_books(3, :published => true, :rating => 2)
         author1 = Author.create_with_books(1)
+        author1.create_books(1, :published => true, :rating => 0)
 
         expect(Author.order(:total_recently_published_books).pluck(:id))
           .to eq([author1, author2, author0].map(&:id))
@@ -142,8 +142,6 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "can bring back totals in primary query" do
-        skip("fix order in scopes") if ENV["DB"] == "pg"
-
         author3 = Author.create_with_books(3)
         author3.create_books(2, :published => true, :rating => 2)
         author1 = Author.create_with_books(1)
@@ -348,7 +346,6 @@ describe VirtualAttributes::VirtualTotal do
       end
 
       it "uses calculated (inline) attribute" do
-        skip("fix order in scopes") if ENV["DB"] == "pg"
         auth1 = model_with_children(0)
         auth2 = model_with_children(2)
         query = base_model.select(:id, :total_ordered_books).load
