@@ -15,15 +15,21 @@ module ActiveRecord
     module Type
       # TODO: do we actually need symbol types?
       class Symbol < ActiveRecord::Type::String
-        def type; :symbol; end
+        def type
+          :symbol
+        end
       end
 
       class StringSet < ActiveRecord::Type::Value
-        def type; :string_set; end
+        def type
+          :string_set
+        end
       end
 
       class NumericSet < ActiveRecord::Type::Value
-        def type; :numeric_set; end
+        def type
+          :numeric_set
+        end
       end
     end
 
@@ -37,7 +43,6 @@ module ActiveRecord
     end
 
     module ClassMethods
-
       #
       # Definition
       #
@@ -127,16 +132,16 @@ require "active_record/virtual_attributes/virtual_fields"
 
 # this patch is no longer necessary for 5.2
 if ActiveRecord.version.to_s < "5.2"
-require "active_record/attribute"
-module ActiveRecord
-  # This is a bug in rails 5.0 and 5.1, but it is made much worse by virtual attributes
-  class Attribute
-    def with_value_from_database(value)
-      # self.class.from_database(name, value, type)
-      initialized? ? self.class.from_database(name, value, type) : self
+  require "active_record/attribute"
+  module ActiveRecord
+    # This is a bug in rails 5.0 and 5.1, but it is made much worse by virtual attributes
+    class Attribute
+      def with_value_from_database(value)
+        # self.class.from_database(name, value, type)
+        initialized? ? self.class.from_database(name, value, type) : self
+      end
     end
   end
-end
 end
 
 require "active_record/virtual_attributes/virtual_total"
