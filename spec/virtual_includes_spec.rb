@@ -124,6 +124,14 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       # inc = Author.virtual_includes(:first_book_author_name)
       # expect(Author.includes(inc).references(inc)).to preload_values(:first_book_author_name, author_name)
     end
+
+    it "detects errors" do
+      expect { Author.includes(:books).references(:books).load }.not_to raise_error
+      expect { Author.includes(:invalid).references(:books).load }.to raise_error(ActiveRecord::ConfigurationError)
+      expect { Author.includes(:books => :invalid).references(:books).load }.to raise_error(ActiveRecord::ConfigurationError)
+      expect { Author.includes(:books => [:invalid]).references(:books).load }.to raise_error(ActiveRecord::ConfigurationError)
+      expect { Author.includes(:books => {:invalid => {}}).references(:books).load }.to raise_error(ActiveRecord::ConfigurationError)
+    end
   end
 
   context "preloads virtual_attribute with select.includes.references" do
