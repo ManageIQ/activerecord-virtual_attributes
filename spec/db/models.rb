@@ -62,8 +62,14 @@ class Author < VitualTotalTestBase
     books.first.author_name
   end
 
+  def upper_first_book_author_name
+    first_book_author_name.upcase
+  end
+
   virtual_attribute :first_book_name, :string, :uses => [:books]
   virtual_attribute :first_book_author_name, :string, :uses => {:books => :author_name}
+  # uses another virtual attribute that uses a relation
+  virtual_attribute :upper_first_book_author_name, :string, :uses => :first_book_author_name
 
   def self.create_with_books(count)
     create!(:name => "foo").tap { |author| author.create_books(count) }
@@ -86,6 +92,18 @@ class Book < VitualTotalTestBase
   # this tests delegate
   # this also tests an attribute :uses clause with a single symbol
   virtual_delegate :name, :to => :author, :prefix => true
+
+  # simple uses to a virtual attribute
+  virtual_attribute :upper_author_name, :string, :uses => [:author_name]
+  virtual_attribute :upper_author_name_def, :string, :uses => :upper_author_name
+
+  def upper_author_name
+    author_name.upcase
+  end
+
+  def upper_author_name_def
+    upper_author_name || "other"
+  end
 
   def self.create_with_bookmarks(count)
     Author.create(:name => "foo").books.create!(:name => "book").tap { |book| book.create_bookmarks(count) }

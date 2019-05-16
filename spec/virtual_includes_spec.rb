@@ -41,6 +41,12 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Book.includes(:author_name => {})).to preload_values(:author_name, author_name)
     end
 
+    it "preloads virtual_attribute (:uses => :upper_author_name) (:uses => :author_name)" do
+      expect(Book.includes(:upper_author_name_def)).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes([:upper_author_name_def])).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
+    end
+
     it "preloads virtual_attribute (multiple)" do
       expect(Author.includes(:nick_or_name).includes(:first_book_name)).to preload_values(:first_book_name, book_name)
       expect(Author.includes([:nick_or_name, :first_book_name])).to preload_values(:first_book_name, book_name)
@@ -51,6 +57,12 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:first_book_author_name)).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes([:first_book_author_name])).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "preloads virtual_attributes (:uses => {:first_book_author_name}) which (:uses => {:books => :author_name})" do
+      expect(Author.includes(:upper_first_book_author_name)).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes([:upper_first_book_author_name])).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes(:upper_first_book_author_name => {})).to preload_values(:upper_first_book_author_name, author_name.upcase)
     end
 
     it "uses included associations" do
@@ -84,6 +96,12 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Book.includes(:author_name => {}).references(:author_name => {})).to preload_values(:author_name, author_name)
     end
 
+    it "preloads virtual_attribute (:uses => :upper_author_name) (:uses => :author_name)" do
+      expect(Book.includes(:upper_author_name_def).references(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes([:upper_author_name_def]).references(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes(:upper_author_name_def => {}).references(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
+    end
+
     it "preloads virtual_attribute (multiple)" do
       skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
       expect(Author.includes(:nick_or_name).includes(:first_book_name).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
@@ -96,6 +114,13 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:first_book_author_name).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes([:first_book_author_name]).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:first_book_author_name => {}).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "preloads virtual_attributes (:uses => {:first_book_author_name}) which (:uses => {:books => :author_name})" do
+      ref = {:first_book_author_name => {}}
+      expect(Author.includes(:upper_first_book_author_name).references(ref)).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes([:upper_first_book_author_name]).references(ref)).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes(:upper_first_book_author_name => {}).references(ref)).to preload_values(:upper_first_book_author_name, author_name.upcase)
     end
 
     it "uses included associations" do
