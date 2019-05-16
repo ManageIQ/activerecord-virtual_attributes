@@ -27,13 +27,21 @@ class Author < VitualTotalTestBase
   virtual_total :total_recently_published_books, :recently_published_books
   virtual_aggregate :sum_recently_published_books_rating, :recently_published_books, :sum, :rating
 
-  # virtual_total using a virtual_has_many
+  # This is here to provide a virtual_total of a virtual_has_many that depends upon an array of associations.
+  # NOTE: this is tailored to the use case and is not an optimal solution
   def named_books
     # I didn't have the creativity needed to find a good ruby only check here
     books.select { |b| b.name }
   end
 
-  virtual_has_many :named_books, :class_name => "Book", :uses => :books
+  # virtual_has_many that depends upon a hash of a virtual column in another model.
+  # NOTE: this is tailored to the use case and is not an optimal solution
+  def books_with_authors
+    books.select { |b| b.name && b.author_name }
+  end
+
+  virtual_has_many :named_books, :class_name => "Book", :uses => [:books]
+  virtual_has_many :books_with_authors, :class_name => "Book", :uses => {:books => :author_name}
   virtual_total :total_named_books, :named_books
   alias v_total_named_books total_named_books
 
@@ -41,9 +49,21 @@ class Author < VitualTotalTestBase
     nickname || name
   end
 
+  # a (local) virtual_attribute without a uses, but with arel
   virtual_attribute :nick_or_name, :string do |t|
     t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [t[:nickname], t[:name]]))
   end
+
+  def first_book_name
+    books.first.name
+  end
+
+  def first_book_author_name
+    books.first.author_name
+  end
+
+  virtual_attribute :first_book_name, :string, :uses => [:books]
+  virtual_attribute :first_book_author_name, :string, :uses => {:books => :author_name}
 
   def self.create_with_books(count)
     create!(:name => "foo").tap { |author| author.create_books(count) }
@@ -63,6 +83,8 @@ class Book < VitualTotalTestBase
   scope :published, -> { where(:published => true)  }
   scope :wip,       -> { where(:published => false) }
 
+  # this tests delegate
+  # this also tests an attribute :uses clause with a single symbol
   virtual_delegate :name, :to => :author, :prefix => true
 
   def self.create_with_bookmarks(count)
