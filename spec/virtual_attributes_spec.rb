@@ -164,7 +164,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
           expect(test_sub_class.remove_virtual_fields([:vcolsub1, :vcol1, :ref1])).to eq([:ref1])
           expect(test_sub_class.remove_virtual_fields({:vcol1    => {}})).to eq({})
           expect(test_sub_class.remove_virtual_fields({:vcolsub1 => {}})).to eq({})
-          expect(test_sub_class.remove_virtual_fields(:vcolsub1 => {}, :volsub1 => {}, :ref1 => {})).to eq({:ref1 => {}})
+          expect(test_sub_class.remove_virtual_fields(:vcolsub1 => {}, :vcol1 => {}, :ref1 => {})).to eq({:ref1 => {}})
         end
       end
     end
