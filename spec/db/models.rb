@@ -79,6 +79,8 @@ end
 class Book < VitualTotalTestBase
   has_many :bookmarks, :class_name => "Bookmark", :foreign_key => "book_id"
   belongs_to :author,  :class_name => "Author",   :foreign_key => "author_id"
+  belongs_to :author_or_bookmark, :polymorphic => true, :foreign_key => "author_id", :foreign_type => "author_type"
+
   scope :ordered,   -> { order(:created_on => :desc) }
   scope :published, -> { where(:published => true)  }
   scope :wip,       -> { where(:published => false) }
