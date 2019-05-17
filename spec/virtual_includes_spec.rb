@@ -53,6 +53,11 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
     end
 
+    it "preloads through polymorphic" do
+      books = Book.includes(:author_or_bookmark => :total_books).load
+      expect { expect(books.map { |b| b.author_or_bookmark.total_books }).to eq([3, 3, 3]) }.to match_query_limit_of(0)
+    end
+
     it "uses included associations" do
       expect(Author.includes(:books => :author)).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
@@ -96,6 +101,12 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:first_book_author_name).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes([:first_book_author_name]).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:first_book_author_name => {}).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "doesn't preloads through polymorphic" do
+      expect do
+        Book.includes(:author_or_bookmark => :total_books).references(:author_name).load
+      end.to raise_error(ActiveRecord::EagerLoadPolymorphicError)
     end
 
     it "uses included associations" do

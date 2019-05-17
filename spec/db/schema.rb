@@ -11,6 +11,7 @@ ActiveRecord::Schema.define(:version => 0) do
 
   create_table "books", :force => true do |t|
     t.integer  "author_id"
+    t.string   "author_type", :default => "Author"
     t.string   "name"
     t.boolean  "published", :default => false
     t.boolean  "special",   :default => false
