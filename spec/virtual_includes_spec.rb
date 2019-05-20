@@ -65,9 +65,16 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:upper_first_book_author_name => {})).to preload_values(:upper_first_book_author_name, author_name.upcase)
     end
 
-    it "preloads through polymorphic" do
+    it "preloads through polymorphic (polymorphic => virtual_attribute)" do
       books = Book.includes(:author_or_bookmark => :total_books).load
       expect { expect(books.map { |b| b.author_or_bookmark.total_books }).to eq([3, 3, 3]) }.to match_query_limit_of(0)
+    end
+
+    it "preloads through virtual_has_many (virtual_has_many => virtual_attribute)" do
+      authors = Author.includes(:named_books => :author_name).load
+      expect do
+        expect(authors.first.named_books.map(&:author_name)).to eq([author_name] * 3)
+      end.to match_query_limit_of(0)
     end
 
     it "uses included associations" do
@@ -202,7 +209,7 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
     end
 
-    it "preloads virtual_reflectin (multiple)" do
+    it "preloads virtual_reflection (multiple)" do
       expect(Author.includes([:named_books, :bookmarks])).to preload_values(:named_books, named_books)
       expect(Author.includes(:named_books => {}, :bookmarks => :book)).to preload_values(:named_books, named_books)
     end
