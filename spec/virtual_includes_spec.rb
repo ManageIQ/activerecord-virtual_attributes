@@ -213,6 +213,11 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes([:named_books, :bookmarks])).to preload_values(:named_books, named_books)
       expect(Author.includes(:named_books => {}, :bookmarks => :book)).to preload_values(:named_books, named_books)
     end
+
+    it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
+      bookmarked_book = Author.first.books.first
+      expect(Author.includes(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
+    end
   end
 
   context "preloads virtual_reflection with includes.references" do
@@ -228,6 +233,12 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:books_with_authors).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
       expect(Author.includes([:books_with_authors]).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
       expect(Author.includes(:books_with_authors => {}).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
+    end
+
+    it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      bookmarked_book = Author.first.books.first
+      expect(Author.includes(:book_with_most_bookmarks).references(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
   end
 end

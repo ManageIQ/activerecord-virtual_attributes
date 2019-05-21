@@ -66,6 +66,12 @@ class Author < VitualTotalTestBase
     first_book_author_name.upcase
   end
 
+  # basic attribute with uses that doesn't use a virtual attribute
+  def book_with_most_bookmarks
+    books.max_by { |book| book.bookmarks.size }
+  end
+
+  virtual_has_one :book_with_most_bookmarks, :uses => {:books => :bookmarks}
   virtual_attribute :first_book_name, :string, :uses => [:books]
   virtual_attribute :first_book_author_name, :string, :uses => {:books => :author_name}
   # uses another virtual attribute that uses a relation
