@@ -41,6 +41,12 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Book.includes(:author_name => {})).to preload_values(:author_name, author_name)
     end
 
+    it "preloads virtual_attribute (:uses => :upper_author_name) (:uses => :author_name)" do
+      expect(Book.includes(:upper_author_name_def)).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes([:upper_author_name_def])).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
+    end
+
     it "preloads virtual_attribute (multiple)" do
       expect(Author.includes(:nick_or_name).includes(:first_book_name)).to preload_values(:first_book_name, book_name)
       expect(Author.includes([:nick_or_name, :first_book_name])).to preload_values(:first_book_name, book_name)
@@ -53,9 +59,22 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
     end
 
-    it "preloads through polymorphic" do
+    it "preloads virtual_attributes (:uses => {:first_book_author_name}) which (:uses => {:books => :author_name})" do
+      expect(Author.includes(:upper_first_book_author_name)).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes([:upper_first_book_author_name])).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes(:upper_first_book_author_name => {})).to preload_values(:upper_first_book_author_name, author_name.upcase)
+    end
+
+    it "preloads through polymorphic (polymorphic => virtual_attribute)" do
       books = Book.includes(:author_or_bookmark => :total_books).load
       expect { expect(books.map { |b| b.author_or_bookmark.total_books }).to eq([3, 3, 3]) }.to match_query_limit_of(0)
+    end
+
+    it "preloads through virtual_has_many (virtual_has_many => virtual_attribute)" do
+      authors = Author.includes(:named_books => :author_name).load
+      expect do
+        expect(authors.first.named_books.map(&:author_name)).to eq([author_name] * 3)
+      end.to match_query_limit_of(0)
     end
 
     it "uses included associations" do
@@ -89,6 +108,13 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Book.includes(:author_name => {}).references(:author_name => {})).to preload_values(:author_name, author_name)
     end
 
+    it "preloads virtual_attribute (:uses => :upper_author_name) (:uses => :author_name)" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      expect(Book.includes(:upper_author_name_def).references(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes([:upper_author_name_def]).references(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes(:upper_author_name_def => {}).references(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
+    end
+
     it "preloads virtual_attribute (multiple)" do
       skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
       expect(Author.includes(:nick_or_name).includes(:first_book_name).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
@@ -101,6 +127,14 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:first_book_author_name).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes([:first_book_author_name]).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:first_book_author_name => {}).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "preloads virtual_attributes (:uses => {:first_book_author_name}) which (:uses => {:books => :author_name})" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      ref = {:first_book_author_name => {}}
+      expect(Author.includes(:upper_first_book_author_name).references(ref)).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes([:upper_first_book_author_name]).references(ref)).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes(:upper_first_book_author_name => {}).references(ref)).to preload_values(:upper_first_book_author_name, author_name.upcase)
     end
 
     it "doesn't preloads through polymorphic" do
@@ -175,9 +209,14 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
     end
 
-    it "preloads virtual_reflectin (multiple)" do
+    it "preloads virtual_reflection (multiple)" do
       expect(Author.includes([:named_books, :bookmarks])).to preload_values(:named_books, named_books)
       expect(Author.includes(:named_books => {}, :bookmarks => :book)).to preload_values(:named_books, named_books)
+    end
+
+    it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
+      bookmarked_book = Author.first.books.first
+      expect(Author.includes(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
   end
 
@@ -194,6 +233,12 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:books_with_authors).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
       expect(Author.includes([:books_with_authors]).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
       expect(Author.includes(:books_with_authors => {}).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
+    end
+
+    it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
+      skip("AR 5.1 not including properly") if ActiveRecord.version.to_s >= "5.1"
+      bookmarked_book = Author.first.books.first
+      expect(Author.includes(:book_with_most_bookmarks).references(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
   end
 end
