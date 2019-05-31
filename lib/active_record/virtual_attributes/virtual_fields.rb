@@ -207,8 +207,12 @@ module ActiveRecord
         # this code is based upon _select()
         fields.flatten!
         fields.map! do |field|
-          if virtual_attribute?(field) && (arel = klass.arel_attribute(field)) && arel.respond_to?(:as)
-            arel.as(connection.quote_column_name(field.to_s))
+          if virtual_attribute?(field) && (arel = klass.arel_attribute(field))
+            if arel.respond_to?(:as) && !arel.try(:alias)
+              arel.as(connection.quote_column_name(field.to_s))
+            else
+              arel
+            end
           else
             field
           end
