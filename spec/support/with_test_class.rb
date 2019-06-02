@@ -34,7 +34,6 @@ shared_context 'with test_class', :with_test_class do
       end
     end
 
-    require 'ostruct'
     class TestClass < TestClassBase
       belongs_to :ref1, :class_name => 'TestClass', :foreign_key => :col1
     end
