@@ -200,6 +200,7 @@ module ActiveRecord
       end
 
       # From ActiveRecord::QueryMethods
+      # would be nice to get this monkey patch into arel_column
       def select(*fields)
         return super if block_given? || fields.empty?
         # support virtual attributes by adding an alias to the sql phrase for the column
@@ -207,14 +208,12 @@ module ActiveRecord
         # this code is based upon _select()
         fields.flatten!
         fields.map! do |field|
-          if virtual_attribute?(field) && (arel = klass.arel_attribute(field))
-            if arel.respond_to?(:as) && !arel.try(:alias)
-              arel.as(connection.quote_column_name(field.to_s))
-            else
-              arel
-            end
-          else
+          if !virtual_attribute?(field) || !(arel = klass.arel_attribute(field))
             field
+          elsif arel.respond_to?(:as) && !arel.try(:alias)
+            arel.as(connection.quote_column_name(field.to_s))
+          else
+            arel
           end
         end
         # end support virtual attributes
