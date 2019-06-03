@@ -5,14 +5,9 @@ module VirtualAttributes
     module ClassMethods
       private
 
-      # define an attribute to calculating the total of a child
-      def virtual_total(name, relation, options = {})
-        virtual_aggregate(name, relation, :size, nil, options)
-      end
-
-      # define an attribute to calculating the total of a child
+      # define an attribute to calculating the total of a has many relationship
       #
-      #  example 1:
+      #  example:
       #
       #    class ExtManagementSystem
       #      has_many :vms
@@ -29,7 +24,13 @@ module VirtualAttributes
       #
       #   # arel == (SELECT COUNT(*) FROM vms where ems.id = vms.ems_id)
       #
-      #  example 2:
+      def virtual_total(name, relation, options = {})
+        virtual_aggregate(name, relation, :size, nil, options)
+      end
+
+      # define an attribute to calculate the sum of a has may relationship
+      #
+      #  example:
       #
       #    class Hardware
       #      has_many :disks
