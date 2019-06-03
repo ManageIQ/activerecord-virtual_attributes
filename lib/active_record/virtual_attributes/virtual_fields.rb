@@ -39,23 +39,27 @@ module ActiveRecord
           when Array
             associations.collect { |association| replace_virtual_fields(association) }.compact
           when Hash
-            associations.each_with_object({}) do |(parent, child), h|
-              if virtual_field?(parent) # form virtual_attribute => {}
-                case (new_includes = replace_virtual_fields(virtual_includes(parent)))
-                when String, Symbol
-                  h[new_includes] = {}
-                when Array
-                  new_includes.each { |association| h[association] = {} }
-                when Hash
-                  h.deep_merge!(new_includes)
-                end
-              else
-                reflection = reflect_on_association(parent.to_sym)
-                h[parent] = reflection.nil? || reflection.options[:polymorphic] ? {} : reflection.klass.replace_virtual_fields(child) || {}
-              end
-            end
+            replace_virtual_field_hash(associations)
           else
             associations
+          end
+        end
+
+        def replace_virtual_field_hash(associations)
+          associations.each_with_object({}) do |(parent, child), h|
+            if virtual_field?(parent) # form virtual_attribute => {}
+              case (new_includes = replace_virtual_fields(virtual_includes(parent)))
+              when String, Symbol
+                h[new_includes] = {}
+              when Array
+                new_includes.each { |association| h[association] = {} }
+              when Hash
+                h.deep_merge!(new_includes)
+              end
+            else
+              reflection = reflect_on_association(parent.to_sym)
+              h[parent] = reflection.nil? || reflection.options[:polymorphic] ? {} : reflection.klass.replace_virtual_fields(child) || {}
+            end
           end
         end
       end
