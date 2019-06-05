@@ -212,7 +212,7 @@ module ActiveRecord
         fields.flatten!
         fields.map! do |field|
           if virtual_attribute?(field) && (arel = klass.arel_attribute(field)) && arel.respond_to?(:as)
-            arel.as(field.to_s)
+            arel.as(connection.quote_column_name(field.to_s))
           else
             field
           end

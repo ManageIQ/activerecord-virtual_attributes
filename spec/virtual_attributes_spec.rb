@@ -971,6 +971,18 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
   end
 
+  it "supports non valid sql column names", :with_test_class do
+    TestClass.create(:str => "ABC")
+    TestClass.virtual_attribute :"lower column", :string, :arel => ->(t) { t[:str].lower }
+    class TestClass
+      define_method("lower column") { has_attribute?(:"lower column") ? self[:"lower column"] : str.downcase }
+    end
+
+    # testing the select, order, and where clauses
+    tc = TestClass.select("lower column").order(:"lower column").find_by(:"lower column" => "abc")
+    expect(tc.send("lower column")).to eq("abc")
+  end
+
   it "doesn't botch up the attributes", :with_test_class do
     tc = TestClass.select(:id, :str).find(TestClass.create(:str => "abc", :col1 => 55).id)
     expect(tc.attributes.size).to eq(2)
