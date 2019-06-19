@@ -53,6 +53,10 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
     end
 
+    it "preloads virtual_attributes dups" do
+      expect(Author.includes(:total_named_books).includes(:first_book_author_name)).to preload_values(:first_book_author_name, author_name)
+    end
+
     it "preloads virtual_attribute (:uses => {:book => :author_name})" do
       expect(Author.includes(:first_book_author_name)).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes([:first_book_author_name])).to preload_values(:first_book_author_name, author_name)
@@ -122,6 +126,10 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:books_with_authors => {}, :books => {}).references(:books => {})).to preload_values(:books_with_authors, named_books)
       expect(Author.includes(:books => {}).includes(:books => {:author => {}}).references(:books => {})).to preload_values(:books_with_authors, named_books)
       expect(Author.includes(:books => {:author => {}}).includes(:books => {}).references(:books => {})).to preload_values(:books_with_authors, named_books)
+    end
+
+    it "preloads virtual_attributes dups" do
+      expect(Author.includes(:books => :author, :books_with_authors => {}).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
     end
 
     it "preloads virtual_attribute (:uses => {:book => :author_name})" do
@@ -286,6 +294,20 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "merges hash, hash - 1 level only" do
       first  = {:key => {:more1 => {}}}
       second = {:key => {:more2 => {}}}
+      result = {:key => {:more1 => {}, :more2 => {}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges hash(hash), hash(symbol)" do
+      first  = {:key => {:more1 => {}}}
+      second = {:key => :more2}
+      result = {:key => {:more1 => {}, :more2 => {}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges hash(hash), hash(array)" do
+      first  = {:key => {:more1 => {}}}
+      second = {:key => [:more2]}
       result = {:key => {:more1 => {}, :more2 => {}}}
       expect(Author.merge_includes(first, second)).to eq(result)
     end

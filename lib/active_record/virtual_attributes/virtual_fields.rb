@@ -50,9 +50,9 @@ module ActiveRecord
             if virtual_field?(parent) # form virtual_attribute => {}
               case (new_includes = replace_virtual_fields(virtual_includes(parent)))
               when String, Symbol
-                merge_includes(h, new_includes => {})
+                merge_includes(h, new_includes)
               when Array
-                merge_includes(h, new_includes.each_with_object({}) { |association, h2| h2[association] = {} })
+                merge_includes(h, new_includes)
               when Hash
                 merge_includes(h, new_includes)
               end
@@ -64,11 +64,28 @@ module ActiveRecord
           end
         end
 
+        # @param [Hash, Array, String, Symbol] value
+        # @return [Hash]
+        def include_to_hash(value)
+          case value
+          when String, Symbol
+            {value => {}}
+          when Array
+            value.flatten.each_with_object({}) { |k, h| h[k] = {} }
+          when nil
+            {}
+          else
+            value
+          end
+        end
+
         # @param [Hash] hash1
         # @param [Hash] hash2
         def merge_includes(hash1, hash2)
           return hash1 if hash2.blank?
 
+          hash1 = include_to_hash(hash1)
+          hash2 = include_to_hash(hash2)
           hash1.deep_merge!(hash2) do |_k, v1, v2|
             merge_includes(v1, v2)
           end
