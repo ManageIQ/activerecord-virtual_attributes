@@ -1,1 +1,1 @@
-require 'virtual_attributes'
+require 'active_record-virtual_attributes'
