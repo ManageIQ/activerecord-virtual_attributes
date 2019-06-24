@@ -221,6 +221,12 @@ module ActiveRecord
         super
       end
 
+      # From ActiveRecord::QueryMethods
+      def build_left_outer_joins(manager, outer_joins, *rest)
+        outer_joins = klass.replace_virtual_fields(outer_joins)
+        super if outer_joins.present?
+      end
+
       # From ActiveRecord::Calculations
       def calculate(operation, attribute_name)
         # work around 1 until https://github.com/rails/rails/pull/25304 gets merged

@@ -227,4 +227,12 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:book_with_most_bookmarks).references(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
   end
+
+  context "supports left_joins with virtual attributes" do
+    it "doesn't freak when virtual attribute in " do
+      # sorry, :author_name will not be available
+      # in that case, just .where.not(:author_name => nil) - no need for left_joins
+      expect { Book.left_joins(:author_name).where.not(:authors => {:name => nil}).load }.not_to raise_error
+    end
+  end
 end
