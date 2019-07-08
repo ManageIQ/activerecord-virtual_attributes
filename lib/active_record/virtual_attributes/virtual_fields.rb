@@ -209,8 +209,7 @@ module ActiveRecord
         # support virtual attributes by adding an alias to the sql phrase for the column
         # it does not add an as() if the column already has an as
         # this code is based upon _select()
-        fields.flatten!
-        fields.map! do |field|
+        fields = fields.flatten.map! do |field|
           if virtual_attribute?(field) && (arel = klass.arel_attribute(field)) && arel.respond_to?(:as)
             arel.as(connection.quote_column_name(field.to_s))
           else
