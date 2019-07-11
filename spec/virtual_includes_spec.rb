@@ -53,6 +53,10 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
     end
 
+    it "preloads virtual_attributes dups" do
+      expect(Author.includes(:total_named_books).includes(:first_book_author_name)).to preload_values(:first_book_author_name, author_name)
+    end
+
     it "preloads virtual_attribute (:uses => {:book => :author_name})" do
       expect(Author.includes(:first_book_author_name)).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes([:first_book_author_name])).to preload_values(:first_book_author_name, author_name)
@@ -116,6 +120,16 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:nick_or_name).includes(:first_book_name).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
       expect(Author.includes([:nick_or_name, :first_book_name]).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
       expect(Author.includes(:nick_or_name => {}, :first_book_name => {}).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
+    end
+
+    it "preloads virtual_reflections (multiple overlap hash)" do
+      expect(Author.includes(:books_with_authors => {}, :books => {}).references(:books => {})).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books => {}).includes(:books => {:author => {}}).references(:books => {})).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books => {:author => {}}).includes(:books => {}).references(:books => {})).to preload_values(:books_with_authors, named_books)
+    end
+
+    it "preloads virtual_attributes dups" do
+      expect(Author.includes(:books => :author, :books_with_authors => {}).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
     end
 
     it "preloads virtual_attribute (:uses => {:book => :author_name})" do
@@ -203,6 +217,12 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:named_books => {}, :bookmarks => :book)).to preload_values(:named_books, named_books)
     end
 
+    it "preloads virtual_reflections (multiple overlap hash)" do
+      expect(Author.includes(:books_with_authors => {}, :books => {})).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books => {}).includes(:books => {:author => {}})).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books => {:author => {}}).includes(:books => {})).to preload_values(:books_with_authors, named_books)
+    end
+
     it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
       bookmarked_book = Author.first.books.first
       expect(Author.includes(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
@@ -225,6 +245,78 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
       bookmarked_book = Author.first.books.first
       expect(Author.includes(:book_with_most_bookmarks).references(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
+    end
+  end
+
+  context ".merge_includes" do
+    it "merges when first is blank" do
+      first  = {}
+      second = {:key => {}}
+      result = {:key => {}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges when second is blank" do
+      first  = {:key => {}}
+      second = {}
+      result = {:key => {}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "keeps other keys" do
+      first  = {:other1 => {}}
+      second = {:other2 => {}}
+      result = {:other1 => {}, :other2 => {}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges blank, blank" do
+      first  = {:key => {}}
+      second = {:key => {}}
+      result = {:key => {}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges blank, hash" do
+      first  = {:key => {}}
+      second = {:key => {:more2 => {}}}
+      result = {:key => {:more2 => {}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges hash, blank" do
+      first  = {:key => {:more1 => {}}}
+      second = {:key => {}}
+      result = {:key => {:more1 => {}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges hash, hash - 1 level only" do
+      first  = {:key => {:more1 => {}}}
+      second = {:key => {:more2 => {}}}
+      result = {:key => {:more1 => {}, :more2 => {}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges hash(hash), hash(symbol)" do
+      first  = {:key => {:more1 => {}}}
+      second = {:key => :more2}
+      result = {:key => {:more1 => {}, :more2 => {}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges hash(hash), hash(array)" do
+      first  = {:key => {:more1 => {}}}
+      second = {:key => [:more2]}
+      result = {:key => {:more1 => {}, :more2 => {}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges 2 overlapping hashes - 2 levels" do
+      first  = {:key => {:more => {:third => {:fourth1 => {}}}}}
+      second = {:key => {:more => {:third => {:fourth2 => true}}}}
+      result = {:key => {:more => {:third => {:fourth1 => {}, :fourth2 => true}}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
     end
   end
 

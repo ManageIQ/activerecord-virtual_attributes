@@ -50,16 +50,44 @@ module ActiveRecord
             if virtual_field?(parent) # form virtual_attribute => {}
               case (new_includes = replace_virtual_fields(virtual_includes(parent)))
               when String, Symbol
-                h[new_includes] = {}
+                merge_includes(h, new_includes)
               when Array
-                new_includes.each { |association| h[association] = {} }
+                merge_includes(h, new_includes)
               when Hash
-                h.deep_merge!(new_includes)
+                merge_includes(h, new_includes)
               end
             else
               reflection = reflect_on_association(parent.to_sym)
-              h[parent] = reflection.nil? || reflection.options[:polymorphic] ? {} : reflection.klass.replace_virtual_fields(child) || {}
+              new_child = reflection.nil? || reflection.options[:polymorphic] ? {} : reflection.klass.replace_virtual_fields(child) || {}
+              merge_includes(h, parent => new_child)
             end
+          end
+        end
+
+        # @param [Hash, Array, String, Symbol] value
+        # @return [Hash]
+        def include_to_hash(value)
+          case value
+          when String, Symbol
+            {value => {}}
+          when Array
+            value.flatten.each_with_object({}) { |k, h| h[k] = {} }
+          when nil
+            {}
+          else
+            value
+          end
+        end
+
+        # @param [Hash] hash1
+        # @param [Hash] hash2
+        def merge_includes(hash1, hash2)
+          return hash1 if hash2.blank?
+
+          hash1 = include_to_hash(hash1)
+          hash2 = include_to_hash(hash2)
+          hash1.deep_merge!(hash2) do |_k, v1, v2|
+            merge_includes(v1, v2)
           end
         end
       end
