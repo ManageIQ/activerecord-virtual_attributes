@@ -5,6 +5,13 @@ a nice looking [Changelog](http://keepachangelog.com).
 
 ## Version [Unreleased]
 
+## Version [1.4.0] <small>2019-07-13</small>
+
+* fix includes to include all associations
+* fix bin/console to now actually run
+* select no longer munges field attribute
+* support virtual attributes in left_outer_joins
+
 ## Version [1.3.1] <small>2019-06-06</small>
 
 * quote column aliases
@@ -38,7 +45,8 @@ a nice looking [Changelog](http://keepachangelog.com).
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.1.0...v1.2.0
