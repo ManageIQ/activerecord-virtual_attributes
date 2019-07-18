@@ -216,11 +216,11 @@ module ActiveRecord
       end
 
       def includes(*args)
-        super(klass.replace_virtual_fields(*args))
+        super(klass.replace_virtual_fields(args))
       end
 
       def references(*args)
-        super(klass.replace_virtual_fields(*args))
+        super(klass.replace_virtual_fields(args))
       end
 
       # From ActiveRecord::Calculations
