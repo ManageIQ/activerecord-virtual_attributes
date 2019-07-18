@@ -215,12 +215,12 @@ module ActiveRecord
         super if outer_joins.present?
       end
 
-      def includes(args)
-        super(klass.replace_virtual_fields(args))
+      def includes(*args)
+        super(klass.replace_virtual_fields(*args))
       end
 
-      def references(args)
-        super(klass.replace_virtual_fields(args))
+      def references(*args)
+        super(klass.replace_virtual_fields(*args))
       end
 
       # From ActiveRecord::Calculations
