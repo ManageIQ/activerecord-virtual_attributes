@@ -255,6 +255,52 @@ module ActiveRecord
         super
       end
 
+      # From ActiveRecord::QueryMethods (rails 5.2 - 6.0)
+      def build_select(arel)
+        if select_values.any?
+          arel.project(*arel_columns(select_values.uniq))
+        elsif klass.ignored_columns.any?
+          arel.project(*klass.column_names.map { |field| arel_attribute(field) })
+        else
+          arel.project(table[Arel.star])
+        end
+      end
+
+      # from ActiveRecord::QueryMethods (rails 5.2 - 6.0)
+      def arel_columns(columns)
+        columns.flat_map do |field|
+          case field
+          when Symbol
+            arel_column(field.to_s) do |attr_name|
+              connection.quote_table_name(attr_name)
+            end
+          when String
+            arel_column(field, &:itself)
+          when Proc
+            field.call
+          else
+            field
+          end
+        end
+      end
+
+      # from ActiveRecord::QueryMethods (rails 5.2 - 6.0)
+      def arel_column(field)
+        field = klass.attribute_aliases[field] || field
+        from = from_clause.name || from_clause.value
+
+        if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
+          arel_attribute(field)
+        else
+          yield field
+        end
+      end
+
+      # From ActiveRecord::QueryMethods
+      def table_name_matches?(from)
+        /(?:\A|(?<!FROM)\s)(?:\b#{table.name}\b|#{connection.quote_table_name(table.name)})(?!\.)/i.match?(from.to_s)
+      end
+
       # From ActiveRecord::QueryMethods
       def build_left_outer_joins(manager, outer_joins, *rest)
         outer_joins = klass.replace_virtual_fields(outer_joins)
