@@ -152,7 +152,7 @@ module ActiveRecord
         # This can be seen with the following:
         #
         #   Vm.select(Vm.arel_table[Arel.star]).select(:some_vm_virtual_col)
-        #     .includes(:tags => {}).references(:tags => {})
+        #     .includes(:tags => {}).references(:tags)
         #
         # Which will produce a SQL SELECT statement kind of like this:
         #
