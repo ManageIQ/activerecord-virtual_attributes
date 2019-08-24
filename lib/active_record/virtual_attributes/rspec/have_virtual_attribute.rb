@@ -2,7 +2,7 @@ RSpec::Matchers.define :have_virtual_attribute do |name, type|
   match do |klass|
     expect(klass.has_attribute?(name)).to be_truthy
     expect(klass.virtual_attribute?(name)).to be_truthy
-    expect(klass.type_for_attribute(name.to_s).type).to(eq(type))
+    expect(klass.type_for_attribute(name.to_s).type).to(eq(type)) if type
     klass.instance_methods.include?(name.to_sym)
   end
 
