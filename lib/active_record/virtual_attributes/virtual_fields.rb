@@ -238,7 +238,7 @@ module ActiveRecord
         # it does not add an as() if the column already has an as
         # this code is based upon _select()
         fields = fields.flatten.map! do |field|
-          if virtual_attribute?(field) && (arel = klass.arel_attribute(field)) && arel.respond_to?(:as)
+          if virtual_attribute?(field) && (arel = klass.arel_attribute(field)) && arel.respond_to?(:as) && !arel.kind_of?(Arel::Nodes::As)
             arel.as(connection.quote_column_name(field.to_s))
           else
             field
