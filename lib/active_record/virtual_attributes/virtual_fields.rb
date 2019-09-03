@@ -199,7 +199,11 @@ module ActiveRecord
           result_set.each { |row_hash|
             parent_key = primary_key ? row_hash[primary_key] : row_hash
             parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, &block)
-            construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
+            if ActiveRecord.version.to_s < "6.0"
+              construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
+            else
+              construct(parent, join_root, row_hash, seen, model_cache)
+            end
           }
         end
 
