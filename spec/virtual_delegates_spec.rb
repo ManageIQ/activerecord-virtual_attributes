@@ -26,6 +26,33 @@ describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_class do
     expect(tcs.map(&:x)).to match_array([nil, 4])
   end
 
+  context "invalid" do
+    it "expects a ':to' for delegation" do
+      expect do
+        TestClass.virtual_delegate :col1
+      end.to raise_error(ArgumentError, /needs an association/)
+    end
+
+    it "only allows 1 method when delegating to a specific method" do
+      expect do
+        TestClass.virtual_delegate :col1, :col2, :to => "ref1.method"
+      end.to raise_error(ArgumentError, /single virtual method/)
+    end
+
+    it "only allows 1 level deep delegation" do
+      expect do
+        TestClass.virtual_delegate :col1, :to => "ref1.method.method2"
+      end.to raise_error(ArgumentError, /single association/)
+    end
+
+    it "detects invalid destination" do
+      expect do
+        TestClass.virtual_delegate :col1, :to => "bogus_ref.method"
+        TestClass.new
+      end.to raise_error(ArgumentError, /needs an association/)
+    end
+  end
+
   context "with has_one :parent" do
     before do
       TestClass.has_one :ref2, :class_name => 'TestClass', :foreign_key => :col1, :inverse_of => :ref1
