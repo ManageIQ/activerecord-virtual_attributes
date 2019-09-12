@@ -25,7 +25,8 @@ module VirtualAttributes
       #   # arel == (SELECT COUNT(*) FROM vms where ems.id = vms.ems_id)
       #
       def virtual_total(name, relation, options = {})
-        virtual_aggregate(name, relation, :size, nil, options)
+        define_virtual_aggregate_method(name, relation, :size, nil)
+        define_virtual_aggregate_attribute(name, relation, :size, nil, options)
       end
 
       # define an attribute to calculate the sum of a has may relationship
@@ -53,6 +54,10 @@ module VirtualAttributes
 
       def virtual_aggregate(name, relation, method_name = :sum, column = nil, options = {})
         define_virtual_aggregate_method(name, relation, method_name, column)
+        define_virtual_aggregate_attribute(name, relation, method_name, column, options)
+      end
+
+      def define_virtual_aggregate_attribute(name, relation, method_name, column, options)
         reflection = reflect_on_association(relation)
 
         if options.key?(:arel)
