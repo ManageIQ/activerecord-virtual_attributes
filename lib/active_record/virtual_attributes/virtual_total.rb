@@ -25,7 +25,7 @@ module VirtualAttributes
       #   # arel == (SELECT COUNT(*) FROM vms where ems.id = vms.ems_id)
       #
       def virtual_total(name, relation, options = {})
-        define_virtual_aggregate_method(name, relation, :size, nil)
+        define_virtual_size_method(name, relation)
         define_virtual_aggregate_attribute(name, relation, :size, nil, options)
       end
 
@@ -75,23 +75,23 @@ module VirtualAttributes
         end
       end
 
+      def define_virtual_size_method(name, relation)
+        define_method(name) do
+          (attribute_present?(name) ? self[name] : nil) || send(relation).try(:size) || 0
+        end
+      end
+
       def define_virtual_aggregate_method(name, relation, method_name, column)
-        if method_name == :size
-          define_method(name) do
-            (attribute_present?(name) ? self[name] : nil) || send(relation).try(:size) || 0
-          end
-        else
-          define_method(name) do
-            (attribute_present?(name) ? self[name] : nil) ||
-              begin
-                rel = send(relation)
-                if rel.loaded?
-                  rel.blank? ? nil : (rel.map { |t| t.send(column).to_i } || 0).send(method_name)
-                else
-                  rel.try(method_name, column) || 0
-                end
+        define_method(name) do
+          (attribute_present?(name) ? self[name] : nil) ||
+            begin
+              rel = send(relation)
+              if rel.loaded?
+                rel.blank? ? nil : (rel.map { |t| t.send(column).to_i } || 0).send(method_name)
+              else
+                rel.try(method_name, column) || 0
               end
-          end
+            end
         end
       end
 
