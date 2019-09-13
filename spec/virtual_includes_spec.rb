@@ -195,6 +195,83 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.id IS NOT NULL")).to preload_values(:author_name, author_name)
   end
 
+  context "preload virtual_attribute with preload" do
+    it "preloads attribute (:uses => :book)" do
+      expect(Author.preload(:total_books)).to preload_values(:total_books, 3)
+    end
+  end
+
+  context "preloads virtual_attribute with preloader" do
+    it "preloads attribute (:uses => :book)" do
+      expect(preloaded(Author.all.to_a, :total_books)).to preload_values(:total_books, 3)
+    end
+
+    it "preloads virtual_attribute (:uses => nil) (with a NO OP)" do
+      expect(preloaded(Author.all.to_a, :nick_or_name)).to preload_values(:nick_or_name, author_name)
+    end
+
+    it "preloads virtual_attribute (:uses => :book)" do
+      expect(preloaded(Author.all.to_a, :first_book_name)).to preload_values(:first_book_name, book_name)
+    end
+
+    it "preloads virtual_attribute (delegate defines :uses => :author)" do
+      expect(preloaded(Book.all.to_a, :author_name)).to preload_values(:author_name, author_name)
+    end
+
+    it "preloads virtual_attribute (:uses => :upper_author_name) (:uses => :author_name)" do
+      expect(preloaded(Book.all.to_a, :upper_author_name_def)).to preload_values(:upper_author_name_def, author_name.upcase)
+    end
+
+    it "preloads virtual_attribute (multiple)" do
+      expect(preloaded(Author.all.to_a, [:nick_or_name, :first_book_name])).to preload_values(:first_book_name, book_name)
+    end
+
+    it "preloads virtual_reflections (multiple overlap hash)" do
+      expect(preloaded(Author.all.to_a, :books_with_authors => {}, :books => {})).to preload_values(:books_with_authors, named_books)
+    end
+
+    it "preloads virtual_attributes dups" do
+      expect(preloaded(Author.all.to_a, :books => :author, :books_with_authors => {})).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "preloads virtual_attribute (:uses => {:book => :author_name})" do
+      expect(preloaded(Author.all.to_a, :first_book_author_name)).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "preloads virtual_attributes (:uses => {:first_book_author_name}) which (:uses => {:books => :author_name})" do
+      expect(preloaded(Author.all.to_a, :upper_first_book_author_name)).to preload_values(:upper_first_book_author_name, author_name.upcase)
+    end
+
+    it "preloads through association" do
+      books = preloaded(Book.all.to_a, :author => :total_books)
+      expect { books.map(&:author).map(&:total_books) }.to match_query_limit_of(0)
+    end
+
+    it "doesn't preloads through polymorphic" do ##
+      # not sure what is expected to happen for preloading a column (that is not standard rails) use select instead
+      a = preloaded(Book.all.to_a, :author_or_bookmark => :total_books)
+      expect { a.map(&:author_or_bookmark).map(&:total_books) }.to match_query_limit_of(0)
+    end
+
+    it "uses included associations" do
+      expect(preloaded(Author.all.to_a, :books => :author)).to preload_values(:first_book_author_name, author_name)
+      expect(preloaded(Author.all.to_a, :books => :author_name)).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "uses included fields" do
+      expect(preloaded(Author.all.to_a, :books => :author_name)).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "uses preloaded fields" do
+      expect(preloaded(Author.all.to_a, :books => :author_name)).to preload_values(:first_book_author_name, author_name)
+    end
+
+    it "ignores errors" do
+      expect { Author.includes(:invalid).load }.not_to raise_error #(ActiveRecord::ConfigurationError)
+      expect { Author.includes(:books => :invalid).load }.not_to raise_error #(ActiveRecord::ConfigurationError)
+    end
+  end
+
   context "preloads virtual_reflection with includes" do
     it "doesn't preload without includes" do
       expect(Author).not_to preload_values(:named_books, named_books)
@@ -245,6 +322,30 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
       bookmarked_book = Author.first.books.first
       expect(Author.includes(:book_with_most_bookmarks).references(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
+    end
+  end
+
+  context "preloads virtual_reflection with preloader" do
+    it "preloads virtual_reflection (:uses => :books)" do
+      expect(preloaded(Author.all.to_a, :named_books)).to preload_values(:named_books, named_books)
+    end
+
+    it "preloads virtual_reflection (:uses => {:books => :author_name})" do
+      expect(preloaded(Author.all.to_a, :books_with_authors)).to preload_values(:books_with_authors, named_books)
+    end
+
+    it "preloads virtual_reflection (multiple)" do
+      expect(preloaded(Author.all.to_a, [:named_books, :bookmarks])).to preload_values(:named_books, named_books)
+    end
+
+    it "preloads virtual_reflections (multiple overlap hash)" do
+      expect(preloaded(Author.all.to_a, [:books_with_authors, :books])).to preload_values(:books_with_authors, named_books)
+      expect(preloaded(Author.all.to_a, :books => :author)).to preload_values(:books_with_authors, named_books)
+    end
+
+    it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
+      bookmarked_book = Author.first.books.first
+      expect(preloaded(Author.all.to_a, :book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
   end
 
@@ -326,5 +427,11 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       # in that case, just .where.not(:author_name => nil) - no need for left_joins
       expect { Book.left_joins(:author_name).where.not(:authors => {:name => nil}).load }.not_to raise_error
     end
+  end
+
+  def preloaded(records, associations, preload_scope = nil)
+    preloader = ActiveRecord::Associations::Preloader.new
+    preloader.preload(records, associations, preload_scope)
+    records
   end
 end
