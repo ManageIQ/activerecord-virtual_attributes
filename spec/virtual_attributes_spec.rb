@@ -611,7 +611,7 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
         klass  = vm.class
         table  = klass.arel_table
         str_id = Arel::Nodes::NamedFunction.new("CAST", [table[:id].as("CHAR")]).as("str_id")
-        result = klass.select(str_id).includes(:children => {}).references(:children => {})
+        result = klass.select(str_id).includes(:children => {}).references(:children)
 
         expect(result.first.attributes["str_id"]).to eq(vm.id.to_s)
       end

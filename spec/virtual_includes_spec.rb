@@ -93,56 +93,55 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   # references follow a different path than just includes
   context "preloads virtual_attribute with includes.references" do
     it "preloads virtual_attribute (:uses => nil) (with a NO OP)" do
-      expect(Author.includes(:nick_or_name).references(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
-      expect(Author.includes([:nick_or_name]).references(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
-      expect(Author.includes(:nick_or_name => {}).references(:nick_or_name => {})).to preload_values(:nick_or_name, author_name)
+      expect(Author.includes(:nick_or_name).references(:nick_or_name)).to preload_values(:nick_or_name, author_name)
+      expect(Author.includes([:nick_or_name]).references(:nick_or_name)).to preload_values(:nick_or_name, author_name)
+      expect(Author.includes(:nick_or_name => {}).references(:nick_or_name)).to preload_values(:nick_or_name, author_name)
     end
 
     it "preloads virtual_attribute (:uses => :book)" do
-      expect(Author.includes(:first_book_name).references(:first_book_name => {})).to preload_values(:first_book_name, book_name)
-      expect(Author.includes([:first_book_name]).references(:first_book_name => {})).to preload_values(:first_book_name, book_name)
-      expect(Author.includes(:first_book_name => {}).references(:first_book_name => {})).to preload_values(:first_book_name, book_name)
+      expect(Author.includes(:first_book_name).references(:first_book_name)).to preload_values(:first_book_name, book_name)
+      expect(Author.includes([:first_book_name]).references(:first_book_name)).to preload_values(:first_book_name, book_name)
+      expect(Author.includes(:first_book_name => {}).references(:first_book_name)).to preload_values(:first_book_name, book_name)
     end
 
     it "preloads virtual_attribute (delegate defines :uses => :author)" do
-      expect(Book.includes(:author_name).references(:author_name => {})).to preload_values(:author_name, author_name)
-      expect(Book.includes([:author_name]).references(:author_name => {})).to preload_values(:author_name, author_name)
-      expect(Book.includes(:author_name => {}).references(:author_name => {})).to preload_values(:author_name, author_name)
+      expect(Book.includes(:author_name).references(:author_name)).to preload_values(:author_name, author_name)
+      expect(Book.includes([:author_name]).references(:author_name)).to preload_values(:author_name, author_name)
+      expect(Book.includes(:author_name => {}).references(:author_name)).to preload_values(:author_name, author_name)
     end
 
     it "preloads virtual_attribute (:uses => :upper_author_name) (:uses => :author_name)" do
-      expect(Book.includes(:upper_author_name_def).references(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
-      expect(Book.includes([:upper_author_name_def]).references(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
-      expect(Book.includes(:upper_author_name_def => {}).references(:upper_author_name_def => {})).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes(:upper_author_name_def).references(:upper_author_name_def)).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes([:upper_author_name_def]).references(:upper_author_name_def)).to preload_values(:upper_author_name_def, author_name.upcase)
+      expect(Book.includes(:upper_author_name_def => {}).references(:upper_author_name_def)).to preload_values(:upper_author_name_def, author_name.upcase)
     end
 
     it "preloads virtual_attribute (multiple)" do
-      expect(Author.includes(:nick_or_name).includes(:first_book_name).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
-      expect(Author.includes([:nick_or_name, :first_book_name]).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
-      expect(Author.includes(:nick_or_name => {}, :first_book_name => {}).references(:nick_or_name => {}, :first_book_name => {})).to preload_values(:first_book_name, book_name)
+      expect(Author.includes(:nick_or_name).includes(:first_book_name).references(:nick_or_name, :first_book_name)).to preload_values(:first_book_name, book_name)
+      expect(Author.includes([:nick_or_name, :first_book_name]).references(:nick_or_name, :first_book_name)).to preload_values(:first_book_name, book_name)
+      expect(Author.includes(:nick_or_name => {}, :first_book_name => {}).references(:nick_or_name, :first_book_name)).to preload_values(:first_book_name, book_name)
     end
 
     it "preloads virtual_reflections (multiple overlap hash)" do
-      expect(Author.includes(:books_with_authors => {}, :books => {}).references(:books => {})).to preload_values(:books_with_authors, named_books)
-      expect(Author.includes(:books => {}).includes(:books => {:author => {}}).references(:books => {})).to preload_values(:books_with_authors, named_books)
-      expect(Author.includes(:books => {:author => {}}).includes(:books => {}).references(:books => {})).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books_with_authors => {}, :books => {}).references(:books)).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books).includes(:books => {:author => {}}).references(:books)).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books => {:author => {}}).includes(:books => {}).references(:books)).to preload_values(:books_with_authors, named_books)
     end
 
     it "preloads virtual_attributes dups" do
-      expect(Author.includes(:books => :author, :books_with_authors => {}).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => :author, :books_with_authors => {}).references(:first_book_author_name)).to preload_values(:first_book_author_name, author_name)
     end
 
     it "preloads virtual_attribute (:uses => {:book => :author_name})" do
-      expect(Author.includes(:first_book_author_name).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes([:first_book_author_name]).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:first_book_author_name => {}).references(:first_book_author_name => {})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:first_book_author_name).references(:first_book_author_name)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes([:first_book_author_name]).references(:first_book_author_name)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:first_book_author_name => {}).references(:first_book_author_name)).to preload_values(:first_book_author_name, author_name)
     end
 
     it "preloads virtual_attributes (:uses => {:first_book_author_name}) which (:uses => {:books => :author_name})" do
-      ref = {:first_book_author_name => {}}
-      expect(Author.includes(:upper_first_book_author_name).references(ref)).to preload_values(:upper_first_book_author_name, author_name.upcase)
-      expect(Author.includes([:upper_first_book_author_name]).references(ref)).to preload_values(:upper_first_book_author_name, author_name.upcase)
-      expect(Author.includes(:upper_first_book_author_name => {}).references(ref)).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes(:upper_first_book_author_name).references(:first_book_author_name)).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes([:upper_first_book_author_name]).references(:first_book_author_name)).to preload_values(:upper_first_book_author_name, author_name.upcase)
+      expect(Author.includes(:upper_first_book_author_name => {}).references(:first_book_author_name)).to preload_values(:upper_first_book_author_name, author_name.upcase)
     end
 
     it "doesn't preloads through polymorphic" do
@@ -152,27 +151,27 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
 
     it "uses included associations" do
-      expect(Author.includes(:books => :author).references(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:books => [:author]).references(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:books => {:author => {}}).references(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => :author).references(:books, :authors)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => [:author]).references(:books, :authors)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => {:author => {}}).references(:books, :authors)).to preload_values(:first_book_author_name, author_name)
 
-      expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:books => {:author_name =>{}}).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => :author_name).references(:books)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => [:author_name]).references(:books)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => {:author_name =>{}}).references(:books)).to preload_values(:first_book_author_name, author_name)
     end
 
     it "uses included fields" do
-      expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:books => {:author_name => {}}).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => :author_name).references(:books)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => [:author_name]).references(:books)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => {:author_name => {}}).references(:books)).to preload_values(:first_book_author_name, author_name)
     end
 
     it "uses preloaded fields" do
-      expect(Author.includes(:books => :author_name).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:books => [:author_name]).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:books => {:author_name => {}}).references(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => :author_name).references(:books)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => [:author_name]).references(:books)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(:books => {:author_name => {}}).references(:books)).to preload_values(:first_book_author_name, author_name)
       inc = Author.virtual_includes(:first_book_author_name)
-      expect(Author.includes(inc).references(inc)).to preload_values(:first_book_author_name, author_name)
+      expect(Author.includes(inc).references(:books)).to preload_values(:first_book_author_name, author_name)
     end
 
     it "detects errors" do
@@ -308,15 +307,15 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
   context "preloads virtual_reflection with includes.references" do
     it "preloads virtual_reflection (:uses => [:books])" do
-      expect(Author.includes(:named_books).references(:named_books => {})).to preload_values(:named_books, named_books)
-      expect(Author.includes([:named_books]).references(:named_books => {})).to preload_values(:named_books, named_books)
-      expect(Author.includes(:named_books => {}).references(:named_books => {})).to preload_values(:named_books, named_books)
+      expect(Author.includes(:named_books).references(:named_books)).to preload_values(:named_books, named_books)
+      expect(Author.includes([:named_books]).references(:named_books)).to preload_values(:named_books, named_books)
+      expect(Author.includes(:named_books => {}).references(:named_books)).to preload_values(:named_books, named_books)
     end
 
     it "preloads virtual_reflection (:uses => {:books => :author_name})" do
-      expect(Author.includes(:books_with_authors).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
-      expect(Author.includes([:books_with_authors]).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
-      expect(Author.includes(:books_with_authors => {}).references(:books_with_authors => {})).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books_with_authors).references(:books_with_authors)).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes([:books_with_authors]).references(:books_with_authors)).to preload_values(:books_with_authors, named_books)
+      expect(Author.includes(:books_with_authors => {}).references(:books_with_authors)).to preload_values(:books_with_authors, named_books)
     end
 
     it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
