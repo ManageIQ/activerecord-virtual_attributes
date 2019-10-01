@@ -13,10 +13,10 @@ env:
 - DB=pg
 - DB=sqlite3
 gemfile:
-- gemfiles/virtual_attributes_50.gemfile
-- gemfiles/virtual_attributes_51.gemfile
-#- gemfiles/virtual_attributes_52.gemfile
-#- gemfiles/virtual_attributes_60.gemfile
+- gemfiles/gemfile_50.gemfile
+- gemfiles/gemfile_51.gemfile
+#- gemfiles/gemfile_52.gemfile
+#- gemfiles/gemfile_60.gemfile
 before_install:
 - 'echo ''gem: --no-ri --no-rdoc --no-document'' > ~/.gemrc'
 before_script:
