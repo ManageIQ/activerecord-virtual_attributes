@@ -183,8 +183,11 @@ module ActiveRecord
           additional_attributes = result_set.first.keys
                                             .reject { |k| join_dep_keys.include?(k) }
                                             .reject { |k| join_root_aliases.include?(k) }
-                                            .map    { |k| [k, k] }
-          column_aliases += additional_attributes
+          column_aliases += if ActiveRecord.version.to_s < "6.0"
+                              additional_attributes.map { |k| [k, k] }
+                            else
+                              additional_attributes.map { |k| Aliases::Column.new(k, k) }
+                            end
         end
         # End of New Code
 
@@ -199,7 +202,11 @@ module ActiveRecord
           result_set.each { |row_hash|
             parent_key = primary_key ? row_hash[primary_key] : row_hash
             parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, &block)
-            construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
+            if ActiveRecord.version.to_s < "6.0"
+              construct(parent, join_root, row_hash, result_set, seen, model_cache, aliases)
+            else
+              construct(parent, join_root, row_hash, seen, model_cache)
+            end
           }
         end
 
@@ -238,7 +245,7 @@ module ActiveRecord
         # it does not add an as() if the column already has an as
         # this code is based upon _select()
         fields = fields.flatten.map! do |field|
-          if virtual_attribute?(field) && (arel = klass.arel_attribute(field)) && arel.respond_to?(:as)
+          if virtual_attribute?(field) && (arel = klass.arel_attribute(field)) && arel.respond_to?(:as) && !arel.kind_of?(Arel::Nodes::As)
             arel.as(connection.quote_column_name(field.to_s))
           else
             field
