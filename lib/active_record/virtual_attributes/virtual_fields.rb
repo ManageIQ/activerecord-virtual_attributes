@@ -183,10 +183,10 @@ module ActiveRecord
           additional_attributes = result_set.first.keys
                                             .reject { |k| join_dep_keys.include?(k) }
                                             .reject { |k| join_root_aliases.include?(k) }
-          column_aliases += if ActiveRecord.version.to_s < "6.0"
-                              additional_attributes.map { |k| [k, k] }
-                            else
+          column_aliases += if ActiveRecord.version.to_s >= "6.0"
                               additional_attributes.map { |k| Aliases::Column.new(k, k) }
+                            else
+                              additional_attributes.map { |k| [k, k] }
                             end
         end
         # End of New Code
