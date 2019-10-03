@@ -53,6 +53,8 @@ module VirtualAttributes
       #    # arel => (SELECT sum("disks"."size") where "hardware"."id" = "disks"."hardware_id")
 
       def virtual_aggregate(name, relation, method_name = :sum, column = nil, options = {})
+        return define_virtual_total(name, relation, options) if method_name == :size
+
         define_virtual_aggregate_method(name, relation, method_name, column)
         define_virtual_aggregate_attribute(name, relation, method_name, column, options)
       end
