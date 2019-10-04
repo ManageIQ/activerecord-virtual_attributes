@@ -11,7 +11,7 @@ require 'active_record'
 #  end
 #  ```
 #
-shared_context 'with test_class', :with_test_class do
+RSpec.shared_context 'with test_class', :with_test_class do
   before do
     class TestClassBase < ActiveRecord::Base
       self.abstract_class = true

@@ -1,4 +1,4 @@
-describe ActiveRecord::VirtualAttributes::VirtualIncludes do
+RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   before do
     Author.destroy_all
     Book.destroy_all
