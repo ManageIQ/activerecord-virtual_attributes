@@ -28,5 +28,12 @@ ActiveRecord::Schema.define(:version => 0) do
   end
   add_index "bookmarks", "book_id"
   #add_foreign_key("bookmarks", "books", :column => "book_id")
+
+  create_table "authors_books", :force => true do |t|
+    t.integer "author_id"
+    t.integer "book_id"
+  end
+  add_index "authors_books", "author_id"
+  add_index "authors_books", "book_id"
 end
 

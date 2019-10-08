@@ -81,6 +81,14 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       end.to match_query_limit_of(0)
     end
 
+    it "preloads habtm" do
+      co_a = Author.create
+      books = Book.all.to_a
+      books.each { |book| co_a.co_books << book }
+
+      expect(Author.includes(:co_books).find(co_a.id)).to preload_values(:co_books, books)
+    end
+
     it "uses included associations" do
       expect(Author.includes(:books => :author)).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:books => {:author => {}})).to preload_values(:first_book_author_name, author_name)
