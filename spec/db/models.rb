@@ -10,6 +10,7 @@ class Author < VitualTotalTestBase
   has_many :ordered_books,   -> { ordered },   :class_name => "Book"
   has_many :published_books, -> { published }, :class_name => "Book"
   has_many :wip_books,       -> { wip },       :class_name => "Book"
+  has_and_belongs_to_many :co_books, :class_name => "Book"
   has_many :bookmarks,                         :class_name => "Bookmark", :through => :books
 
   virtual_total :total_books, :books
@@ -91,6 +92,7 @@ end
 class Book < VitualTotalTestBase
   has_many :bookmarks
   belongs_to :author
+  has_and_belongs_to_many :co_authors, :class_name => "Author"
   belongs_to :author_or_bookmark, :polymorphic => true, :foreign_key => "author_id", :foreign_type => "author_type"
 
   scope :ordered,   -> { order(:created_on => :desc) }
