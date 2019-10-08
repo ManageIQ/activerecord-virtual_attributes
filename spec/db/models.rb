@@ -6,10 +6,10 @@ class VitualTotalTestBase < ActiveRecord::Base
 end
 
 class Author < VitualTotalTestBase
-  has_many :books,                             :class_name => "Book", :foreign_key => "author_id"
-  has_many :ordered_books,   -> { ordered },   :class_name => "Book", :foreign_key => "author_id"
-  has_many :published_books, -> { published }, :class_name => "Book", :foreign_key => "author_id"
-  has_many :wip_books,       -> { wip },       :class_name => "Book", :foreign_key => "author_id"
+  has_many :books
+  has_many :ordered_books,   -> { ordered },   :class_name => "Book"
+  has_many :published_books, -> { published }, :class_name => "Book"
+  has_many :wip_books,       -> { wip },       :class_name => "Book"
   has_many :bookmarks,                         :class_name => "Bookmark", :through => :books
 
   virtual_total :total_books, :books
@@ -89,8 +89,8 @@ class Author < VitualTotalTestBase
 end
 
 class Book < VitualTotalTestBase
-  has_many :bookmarks, :class_name => "Bookmark", :foreign_key => "book_id"
-  belongs_to :author,  :class_name => "Author",   :foreign_key => "author_id"
+  has_many :bookmarks
+  belongs_to :author
   belongs_to :author_or_bookmark, :polymorphic => true, :foreign_key => "author_id", :foreign_type => "author_type"
 
   scope :ordered,   -> { order(:created_on => :desc) }
@@ -125,6 +125,6 @@ class Book < VitualTotalTestBase
 end
 
 class Bookmark < VitualTotalTestBase
-  belongs_to :book, :class_name => "Book", :foreign_key => "book_id"
+  belongs_to :book
 end
 # rubocop:enable Style/SingleLineMethods, Layout/EmptyLineBetweenDefs, Naming/AccessorMethodName
