@@ -5,6 +5,30 @@ describe VirtualAttributes::VirtualTotal do
     Bookmark.delete_all
   end
 
+  describe "calculate" do
+    before do
+      Author.create_with_books(2)
+      Author.create_with_books(3)
+    end
+
+    it "counts records" do
+      expect(Author.count).to eq(2)
+    end
+
+    it "counts records with includes" do
+      expect(Author.includes(:books).count).to eq(2)
+    end
+
+    it "calculates aggregate of virtual attribute" do
+      expect(Author.sum(:total_books)).to eq(5)
+    end
+
+    # # fails
+    # it "calculates aggregate of virtual attribute with includes" do
+    #   expect(Author.includes(:books).sum(:total_books)).to eq(5)
+    # end
+  end
+
   describe ".virtual_total" do
     context "with a standard has_many" do
       it "sorts by total attribute" do
