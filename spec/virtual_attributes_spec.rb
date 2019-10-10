@@ -773,6 +773,54 @@ describe ActiveRecord::VirtualAttributes::VirtualFields do
     expect(tc.send("lower column")).to eq("abc")
   end
 
+  context "arel", "aliases" do
+    it "supports aliased virtual attribute arel with functions", :with_test_class do
+      class TestClass
+        # using an alias is not suggested. it will fail if used in an `order` or `where` clauses
+        virtual_attribute :lc, :string, :arel => ->(t) { t[:str].lower.as("downcased") }
+        def lc
+          has_attribute?(:downcased) ? self[:downcased] : str.downcase
+        end
+      end
+
+      obj = TestClass.create(:str => "ABC")
+
+      tc = TestClass.select(:lc).find_by(:id => obj.id)
+      expect(tc.lc).to eq("abc")
+    end
+
+    # grouping is the most common way to define arel
+    it "supports aliased virtual attribute arel with grouping", :with_test_class do
+      class TestClass
+        # using an alias is not suggested. it will fail if used in an `order` or `where` clauses
+        virtual_attribute :lc, :string, :arel => ->(t) { Arel.sql("(#{t[:str].lower.to_sql})") }
+        def lc
+          has_attribute?(:lc) ? self[:lc] : str.downcase
+        end
+      end
+
+      obj = TestClass.create(:str => "ABC")
+
+      tc = TestClass.select(:lc).find_by(:id => obj.id)
+      expect(tc.lc).to eq("abc")
+    end
+
+    it "supports aliased virtual attribute arel with nodes", :with_test_class do
+      class TestClass
+        # using an alias is not suggested. it will fail if used in an `order` or `where` clauses
+        virtual_attribute :lc, :string, :arel => ->(t) { Arel::Nodes::As.new(t[:str].lower, Arel.sql("downcased")) }
+        def lc
+          has_attribute?(:downcased) ? self[:downcased] : str.downcase
+        end
+      end
+
+      obj = TestClass.create(:str => "ABC")
+
+      tc = TestClass.select(:lc).find_by(:id => obj.id)
+      expect(tc.lc).to eq("abc")
+    end
+  end
+
   it "doesn't botch up the attributes", :with_test_class do
     tc = TestClass.select(:id, :str).find(TestClass.create(:str => "abc", :col1 => 55).id)
     expect(tc.attributes.size).to eq(2)

@@ -238,21 +238,63 @@ module ActiveRecord
         end
       end
 
-      # From ActiveRecord::QueryMethods
-      def select(*fields)
-        return super if block_given? || fields.empty?
-        # support virtual attributes by adding an alias to the sql phrase for the column
-        # it does not add an as() if the column already has an as
-        # this code is based upon _select()
-        fields = fields.flatten.map! do |field|
-          if virtual_attribute?(field) && (arel = klass.arel_attribute(field)) && arel.respond_to?(:as) && !arel.kind_of?(Arel::Nodes::As)
-            arel.as(connection.quote_column_name(field.to_s))
+      # From ActiveRecord::QueryMethods (rails 5.2 - 6.0)
+      def build_select(arel)
+        if select_values.any?
+          arel.project(*arel_columns(select_values.uniq, true))
+        elsif klass.ignored_columns.any?
+          arel.project(*klass.column_names.map { |field| arel_attribute(field) })
+        else
+          arel.project(table[Arel.star])
+        end
+      end
+
+      # from ActiveRecord::QueryMethods (rails 5.2 - 6.0)
+      def arel_columns(columns, allow_alias = false)
+        columns.flat_map do |field|
+          case field
+          when Symbol
+            arel_column(field.to_s, allow_alias) do |attr_name|
+              connection.quote_table_name(attr_name)
+            end
+          when String
+            arel_column(field, allow_alias, &:itself)
+          when Proc
+            field.call
           else
             field
           end
         end
-        # end support virtual attributes
-        super
+      end
+
+      # from ActiveRecord::QueryMethods (rails 5.2 - 6.0)
+      def arel_column(field, allow_alias = false, &block)
+        field = klass.attribute_aliases[field] || field
+        from = from_clause.name || from_clause.value
+
+        if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
+          arel_attribute(field)
+        elsif virtual_attribute?(field)
+          virtual_attribute_arel_column(field, allow_alias, &block)
+        else
+          yield field
+        end
+      end
+
+      def virtual_attribute_arel_column(field, allow_alias)
+        arel = arel_attribute(field)
+        if arel.nil?
+          yield field
+        elsif allow_alias && arel && arel.respond_to?(:as) && !arel.kind_of?(Arel::Nodes::As) && !arel.try(:alias)
+          arel.as(connection.quote_column_name(field.to_s))
+        else
+          arel
+        end
+      end
+
+      # From ActiveRecord::QueryMethods
+      def table_name_matches?(from)
+        /(?:\A|(?<!FROM)\s)(?:\b#{table.name}\b|#{connection.quote_table_name(table.name)})(?!\.)/i.match?(from.to_s)
       end
 
       # From ActiveRecord::QueryMethods
