@@ -96,6 +96,10 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:books => {:author_name => {}})).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(Author.virtual_includes(:first_book_author_name))).to preload_values(:first_book_author_name, author_name)
     end
+
+    it "counts" do
+      expect { expect(Author.includes(:books => :author_name).count).to eq(1) }.not_to raise_error
+    end
   end
 
   # references follow a different path than just includes
@@ -189,6 +193,10 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect { Author.includes(:books => [:invalid]).references(:books).load }.to raise_error(ActiveRecord::ConfigurationError)
       expect { Author.includes(:books => {:invalid => {}}).references(:books).load }.to raise_error(ActiveRecord::ConfigurationError)
     end
+
+    it "counts" do
+      expect { expect(Author.includes(:books => :author_name).references(:books).count).to eq(1) }.not_to raise_error
+    end
   end
 
   context "preloads virtual_attribute with select.includes.references" do
@@ -199,7 +207,9 @@ describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
   it "preloads virtual_attribute in :include when :conditions are also present in calculations" do
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.name = '#{author_name}'")).to preload_values(:author_name, author_name)
+    expect(Book.includes([:author_name, :author]).references(:author).where(:authors => {:name => author_name})).to preload_values(:author_name, author_name)
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.id IS NOT NULL")).to preload_values(:author_name, author_name)
+    expect(Book.includes([:author_name, :author]).references(:author).where.not(:authors => {:id => nil})).to preload_values(:author_name, author_name)
   end
 
   context "preload virtual_attribute with preload" do
