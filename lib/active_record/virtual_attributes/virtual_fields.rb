@@ -48,18 +48,14 @@ module ActiveRecord
         def replace_virtual_field_hash(associations)
           associations.each_with_object({}) do |(parent, child), h|
             if virtual_field?(parent) # form virtual_attribute => {}
-              case (new_includes = replace_virtual_fields(virtual_includes(parent)))
-              when String, Symbol
-                merge_includes(h, new_includes)
-              when Array
-                merge_includes(h, new_includes)
-              when Hash
-                merge_includes(h, new_includes)
-              end
+              merge_includes(h, replace_virtual_fields(virtual_includes(parent)))
             else
               reflection = reflect_on_association(parent.to_sym)
-              new_child = reflection.nil? || reflection.options[:polymorphic] ? {} : reflection.klass.replace_virtual_fields(child) || {}
-              merge_includes(h, parent => new_child)
+              if reflection.nil? || reflection.options[:polymorphic]
+                merge_includes(h, parent)
+              else
+                merge_includes(h, parent => reflection.klass.replace_virtual_fields(child) || {})
+              end
             end
           end
         end
