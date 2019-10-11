@@ -5,14 +5,9 @@ module VirtualAttributes
     module ClassMethods
       private
 
-      # define an attribute to calculating the total of a child
-      def virtual_total(name, relation, options = {})
-        virtual_aggregate(name, relation, :size, nil, options)
-      end
-
-      # define an attribute to calculating the total of a child
+      # define an attribute to calculating the total of a has many relationship
       #
-      #  example 1:
+      #  example:
       #
       #    class ExtManagementSystem
       #      has_many :vms
@@ -29,7 +24,14 @@ module VirtualAttributes
       #
       #   # arel == (SELECT COUNT(*) FROM vms where ems.id = vms.ems_id)
       #
-      #  example 2:
+      def virtual_total(name, relation, options = {})
+        define_virtual_size_method(name, relation)
+        define_virtual_aggregate_attribute(name, relation, :size, nil, options)
+      end
+
+      # define an attribute to calculate the sum of a has may relationship
+      #
+      #  example:
       #
       #    class Hardware
       #      has_many :disks
@@ -51,7 +53,13 @@ module VirtualAttributes
       #    # arel => (SELECT sum("disks"."size") where "hardware"."id" = "disks"."hardware_id")
 
       def virtual_aggregate(name, relation, method_name = :sum, column = nil, options = {})
+        return define_virtual_total(name, relation, options) if method_name == :size
+
         define_virtual_aggregate_method(name, relation, method_name, column)
+        define_virtual_aggregate_attribute(name, relation, method_name, column, options)
+      end
+
+      def define_virtual_aggregate_attribute(name, relation, method_name, column, options)
         reflection = reflect_on_association(relation)
 
         if options.key?(:arel)
@@ -69,23 +77,23 @@ module VirtualAttributes
         end
       end
 
+      def define_virtual_size_method(name, relation)
+        define_method(name) do
+          (attribute_present?(name) ? self[name] : nil) || send(relation).try(:size) || 0
+        end
+      end
+
       def define_virtual_aggregate_method(name, relation, method_name, column)
-        if method_name == :size
-          define_method(name) do
-            (attribute_present?(name) ? self[name] : nil) || send(relation).try(:size) || 0
-          end
-        else
-          define_method(name) do
-            (attribute_present?(name) ? self[name] : nil) ||
-              begin
-                rel = send(relation)
-                if rel.loaded?
-                  rel.blank? ? nil : (rel.map { |t| t.send(column).to_i } || 0).send(method_name)
-                else
-                  rel.try(method_name, column) || 0
-                end
+        define_method(name) do
+          (attribute_present?(name) ? self[name] : nil) ||
+            begin
+              rel = send(relation)
+              if rel.loaded?
+                rel.blank? ? nil : (rel.map { |t| t.send(column).to_i } || 0).send(method_name)
+              else
+                rel.try(method_name, column) || 0
               end
-          end
+            end
         end
       end
 
