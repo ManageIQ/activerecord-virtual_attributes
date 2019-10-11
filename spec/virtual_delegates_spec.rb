@@ -1,4 +1,4 @@
-describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_class do
+RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_class do
   # double purposing col1. It has an actual value in the child class
   let(:parent) { TestClass.create(:col1 => 4) }
 

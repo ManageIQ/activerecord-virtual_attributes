@@ -1,4 +1,4 @@
-describe "have_virtual_attribute" do
+RSpec.describe "have_virtual_attribute" do
   it "detects virtual attribute" do
     expect(Author).to have_virtual_attribute(:nick_or_name)
   end

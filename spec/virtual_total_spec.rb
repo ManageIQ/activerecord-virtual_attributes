@@ -1,4 +1,4 @@
-describe VirtualAttributes::VirtualTotal do
+RSpec.describe VirtualAttributes::VirtualTotal do
   before do
     Author.delete_all
     Book.delete_all

@@ -1,4 +1,4 @@
-describe ActiveRecord::VirtualAttributes::VirtualFields do
+RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
   context "TestClass", :with_test_class do
     it "should not have any virtual columns" do
       expect(TestClass.virtual_attribute_names).to be_empty
