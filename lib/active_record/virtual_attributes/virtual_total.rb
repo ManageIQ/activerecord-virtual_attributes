@@ -98,7 +98,7 @@ module VirtualAttributes
       end
 
       def virtual_aggregate_arel(reflection, method_name, column)
-        return unless reflection && reflection.macro == :has_many && !reflection.options[:through]
+        return unless reflection && reflection.macro == :has_many
 
         # need db access for the reflection join_keys, so delaying all this key lookup until call time
         lambda do |t|
