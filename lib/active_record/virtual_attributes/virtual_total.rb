@@ -102,6 +102,13 @@ module VirtualAttributes
 
         # need db access for the reflection join_keys, so delaying all this key lookup until call time
         lambda do |t|
+          # arel_column: COUNT(*)
+          arel_column = if method_name == :size
+                          Arel.star.count
+                        else
+                          reflection.klass.arel_attribute(column).send(method_name)
+                        end
+
           # query: SELECT * FROM foreign_table
           query = if reflection.scope
                     reflection.klass.instance_exec(nil, &reflection.scope)
@@ -109,7 +116,10 @@ module VirtualAttributes
                     reflection.klass.all
                   end
 
-          # query: SELECT * FROM foreign_table [WHERE main_table.id = foreign_table.id]
+          # query: SELECT [COUNT(*)] FROM foreign_table
+          query = query.select(arel_column)
+
+          # query: SELECT COUNT(*) FROM foreign_table [WHERE main_table.id = foreign_table.id]
           foreign_table = reflection.klass.arel_table
           if ActiveRecord.version.to_s >= "5.1"
             join_keys = reflection.join_keys
@@ -117,15 +127,6 @@ module VirtualAttributes
             join_keys = reflection.join_keys(reflection.klass)
           end
           query       = query.except(:order).where(t[join_keys.foreign_key].eq(foreign_table[join_keys.key]))
-
-
-          # query: [SELECT COUNT(*)] FROM foreign_table WHERE main_table.id = foreign_table.id
-          arel_column = if method_name == :size
-                          Arel.star.count
-                        else
-                          reflection.klass.arel_attribute(column).send(method_name)
-                        end
-          query       = query.select(arel_column)
 
           sql         = query.to_sql
 
