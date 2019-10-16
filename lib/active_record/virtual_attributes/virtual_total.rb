@@ -99,15 +99,18 @@ module VirtualAttributes
 
       def virtual_aggregate_arel(reflection, method_name, column)
         return unless reflection && reflection.macro == :has_many && !reflection.options[:through]
+
+        # need db access for the reflection join_keys, so delaying all this key lookup until call time
         lambda do |t|
+          # query: SELECT * FROM foreign_table
           query = if reflection.scope
                     reflection.klass.instance_exec(nil, &reflection.scope)
                   else
                     reflection.klass.all
                   end
 
+          # query: SELECT * FROM foreign_table [WHERE main_table.id = foreign_table.id]
           foreign_table = reflection.klass.arel_table
-          # need db access for the keys, so delaying all this lookup until call time
           if ActiveRecord.version.to_s >= "5.1"
             join_keys = reflection.join_keys
           else
@@ -115,6 +118,8 @@ module VirtualAttributes
           end
           query       = query.except(:order).where(t[join_keys.foreign_key].eq(foreign_table[join_keys.key]))
 
+
+          # query: [SELECT COUNT(*)] FROM foreign_table WHERE main_table.id = foreign_table.id
           arel_column = if method_name == :size
                           Arel.star.count
                         else
@@ -122,7 +127,10 @@ module VirtualAttributes
                         end
           query       = query.select(arel_column)
 
-          t.grouping(Arel::Nodes::SqlLiteral.new(query.to_sql))
+          sql         = query.to_sql
+
+          # add () around query
+          t.grouping(Arel::Nodes::SqlLiteral.new(sql))
         end
       end
     end
