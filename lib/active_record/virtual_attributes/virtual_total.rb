@@ -109,26 +109,26 @@ module VirtualAttributes
                           reflection.klass.arel_attribute(column).send(method_name)
                         end
 
-          # query: SELECT * FROM foreign_table
-          query = if reflection.scope
-                    reflection.klass.instance_exec(nil, &reflection.scope)
-                  else
-                    reflection.klass.all
-                  end
+          # query: SELECT COUNT(*) FROM main_table JOIN foreign_table ON main_table.id = foreign_table.id JOIN ...
+          relation_query   = joins(reflection.name).select(arel_column)
+          query            = relation_query.arel
+          bound_attributes = relation_query.bound_attributes
 
-          # query: SELECT [COUNT(*)] FROM foreign_table
-          query = query.select(arel_column)
+          # algorithm:
+          # - remove main_table from this sub query. (it is already in the primary query)
+          # - move the foreign_table from the JOIN to the FROM clause
+          # - move the main_table.id = foreign_table.id from the ON clause to the WHERE clause
 
-          # query: SELECT COUNT(*) FROM foreign_table [WHERE main_table.id = foreign_table.id]
-          foreign_table = reflection.klass.arel_table
-          if ActiveRecord.version.to_s >= "5.1"
-            join_keys = reflection.join_keys
-          else
-            join_keys = reflection.join_keys(reflection.klass)
-          end
-          query       = query.except(:order).where(t[join_keys.foreign_key].eq(foreign_table[join_keys.key]))
+          # query: SELECT COUNT(*) FROM main_table [ ] JOIN ...
+          join = query.source.right.shift
+          # query: SELECT COUNT(*) FROM [foreign_table] JOIN ...
+          query.source.left = join.left
+          # query: SELECT COUNT(*) FROM foreign_table JOIN ... [WHERE main_table.id = foreign_table.id]
+          query.where(join.right.expr)
 
-          sql         = query.to_sql
+          # convert bind variables from ? to actual values. otherwise, sql is incomplete
+          conn = connection
+          sql  = conn.unprepared_statement { conn.to_sql(query, bound_attributes) }
 
           # add () around query
           t.grouping(Arel::Nodes::SqlLiteral.new(sql))
