@@ -343,8 +343,16 @@ RSpec.describe VirtualAttributes::VirtualTotal do
       expect(model_with_children(2).total_bookmarks).to eq(4)
     end
 
-    it "is not defined in sql" do
-      expect(base_model.attribute_supported_by_sql?(:total_bookmarks)).to be(false)
+    it "calculates totals in primary query" do
+      expect(base_model.attribute_supported_by_sql?(:total_bookmarks)).to be(true)
+
+      model_with_children(1) # 2 =  1 book  @ 2 bookmarks each
+      model_with_children(0) # 0
+      model_with_children(3) # 6 =  3 books @ 2 bookmarks each
+
+      expect do
+        expect(base_model.select(:id, :total_bookmarks).order(:total_bookmarks => :desc).map(&:total_bookmarks)).to eq([6, 2, 0])
+      end.to match_query_limit_of(1)
     end
 
     def model_with_children(count)

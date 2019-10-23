@@ -98,31 +98,40 @@ module VirtualAttributes
       end
 
       def virtual_aggregate_arel(reflection, method_name, column)
-        return unless reflection && reflection.macro == :has_many && !reflection.options[:through]
+        return unless reflection && reflection.macro == :has_many
+
+        # need db access for the reflection join_keys, so delaying all this key lookup until call time
         lambda do |t|
-          query = if reflection.scope
-                    reflection.klass.instance_exec(nil, &reflection.scope)
-                  else
-                    reflection.klass.all
-                  end
-
-          foreign_table = reflection.klass.arel_table
-          # need db access for the keys, so delaying all this lookup until call time
-          if ActiveRecord.version.to_s >= "5.1"
-            join_keys = reflection.join_keys
-          else
-            join_keys = reflection.join_keys(reflection.klass)
-          end
-          query       = query.except(:order).where(t[join_keys.foreign_key].eq(foreign_table[join_keys.key]))
-
+          # arel_column: COUNT(*)
           arel_column = if method_name == :size
                           Arel.star.count
                         else
                           reflection.klass.arel_attribute(column).send(method_name)
                         end
-          query       = query.select(arel_column)
 
-          t.grouping(Arel::Nodes::SqlLiteral.new(query.to_sql))
+          # query: SELECT COUNT(*) FROM main_table JOIN foreign_table ON main_table.id = foreign_table.id JOIN ...
+          relation_query   = joins(reflection.name).select(arel_column)
+          query            = relation_query.arel
+          bound_attributes = relation_query.bound_attributes
+
+          # algorithm:
+          # - remove main_table from this sub query. (it is already in the primary query)
+          # - move the foreign_table from the JOIN to the FROM clause
+          # - move the main_table.id = foreign_table.id from the ON clause to the WHERE clause
+
+          # query: SELECT COUNT(*) FROM main_table [ ] JOIN ...
+          join = query.source.right.shift
+          # query: SELECT COUNT(*) FROM [foreign_table] JOIN ...
+          query.source.left = join.left
+          # query: SELECT COUNT(*) FROM foreign_table JOIN ... [WHERE main_table.id = foreign_table.id]
+          query.where(join.right.expr)
+
+          # convert bind variables from ? to actual values. otherwise, sql is incomplete
+          conn = connection
+          sql  = conn.unprepared_statement { conn.to_sql(query, bound_attributes) }
+
+          # add () around query
+          t.grouping(Arel::Nodes::SqlLiteral.new(sql))
         end
       end
     end
