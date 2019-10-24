@@ -26,7 +26,7 @@ module VirtualAttributes
       #
       def virtual_total(name, relation, options = {})
         define_virtual_size_method(name, relation)
-        define_virtual_aggregate_attribute(name, relation, :size, nil, options)
+        define_virtual_aggregate_attribute(name, relation, :count, Arel.star, options)
       end
 
       # define an attribute to calculate the sum of a has may relationship
@@ -102,15 +102,11 @@ module VirtualAttributes
 
         # need db access for the reflection join_keys, so delaying all this key lookup until call time
         lambda do |t|
-          # arel_column: COUNT(*)
-          arel_column = if method_name == :size
-                          Arel.star.count
-                        else
-                          reflection.klass.arel_attribute(column).send(method_name)
-                        end
+          # strings and symbols are converted across, arel objects are not
+          column = reflection.klass.arel_attribute(column) unless column.respond_to?(:count)
 
           # query: SELECT COUNT(*) FROM main_table JOIN foreign_table ON main_table.id = foreign_table.id JOIN ...
-          relation_query   = joins(reflection.name).select(arel_column)
+          relation_query   = joins(reflection.name).select(column.send(method_name))
           query            = relation_query.arel
           bound_attributes = relation_query.bound_attributes
 
