@@ -87,13 +87,10 @@ module VirtualAttributes
         define_method(name) do
           if attribute_present?(name)
             self[name]
+          elsif (rel = send(relation)).loaded?
+            rel.blank? ? nil : rel.map { |t| t.send(column) }.compact.send(method_name)
           else
-            rel = send(relation)
-            if rel.loaded?
-              rel.blank? ? nil : rel.map { |t| t.send(column) }.compact.send(method_name)
-            else
-              rel.try(method_name, column) || 0
-            end
+            rel.try(method_name, column) || 0
           end
         end
       end
