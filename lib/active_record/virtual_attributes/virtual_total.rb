@@ -42,7 +42,7 @@ module VirtualAttributes
       #
       #    def allocated_disk_storage
       #      if disks.loaded?
-      #        disks.blank? ? nil : disks.map { |t| t.size.to_i }.sum
+      #        disks.blank? ? nil : disks.map(&:size).compact.sum
       #      else
       #        disks.sum(:size) || 0
       #      end
@@ -79,21 +79,19 @@ module VirtualAttributes
 
       def define_virtual_size_method(name, relation)
         define_method(name) do
-          (attribute_present?(name) ? self[name] : nil) || send(relation).try(:size) || 0
+          (has_attribute?(name) ? self[name] : send(relation).try(:size)) || 0
         end
       end
 
       def define_virtual_aggregate_method(name, relation, method_name, column)
         define_method(name) do
-          (attribute_present?(name) ? self[name] : nil) ||
-            begin
-              rel = send(relation)
-              if rel.loaded?
-                rel.blank? ? nil : (rel.map { |t| t.send(column).to_i } || 0).send(method_name)
-              else
-                rel.try(method_name, column) || 0
-              end
-            end
+          if attribute_present?(name)
+            self[name]
+          elsif (rel = send(relation)).loaded?
+            rel.blank? ? nil : rel.map { |t| t.send(column) }.compact.send(method_name)
+          else
+            rel.try(method_name, column) || 0
+          end
         end
       end
 
