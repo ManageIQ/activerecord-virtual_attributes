@@ -192,7 +192,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         end
 
         # Monkey patching Author for these specs
-        class Author < VitualTotalTestBase
+        class Author < VirtualTotalTestBase
           has_many :special_books,
                    :class_name => "SpecialBook", :foreign_key => "author_id"
           has_many :published_special_books, -> { published },

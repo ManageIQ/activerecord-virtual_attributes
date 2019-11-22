@@ -1,11 +1,11 @@
 # rubocop:disable Style/SingleLineMethods, Layout/EmptyLineBetweenDefs, Naming/AccessorMethodName
-class VitualTotalTestBase < ActiveRecord::Base
+class VirtualTotalTestBase < ActiveRecord::Base
   self.abstract_class = true
 
   include VirtualFields
 end
 
-class Author < VitualTotalTestBase
+class Author < VirtualTotalTestBase
   has_many :books
   has_many :ordered_books,   -> { ordered },   :class_name => "Book"
   has_many :published_books, -> { published }, :class_name => "Book"
@@ -89,7 +89,7 @@ class Author < VitualTotalTestBase
   end
 end
 
-class Book < VitualTotalTestBase
+class Book < VirtualTotalTestBase
   has_many :bookmarks
   belongs_to :author
   has_and_belongs_to_many :co_authors, :class_name => "Author"
@@ -126,7 +126,7 @@ class Book < VitualTotalTestBase
   end
 end
 
-class Bookmark < VitualTotalTestBase
+class Bookmark < VirtualTotalTestBase
   belongs_to :book
 end
 # rubocop:enable Style/SingleLineMethods, Layout/EmptyLineBetweenDefs, Naming/AccessorMethodName
