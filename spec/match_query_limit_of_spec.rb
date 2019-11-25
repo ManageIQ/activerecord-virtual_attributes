@@ -16,6 +16,6 @@ RSpec.describe "match_query_limit_of" do
   it "detects failure with a negative count test" do
     expect do
       expect { Author.all.load }.not_to match_query_limit_of(1)
-    end.to raise_error(RSpec::Expectations::ExpectationNotMetError, /not to expect the block to execute 1 queries/i)
+    end.to raise_error(RSpec::Expectations::ExpectationNotMetError, /Expect not to execute 1 queries/i)
   end
 end

@@ -13,8 +13,8 @@ RSpec::Matchers.define :match_query_limit_of do |expected|
     "Expected #{expected} queries, got #{@count}"
   end
 
-  description do
-    "expect the block to execute #{@count} queries"
+  failure_message_when_negated do
+    "Expect not to execute #{expected} queries"
   end
 
   supports_block_expectations
