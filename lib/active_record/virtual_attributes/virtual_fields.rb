@@ -124,7 +124,7 @@ module ActiveRecord
     # syntax from the original codebase.
     #
     # rubocop:disable Style/BlockDelimiters, Layout/SpaceAfterComma, Style/HashSyntax
-    # rubocop:disable Layout/AlignHash, Metrics/AbcSize, Metrics/MethodLength
+    # rubocop:disable Layout/AlignHash
     class JoinDependency
       def instantiate(result_set, *_, &block)
         primary_key = aliases.column_alias(join_root, join_root.primary_key)
@@ -140,51 +140,7 @@ module ActiveRecord
         column_aliases = aliases.column_aliases(join_root)
 
         # New Code
-        #
-        # This monkey patches the ActiveRecord::Associations::JoinDependency to
-        # include columns into the main record that might have been added
-        # through a `select` clause.
-        #
-        # This can be seen with the following:
-        #
-        #   Vm.select(Vm.arel_table[Arel.star]).select(:some_vm_virtual_col)
-        #     .includes(:tags => {}).references(:tags)
-        #
-        # Which will produce a SQL SELECT statement kind of like this:
-        #
-        #   SELECT "vms".*,
-        #          (<virtual_attribute_arel>) AS some_vm_virtual_col,
-        #          "vms"."id"      AS t0_r0
-        #          "vms"."vendor"  AS t0_r1
-        #          "vms"."format"  AS t0_r1
-        #          "vms"."version" AS t0_r1
-        #          ...
-        #          "tags"."id"     AS t1_r0
-        #          "tags"."name"   AS t1_r1
-        #
-        # This is because rails is trying to reduce the number of queries
-        # needed to fetch all of the records in the include, so it grabs the
-        # columns for both of the tables together to do it.  Unfortuantely (or
-        # fortunately... depending on how you look at it), it does not remove
-        # any `.select` columns from the query that is run in the process, so
-        # that is brought along for the ride, but never used when this method
-        # instanciates the objects.
-        #
-        # The "New Code" here simply also instanciates any extra rows that
-        # might have been included in the select (virtual_columns) as well and
-        # brought back with the result set.
-        unless result_set.empty?
-          join_dep_keys         = aliases.columns.map(&:right)
-          join_root_aliases     = column_aliases.map(&:first)
-          additional_attributes = result_set.first.keys
-                                            .reject { |k| join_dep_keys.include?(k) }
-                                            .reject { |k| join_root_aliases.include?(k) }
-          column_aliases += if ActiveRecord.version.to_s >= "6.0"
-                              additional_attributes.map { |k| Aliases::Column.new(k, k) }
-                            else
-                              additional_attributes.map { |k| [k, k] }
-                            end
-        end
+        column_aliases += select_values_from_references(column_aliases, result_set) unless result_set.empty?
         # End of New Code
 
         message_bus = ActiveSupport::Notifications.instrumenter
@@ -209,7 +165,53 @@ module ActiveRecord
         parents.values
       end
       # rubocop:enable Style/BlockDelimiters, Layout/SpaceAfterComma, Style/HashSyntax
-      # rubocop:enable Layout/AlignHash, Metrics/AbcSize, Metrics/MethodLength
+      # rubocop:enable Layout/AlignHash
+
+      #
+      # This monkey patches the ActiveRecord::Associations::JoinDependency to
+      # include columns into the main record that might have been added
+      # through a `select` clause.
+      #
+      # This can be seen with the following:
+      #
+      #   Vm.select(Vm.arel_table[Arel.star]).select(:some_vm_virtual_col)
+      #     .includes(:tags => {}).references(:tags)
+      #
+      # Which will produce a SQL SELECT statement kind of like this:
+      #
+      #   SELECT "vms".*,
+      #          (<virtual_attribute_arel>) AS some_vm_virtual_col,
+      #          "vms"."id"      AS t0_r0
+      #          "vms"."vendor"  AS t0_r1
+      #          "vms"."format"  AS t0_r1
+      #          "vms"."version" AS t0_r1
+      #          ...
+      #          "tags"."id"     AS t1_r0
+      #          "tags"."name"   AS t1_r1
+      #
+      # This is because rails is trying to reduce the number of queries
+      # needed to fetch all of the records in the include, so it grabs the
+      # columns for both of the tables together to do it.  Unfortuantely (or
+      # fortunately... depending on how you look at it), it does not remove
+      # any `.select` columns from the query that is run in the process, so
+      # that is brought along for the ride, but never used when this method
+      # instanciates the objects.
+      #
+      # The "New Code" here simply also instanciates any extra rows that
+      # might have been included in the select (virtual_columns) as well and
+      # brought back with the result set.
+      def select_values_from_references(column_aliases, result_set)
+        join_dep_keys         = aliases.columns.map(&:right)
+        join_root_aliases     = column_aliases.map(&:first)
+        additional_attributes = result_set.first.keys
+                                          .reject { |k| join_dep_keys.include?(k) }
+                                          .reject { |k| join_root_aliases.include?(k) }
+        if ActiveRecord.version.to_s >= "6.0"
+          additional_attributes.map { |k| Aliases::Column.new(k, k) }
+        else
+          additional_attributes.map { |k| [k, k] }
+        end
+      end
     end
   end
 
