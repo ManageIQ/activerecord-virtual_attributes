@@ -225,12 +225,23 @@ module ActiveRecord
 
     include(Module.new {
       # From ActiveRecord::FinderMethods
-      def find_with_associations(&block)
-        real = without_virtual_includes
-        if real.equal?(self)
-          super
-        else
-          real.find_with_associations(&block)
+      if ActiveRecord.version.to_s >= "5.2"
+        def apply_join_dependency(*args, &block)
+          real = without_virtual_includes
+          if real.equal?(self)
+            super
+          else
+            real.apply_join_dependency(*args, &block)
+          end
+        end
+      else
+        def find_with_associations(&block)
+          real = without_virtual_includes
+          if real.equal?(self)
+            super
+          else
+            real.find_with_associations(&block)
+          end
         end
       end
 

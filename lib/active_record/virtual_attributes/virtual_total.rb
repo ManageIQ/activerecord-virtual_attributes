@@ -106,7 +106,6 @@ module VirtualAttributes
           # query: SELECT COUNT(*) FROM main_table JOIN foreign_table ON main_table.id = foreign_table.id JOIN ...
           relation_query   = joins(reflection.name).select(column.send(method_name))
           query            = relation_query.arel
-          bound_attributes = relation_query.bound_attributes
 
           # algorithm:
           # - remove main_table from this sub query. (it is already in the primary query)
@@ -122,7 +121,11 @@ module VirtualAttributes
 
           # convert bind variables from ? to actual values. otherwise, sql is incomplete
           conn = connection
-          sql  = conn.unprepared_statement { conn.to_sql(query, bound_attributes) }
+          sql  = if ActiveRecord.version.to_s >= "5.2"
+                   conn.unprepared_statement { conn.to_sql(query) }
+                 else
+                   conn.unprepared_statement { conn.to_sql(query, relation_query.bound_attributes) }
+                 end
 
           # add () around query
           t.grouping(Arel::Nodes::SqlLiteral.new(sql))

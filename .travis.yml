@@ -15,8 +15,8 @@ env:
 gemfile:
 - gemfiles/gemfile_50.gemfile
 - gemfiles/gemfile_51.gemfile
-#- gemfiles/gemfile_52.gemfile
-#- gemfiles/gemfile_60.gemfile
+- gemfiles/gemfile_52.gemfile
+- gemfiles/gemfile_60.gemfile
 before_install:
 - 'echo ''gem: --no-ri --no-rdoc --no-document'' > ~/.gemrc'
 before_script:
@@ -28,3 +28,17 @@ before_script:
 - sh -c "if [ '$DB' = 'mysql2' ]; then mysql -e 'DROP DATABASE IF EXISTS virtual_attributes; CREATE DATABASE virtual_attributes;'; fi"
 after_script:
 - "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
+jobs:
+  allow_failures:
+  - gemfile: gemfiles/gemfile_52.gemfile
+    env: DB=mysql2
+  - gemfile: gemfiles/gemfile_52.gemfile
+    env: DB=pg
+  - gemfile: gemfiles/gemfile_52.gemfile
+    env: DB=sqlite3
+  - gemfile: gemfiles/gemfile_60.gemfile
+    env: DB=mysql2
+  - gemfile: gemfiles/gemfile_60.gemfile
+    env: DB=pg
+  - gemfile: gemfiles/gemfile_60.gemfile
+    env: DB=sqlite3
