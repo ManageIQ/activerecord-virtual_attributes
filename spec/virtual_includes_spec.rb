@@ -283,9 +283,16 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(preloaded(Author.all.to_a, :books => :author_name)).to preload_values(:first_book_author_name, author_name)
     end
 
-    it "ignores errors" do
-      expect { Author.includes(:invalid).load }.not_to raise_error #(ActiveRecord::ConfigurationError)
-      expect { Author.includes(:books => :invalid).load }.not_to raise_error #(ActiveRecord::ConfigurationError)
+    if ActiveRecord.version.to_s >= "6.0"
+      it "catches errors" do
+        expect { Author.includes(:invalid).load }.to raise_error(ActiveRecord::ConfigurationError)
+        expect { Author.includes(:books => :invalid).load }.to raise_error(ActiveRecord::ConfigurationError)
+      end
+    else
+      it "ignores errors" do
+        expect { Author.includes(:invalid).load }.not_to raise_error
+        expect { Author.includes(:books => :invalid).load }.not_to raise_error
+      end
     end
   end
 
