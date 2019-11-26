@@ -140,7 +140,7 @@ module ActiveRecord
         column_aliases = aliases.column_aliases(join_root)
 
         # New Code
-        column_aliases += select_values_from_references(column_aliases, result_set) unless result_set.empty?
+        column_aliases += select_values_from_references(column_aliases, result_set) if result_set.present?
         # End of New Code
 
         message_bus = ActiveSupport::Notifications.instrumenter
