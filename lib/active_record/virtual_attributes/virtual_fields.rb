@@ -51,8 +51,10 @@ module ActiveRecord
               merge_includes(h, replace_virtual_fields(virtual_includes(parent)))
             else
               reflection = reflect_on_association(parent.to_sym)
-              if reflection.nil? || reflection.options[:polymorphic]
+              if reflection.nil?
                 merge_includes(h, parent)
+              elsif reflection.options[:polymorphic]
+                merge_includes(h, parent => child)
               else
                 merge_includes(h, parent => reflection.klass.replace_virtual_fields(child) || {})
               end
