@@ -44,9 +44,5 @@ RSpec::Matchers.define :preload_values do |field, expected_values|
     "Unexpectedly preloaded #{@field}"
   end
 
-  description do
-    "Ensure the block preloads a value to test that includes() and variants work correctly"
-  end
-
   supports_block_expectations
 end

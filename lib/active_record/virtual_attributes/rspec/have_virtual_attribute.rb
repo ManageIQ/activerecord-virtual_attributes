@@ -13,10 +13,6 @@ RSpec::Matchers.define :have_virtual_attribute do |name, type|
   failure_message_when_negated do |klass|
     "expected #{klass.name} to not have virtual column #{name.inspect} with type #{type.inspect}"
   end
-
-  description do
-    "expect the object to have the virtual column"
-  end
 end
 
 RSpec::Matchers.alias_matcher(:have_virtual_column, :have_virtual_attribute)
