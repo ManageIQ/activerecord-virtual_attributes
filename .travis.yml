@@ -36,9 +36,3 @@ jobs:
     env: DB=pg
   - gemfile: gemfiles/gemfile_52.gemfile
     env: DB=sqlite3
-  - gemfile: gemfiles/gemfile_60.gemfile
-    env: DB=mysql2
-  - gemfile: gemfiles/gemfile_60.gemfile
-    env: DB=pg
-  - gemfile: gemfiles/gemfile_60.gemfile
-    env: DB=sqlite3
