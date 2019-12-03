@@ -51,8 +51,10 @@ module ActiveRecord
               merge_includes(h, replace_virtual_fields(virtual_includes(parent)))
             else
               reflection = reflect_on_association(parent.to_sym)
-              if reflection.nil? || reflection.options[:polymorphic]
+              if reflection.nil?
                 merge_includes(h, parent)
+              elsif reflection.options[:polymorphic]
+                merge_includes(h, parent => child)
               else
                 merge_includes(h, parent => reflection.klass.replace_virtual_fields(child) || {})
               end
@@ -99,20 +101,88 @@ module ActiveRecord
   module Associations
     class Preloader
       prepend(Module.new {
-        def preloaders_for_one(association, records, scope)
-          klass_map = records.compact.group_by(&:class)
-
-          loaders = klass_map.keys.group_by { |klass| klass.virtual_includes(association) }.flat_map do |virtuals, klasses|
-            subset = klasses.flat_map { |klass| klass_map[klass] }
-            preload(subset, virtuals)
+        if ActiveRecord.version.to_s >= "6.0"
+          def preloaders_for_reflection(reflection, records, scope, polymorphic_parent)
+            case reflection
+            when Array
+              reflection.flat_map { |ref| preloaders_on(ref, records, scope, polymorphic_parent) }
+            when Hash
+              preloaders_on(reflection, records, scope, polymorphic_parent)
+            else
+              super(reflection, records, scope)
+            end
           end
 
-          records_with_association = klass_map.select { |k, _rs| k.reflect_on_association(association) }.flat_map { |_k, rs| rs }
-          if records_with_association.any?
-            loaders.concat(super(association, records_with_association, scope))
+          # rubocop:disable Style/BlockDelimiters, Lint/AmbiguousBlockAssociation, Style/MethodCallWithArgsParentheses
+          # preloader.rb active record 6.0
+          # changed:
+          # since grouped_records can return a hash/array, we need to handle those 2 new cases
+          def preloaders_for_hash(association, records, scope, polymorphic_parent)
+            association.flat_map { |parent, child|
+              grouped_records(parent, records, polymorphic_parent).flat_map do |reflection, reflection_records|
+                loaders = preloaders_for_reflection(reflection, reflection_records, scope, polymorphic_parent)
+                recs = loaders.flat_map(&:preloaded_records).uniq
+                child_polymorphic_parent = reflection && reflection.respond_to?(:options) && reflection.options[:polymorphic]
+                loaders.concat Array.wrap(child).flat_map { |assoc|
+                  preloaders_on assoc, recs, scope, child_polymorphic_parent
+                }
+                loaders
+              end
+            }
           end
 
-          loaders
+          # preloader.rb active record 6.0
+          # changed:
+          # since grouped_records can return a hash/array, we need to handle those 2 new cases
+          def preloaders_for_one(association, records, scope, polymorphic_parent)
+            grouped_records(association, records, polymorphic_parent)
+              .flat_map do |reflection, reflection_records|
+                preloaders_for_reflection(reflection, reflection_records, scope, polymorphic_parent)
+              end
+          end
+
+          # preloader.rb active record 6.0
+          # changed:
+          def grouped_records(orig_association, records, polymorphic_parent)
+            h = {}
+            records.each do |record|
+              # each class can resolve virtual_{attributes,includes} differently
+              association = record.class.replace_virtual_fields(orig_association)
+              # 1 line optimization for single element array:
+              association = association.first if association.kind_of?(Array) && association.size == 1
+
+              case association
+              when Symbol, String
+                reflection = record.class._reflect_on_association(association)
+                next if polymorphic_parent && !reflection || !record.association(association).klass
+              when nil
+                next
+              else # need parent (preloaders_for_{hash,one}) to handle this Array/Hash
+                reflection = association
+              end
+              (h[reflection] ||= []) << record
+            end
+            h
+          end
+          # rubocop:enable Style/BlockDelimiters, Lint/AmbiguousBlockAssociation, Style/MethodCallWithArgsParentheses
+        else
+          def preloaders_for_one(association, records, scope)
+            klass_map = records.compact.group_by(&:class)
+
+            # new logic: preload virtual fields / virtual includes
+            loaders = klass_map.keys.group_by { |klass| klass.virtual_includes(association) }.flat_map do |virtuals, klasses|
+              subset = klasses.flat_map { |klass| klass_map[klass] }
+              preload(subset, virtuals)
+            end
+            # /new logic
+
+            records_with_association = klass_map.select { |k, _rs| k.reflect_on_association(association) }.flat_map { |_k, rs| rs }
+            if records_with_association.any?
+              loaders.concat(super(association, records_with_association, scope))
+            end
+
+            loaders
+          end
         end
       })
     end
