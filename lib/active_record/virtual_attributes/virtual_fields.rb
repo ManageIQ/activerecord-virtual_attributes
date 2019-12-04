@@ -191,7 +191,7 @@ module ActiveRecord
       #
       # This is because rails is trying to reduce the number of queries
       # needed to fetch all of the records in the include, so it grabs the
-      # columns for both of the tables together to do it.  Unfortuantely (or
+      # columns for both of the tables together to do it.  Unfortunately (or
       # fortunately... depending on how you look at it), it does not remove
       # any `.select` columns from the query that is run in the process, so
       # that is brought along for the ride, but never used when this method
