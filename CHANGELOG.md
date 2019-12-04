@@ -5,6 +5,15 @@ a nice looking [Changelog](http://keepachangelog.com).
 
 ## Version [Unreleased]
 
+## Version [1.5.0] <small>2019-12-02</small>
+
+* `select()` no longer modifies `select_values`. It understands virtual attributes at a lower level.
+* `includes()` can now handle all proper values presented.
+* `virtual_total` added support for `has_many` `:through`
+* `virtual_total` with a nil attribute value no longer executes an extra query
+* rails 6.0 support, (rails 5.2 only fails `habtm` preloading)
+* ruby 2.6.x support (no longer testing ruby 2.4)
+
 ## Version [1.4.0] <small>2019-07-13</small>
 
 * fix includes to include all associations
@@ -45,7 +54,8 @@ a nice looking [Changelog](http://keepachangelog.com).
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.2.0...v1.3.0
