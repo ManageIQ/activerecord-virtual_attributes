@@ -607,13 +607,22 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       end
 
       it "supports #includes with #references" do
-        vm     = TestClass.create
-        klass  = vm.class
+        klass  = TestClass
+        vm     = klass.create
         table  = klass.arel_table
         str_id = Arel::Nodes::NamedFunction.new("CAST", [table[:id].as("CHAR")]).as("str_id")
         result = klass.select(str_id).includes(:children => {}).references(:children)
 
         expect(result.first.attributes["str_id"]).to eq(vm.id.to_s)
+      end
+
+      it "supports #includes with #references and empty resultsets" do
+        klass  = TestClass
+        table  = klass.arel_table
+        str_id = Arel::Nodes::NamedFunction.new("CAST", [table[:id].as("CHAR")]).as("str_id")
+        result = klass.select(str_id).includes(:children => {}).references(:children)
+
+        expect(result.first).to be_blank
       end
     end
 
