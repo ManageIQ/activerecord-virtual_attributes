@@ -126,7 +126,9 @@ module ActiveRecord
               preloaders_on(reflection, records, scope, polymorphic_parent)
             else
               records.group_by { |record| record.association(reflection.name).klass }.map do |rhs_klass, rs|
-                preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope).run
+                loader = preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope)
+                loader.run(self)
+                loader
               end
             end
           end
@@ -138,7 +140,7 @@ module ActiveRecord
             when Hash
               preloaders_for_hash(association, records, scope, polymorphic_parent)
             when Symbol, String
-              preloaders_for_one(association, records, scope, polymorphic_parent)
+              preloaders_for_one(association.to_sym, records, scope, polymorphic_parent)
             else
               raise ArgumentError, "#{association.inspect} was not recognized for preload"
             end
@@ -149,7 +151,7 @@ module ActiveRecord
           # rubocop:disable Style/BlockDelimiters, Lint/AmbiguousBlockAssociation, Style/MethodCallWithArgsParentheses
           # preloader.rb active record 6.0
           # changed:
-          # since grouped_records can return a hash/array, we need to handle those 2 new cases
+          # passing polymorphic around (and makes 5.2 more similar to 6.0)
           def preloaders_for_hash(association, records, scope, polymorphic_parent)
             association.flat_map { |parent, child|
               grouped_records(parent, records, polymorphic_parent).flat_map do |reflection, reflection_records|
@@ -166,7 +168,7 @@ module ActiveRecord
 
           # preloader.rb active record 6.0
           # changed:
-          # since grouped_records can return a hash/array, we need to handle those 2 new cases
+          # passing polymorphic_parent to preloaders_for_reflection
           def preloaders_for_one(association, records, scope, polymorphic_parent)
             grouped_records(association, records, polymorphic_parent)
               .flat_map do |reflection, reflection_records|
@@ -176,6 +178,7 @@ module ActiveRecord
 
           # preloader.rb active record 6.0
           # changed:
+          # different from 5.2. But not called outside these redefined methods here, so it works fine
           def grouped_records(orig_association, records, polymorphic_parent)
             h = {}
             records.each do |record|
