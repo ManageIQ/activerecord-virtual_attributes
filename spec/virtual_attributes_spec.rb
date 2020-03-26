@@ -778,7 +778,8 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
 
     # testing the select, order, and where clauses
-    tc = TestClass.select("lower column").order(:"lower column").find_by(:"lower column" => "abc")
+    quoted_column_name = TestClass.connection.quote_column_name("lower column")
+    tc = TestClass.select("lower column").order(Arel.sql(quoted_column_name)).find_by(:"lower column" => "abc")
     expect(tc.send("lower column")).to eq("abc")
   end
 
