@@ -102,6 +102,9 @@ module ActiveRecord
     class Preloader
       prepend(Module.new {
         if ActiveRecord.version.to_s >= "6.0"
+          # preloader.rb active record 6.0
+          # changed:
+          # since grouped_records can return a hash/array, we need to handle those 2 new cases
           def preloaders_for_reflection(reflection, records, scope, polymorphic_parent)
             case reflection
             when Array
@@ -112,7 +115,37 @@ module ActiveRecord
               super(reflection, records, scope)
             end
           end
+        elsif ActiveRecord.version.to_s >= "5.2" # < 6.0
+          # preloader.rb active record 6.0
+          # else block changed to reflect how 5.2 preloaders_for_one works
+          def preloaders_for_reflection(reflection, records, scope, polymorphic_parent)
+            case reflection
+            when Array
+              reflection.flat_map { |ref| preloaders_on(ref, records, scope, polymorphic_parent) }
+            when Hash
+              preloaders_on(reflection, records, scope, polymorphic_parent)
+            else
+              records.group_by { |record| record.association(reflection.name).klass }.map do |rhs_klass, rs|
+                preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope).run
+              end
+            end
+          end
 
+          # preloader.rb active record 6.0
+          # since this deals with polymorphic_parent, it makes everything easier to just define it
+          def preloaders_on(association, records, scope, polymorphic_parent = false)
+            case association
+            when Hash
+              preloaders_for_hash(association, records, scope, polymorphic_parent)
+            when Symbol, String
+              preloaders_for_one(association, records, scope, polymorphic_parent)
+            else
+              raise ArgumentError, "#{association.inspect} was not recognized for preload"
+            end
+          end
+        end
+
+        if ActiveRecord.version.to_s >= "5.2"
           # rubocop:disable Style/BlockDelimiters, Lint/AmbiguousBlockAssociation, Style/MethodCallWithArgsParentheses
           # preloader.rb active record 6.0
           # changed:
