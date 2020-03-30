@@ -830,6 +830,36 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
   end
 
+  describe ".select" do
+    it "supports virtual attributes" do
+      Author.select(:id, :nick_or_name).first
+    end
+  end
+
+  describe ".where" do
+    it "supports virtual attributes hash syntax" do
+      Author.where(:nick_or_name => "abc").first # fails
+    end
+
+    it "supports virtual attributes arel syntax" do
+      Author.where(Author.arel_attribute(:total_books).gt(5)).first
+    end
+  end
+
+  describe ".order" do
+    it "supports virtual attributes symbol" do
+      Author.order(:nick_or_name).first # fails
+    end
+
+    it "supports virtual attributes hash" do
+      Author.order(:nick_or_name => "ASC").first # fails
+    end
+
+    it "supports virtual attributes arel" do
+      Author.order(Author.arel_attribute(:nick_or_name)).first
+    end
+  end
+
   it "doesn't botch up the attributes", :with_test_class do
     tc = TestClass.select(:id, :str).find(TestClass.create(:str => "abc", :col1 => 55).id)
     expect(tc.attributes.size).to eq(2)

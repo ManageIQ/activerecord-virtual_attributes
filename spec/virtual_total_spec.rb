@@ -5,6 +5,28 @@ RSpec.describe VirtualAttributes::VirtualTotal do
     Bookmark.delete_all
   end
 
+  describe ".select" do
+    it "supports virtual_totals" do
+      Author.select(:id, :total_books).first
+    end
+  end
+
+  describe ".where" do
+    it "supports virtual_totals hash syntax" do
+      Author.where(:total_books => 5).first
+    end
+
+    it "supports virtual_totals arel syntax" do
+      Author.where(Author.arel_attribute(:total_books).gt(5)).first
+    end
+  end
+
+  describe ".order" do
+    it "supports virtual_totals" do
+      Author.order(:total_books).first
+    end
+  end
+
   describe "calculate" do
     before do
       Author.create_with_books(2)
