@@ -283,7 +283,8 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(preloaded(Author.all.to_a, :books => :author_name)).to preload_values(:first_book_author_name, author_name)
     end
 
-    if ActiveRecord.version.to_s >= "6.0"
+    if ActiveRecord.version.to_s >= "5.2"
+      # Note: this is non-standard 5.2. 5.2 has a bug that eats these invalid references. This code handles that case correctly
       it "catches errors" do
         expect { Author.includes(:invalid).load }.to raise_error(ActiveRecord::ConfigurationError)
         expect { Author.includes(:books => :invalid).load }.to raise_error(ActiveRecord::ConfigurationError)

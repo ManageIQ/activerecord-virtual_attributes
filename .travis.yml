@@ -28,11 +28,3 @@ before_script:
 - sh -c "if [ '$DB' = 'mysql2' ]; then mysql -e 'DROP DATABASE IF EXISTS virtual_attributes; CREATE DATABASE virtual_attributes;'; fi"
 after_script:
 - "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
-jobs:
-  allow_failures:
-  - gemfile: gemfiles/gemfile_52.gemfile
-    env: DB=mysql2
-  - gemfile: gemfiles/gemfile_52.gemfile
-    env: DB=pg
-  - gemfile: gemfiles/gemfile_52.gemfile
-    env: DB=sqlite3
