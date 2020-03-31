@@ -126,7 +126,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         author2.create_books(6, :published => true)
 
         expect do
-          cols = %i(id total_books total_books_published total_books_in_progress)
+          cols = %i[id total_books total_books_published total_books_in_progress]
           author_query = Author.select(*cols).to_a
           expect(author_query).to match_array([author3, author1, author2])
           expect(author_query.map(&:total_books)).to match_array([7, 6, 8])
@@ -174,7 +174,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         author2.create_books(1, :published => true, :rating => 5)
 
         expect do
-          cols = %i(id total_recently_published_books sum_recently_published_books_rating)
+          cols = %i[id total_recently_published_books sum_recently_published_books_rating]
           author_query = Author.select(*cols).to_a
           expect(author_query).to match_array([author3, author1, author2])
           expect(author_query.map(&:total_recently_published_books)).to match_array([2, 3, 1])
@@ -252,13 +252,13 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           author2.create_books(1, :special => true, :published => true)
 
           expect do
-            cols = %i(
+            cols = %i[
               id
               total_books
               total_books_published
               total_special_books
               total_special_books_published
-            )
+            ]
             author_query = Author.select(*cols).to_a
             expect(author_query).to match_array([author3, author1, author2])
             expect(author_query.map(&:total_books)).to match_array([7, 5, 8])
@@ -292,11 +292,11 @@ RSpec.describe VirtualAttributes::VirtualTotal do
       m1 = model_with_children(1)
       m2 = model_with_children(2)
       mc = m1.class
-      expect {
+      expect do
         ms = mc.select(:id, :total_books)
         expect(ms).to match_array([m3, m2, m1])
         expect(ms.map(&:total_books)).to match_array([3, 2, 1])
-      }.to match_query_limit_of(1)
+      end.to match_query_limit_of(1)
     end
 
     def model_with_children(count)

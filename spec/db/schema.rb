@@ -19,7 +19,7 @@ ActiveRecord::Schema.define(:version => 0) do
     t.datetime "created_on"
   end
   add_index "books", "author_id"
-  #add_foreign_key("books", "authors", :column => "author_id")
+  # add_foreign_key("books", "authors", :column => "author_id")
 
   create_table "bookmarks", :force => true do |t|
     t.integer  "book_id"
@@ -27,7 +27,7 @@ ActiveRecord::Schema.define(:version => 0) do
     t.datetime "created_on"
   end
   add_index "bookmarks", "book_id"
-  #add_foreign_key("bookmarks", "books", :column => "book_id")
+  # add_foreign_key("bookmarks", "books", :column => "book_id")
 
   create_table "authors_books", :force => true do |t|
     t.integer "author_id"

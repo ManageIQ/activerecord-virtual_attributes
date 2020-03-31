@@ -65,7 +65,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
         TestClass.virtual_column :vcol1, :type => :string
         TestClass.virtual_column "vcol2", :type => :string
 
-        expect(TestClass.virtual_attribute_names).to match_array(%w(existing_vcol vcol1 vcol2))
+        expect(TestClass.virtual_attribute_names).to match_array(%w[existing_vcol vcol1 vcol2])
       end
     end
 
@@ -75,7 +75,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
         TestClass.virtual_column :vcol1, :type => :string
         TestClass.virtual_column "vcol2", :type => :string
 
-        expect(TestClass.virtual_attribute_names).to match_array(%w(existing_vcol vcol1 vcol2))
+        expect(TestClass.virtual_attribute_names).to match_array(%w[existing_vcol vcol1 vcol2])
       end
 
       it "does not have aliases" do
@@ -202,7 +202,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
 
     it "should not have any virtual reflections" do
-      expect(TestClass.virtual_reflections).to      be_empty
+      expect(TestClass.virtual_reflections).to be_empty
       expect(TestClass.reflections_with_virtual.stringify_keys).to eq(TestClass.reflections)
       expect(TestClass.reflections_with_virtual).to eq(TestClass.reflections.symbolize_keys)
     end
@@ -218,12 +218,12 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
         expect(TestClass.virtual_reflection(:vref1).name).to eq(:vref1)
       end
 
-      it("with has_one macro")    do
+      it("with has_one macro") do
         TestClass.virtual_has_one(:vref1)
         expect(TestClass.virtual_reflection(:vref1).macro).to eq(:has_one)
       end
 
-      it("with has_many macro")   do
+      it("with has_many macro") do
         TestClass.virtual_has_many(:vref1)
         expect(TestClass.virtual_reflection(:vref1).macro).to eq(:has_many)
       end
@@ -270,7 +270,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       end
     end
 
-    %w(has_one has_many belongs_to).each do |macro|
+    %w[has_one has_many belongs_to].each do |macro|
       virtual_method = "virtual_#{macro}"
 
       context ".#{virtual_method}" do
@@ -399,7 +399,9 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       context "and TestSubclass with virtual reflections" do
         let(:test_sub_class) do
           Class.new(TestClass) do
-            def self.reflections; super.merge(:ref2 => OpenStruct.new(:name => :ref2, :options => {}, :klass => TestClass)); end
+            def self.reflections
+              super.merge(:ref2 => OpenStruct.new(:name => :ref2, :options => {}, :klass => TestClass))
+            end
 
             virtual_has_one :vrefsub1
           end
@@ -467,7 +469,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
       it "supports virtual columns with arel" do
         class TestClass
-          virtual_attribute :col2, :integer, :arel => (-> (t) { t.grouping(t.class.arel_attribute(:col1)) })
+          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(t.class.arel_attribute(:col1)) }
           def col2
             col1
           end
@@ -515,7 +517,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
       it "supports virtual columns with arel" do
         class TestClass
-          virtual_attribute :col2, :integer, :arel => (-> (t) { t.grouping(t.class.arel_attribute(:col1)) })
+          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(t.class.arel_attribute(:col1)) }
           def col2
             col1
           end
@@ -591,7 +593,8 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       end
 
       before do
-        class TestOtherClass < ActiveRecord::Base # OperatingSystem (child)
+        # OperatingSystem (child)
+        class TestOtherClass < ActiveRecord::Base
           def self.connection
             TestClassBase.connection
           end
@@ -675,7 +678,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     describe "#sum" do
       it "supports virtual attributes" do
         class TestClass
-          virtual_attribute :col2, :integer, :arel => (-> (t) { t.grouping(arel_attribute(:col1)) })
+          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(arel_attribute(:col1)) }
           def col2
             col1
           end
@@ -698,13 +701,13 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     # Author.has_many :books
     # Book.has_many :bookmarks
     it "follows reflections" do
-      expect(Author.follow_associations(%w(books bookmarks))).to eq(Bookmark)
+      expect(Author.follow_associations(%w[books bookmarks])).to eq(Bookmark)
     end
 
     # Book.belongs_to :author
     # Author.virtual_has_many :named_books
     it "stops at virtual reflections" do
-      expect(Book.follow_associations(%w(author named_books))).to be_nil
+      expect(Book.follow_associations(%w[author named_books])).to be_nil
     end
   end
 
@@ -716,13 +719,13 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     # Author.has_many :books
     # Book.has_many :bookmarks
     it "follows reflections" do
-      expect(Author.follow_associations_with_virtual(%w(books bookmarks))).to eq(Bookmark)
+      expect(Author.follow_associations_with_virtual(%w[books bookmarks])).to eq(Bookmark)
     end
 
     # Book.belongs_to :author
     # Author.virtual_has_many :named_books, :class_name => Book
     it "follows virtual reflections" do
-      expect(Book.follow_associations_with_virtual(%w(author named_books))).to eq(Book)
+      expect(Book.follow_associations_with_virtual(%w[author named_books])).to eq(Book)
     end
   end
 
@@ -734,17 +737,17 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     # Author.has_many :books
     # Book.has_many :bookmarks
     it "follows reflections" do
-      expect(Author.collect_reflections(%w(books bookmarks))).to eq([
-        Author.reflect_on_association(:books), Book.reflect_on_association(:bookmarks)
-      ])
+      expect(Author.collect_reflections(%w[books bookmarks])).to eq(
+        [Author.reflect_on_association(:books), Book.reflect_on_association(:bookmarks)]
+      )
     end
 
     # Book.belongs_to :author
     # Author.virtual_has_many :named_books
     it "stops at virtual reflections" do
-      expect(Book.collect_reflections(%w(author named_books))).to eq([
-        Book.reflect_on_association(:author)
-      ])
+      expect(Book.collect_reflections(%w[author named_books])).to eq(
+        [Book.reflect_on_association(:author)]
+      )
     end
   end
 
@@ -756,17 +759,17 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     # Author.has_many :books
     # Book.has_many :bookmarks
     it "follows reflections" do
-      expect(Author.collect_reflections_with_virtual(%w(books bookmarks))).to eq([
-        Author.reflect_on_association(:books), Book.reflect_on_association(:bookmarks)
-      ])
+      expect(Author.collect_reflections_with_virtual(%w[books bookmarks])).to eq(
+        [Author.reflect_on_association(:books), Book.reflect_on_association(:bookmarks)]
+      )
     end
 
     # Book.belongs_to :author
     # Author.virtual_has_many :named_books
     it "follows virtual reflections" do
-      expect(Book.collect_reflections_with_virtual(%w(author named_books))).to eq([
-        Book.reflect_on_association(:author), Author.reflection_with_virtual(:named_books)
-      ])
+      expect(Book.collect_reflections_with_virtual(%w[author named_books])).to eq(
+        [Book.reflect_on_association(:author), Author.reflection_with_virtual(:named_books)]
+      )
     end
   end
 
@@ -843,6 +846,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
     tc = TestClass.includes(:vattr).references(:vattr).first
 
-    expect(tc.attributes.keys).to match_array(%w(id str col1))
+    expect(tc.attributes.keys).to match_array(%w[id str col1])
   end
 end
