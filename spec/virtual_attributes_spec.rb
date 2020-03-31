@@ -56,7 +56,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       end
 
       it "with arel" do
-        TestClass.virtual_column :vcol1, :type => :boolean, :arel => -> (t) { t[:vcol].lower }
+        TestClass.virtual_column :vcol1, :type => :boolean, :arel => ->(t) { t.grouping(t[:vcol].lower) }
         expect(TestClass.arel_attribute("vcol1").to_sql).to match(/LOWER\(["`]test_classes["`].["`]vcol["`]\)/)
       end
 
@@ -554,26 +554,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     describe "#select" do
       it "supports virtual attributes" do
         class TestClass
-          virtual_attribute :col2, :integer, :arel => (-> (t) { t.grouping(arel_attribute(:col1)) })
-          def col2
-            if has_attribute?("col2")
-              col2
-            else
-              # typically we'd return col1
-              # but we're testing that virtual columns are working
-              # col1
-              raise "NOPE"
-            end
-          end
-        end
-
-        TestClass.create(:col1 => 20)
-        expect(TestClass.select(:col2).first[:col2]).to eq(20)
-      end
-
-      it "supports virtual attributes with as" do
-        class TestClass
-          virtual_attribute :col2, :integer, :arel => (-> (t) { t.grouping(arel_attribute(:col1)).as("col2") })
+          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(arel_attribute(:col1)) }
           def col2
             if has_attribute?("col2")
               col2
@@ -772,7 +753,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
   it "supports non valid sql column names", :with_test_class do
     TestClass.create(:str => "ABC")
-    TestClass.virtual_attribute :"lower column", :string, :arel => ->(t) { t[:str].lower }
+    TestClass.virtual_attribute :"lower column", :string, :arel => ->(t) { t.grouping(t[:str].lower) }
     class TestClass
       define_method("lower column") { has_attribute?(:"lower column") ? self[:"lower column"] : str.downcase }
     end
@@ -783,10 +764,10 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
   end
 
   context "arel", "aliases" do
-    it "supports aliased virtual attribute arel with functions", :with_test_class do
+    it "supports aliases in select with virtual attribute arel", :with_test_class do
       class TestClass
-        # using an alias is not suggested. it will fail if used in an `order` or `where` clauses
-        virtual_attribute :lc, :string, :arel => ->(t) { t[:str].lower.as("downcased") }
+        virtual_attribute :lc, :string, :arel => ->(t) { t.grouping(t[:str].lower) }
+
         def lc
           has_attribute?(:downcased) ? self[:downcased] : str.downcase
         end
@@ -794,32 +775,16 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
       obj = TestClass.create(:str => "ABC")
 
-      tc = TestClass.select(:lc).find_by(:id => obj.id)
-      expect(tc.lc).to eq("abc")
+      tc = TestClass.select(TestClass.arel_attribute(:lc).as("downcased")).find_by(:id => obj.id)
+      expect(tc[:downcased]).to eq("abc")
     end
 
     # grouping is the most common way to define arel
-    it "supports aliased virtual attribute arel with grouping", :with_test_class do
+    it "supports string literal arel", :with_test_class do
       class TestClass
-        # using an alias is not suggested. it will fail if used in an `order` or `where` clauses
-        virtual_attribute :lc, :string, :arel => ->(t) { Arel.sql("(#{t[:str].lower.to_sql})") }
+        virtual_attribute :lc, :string, :arel => ->(t) { t.grouping(Arel.sql("(#{t[:str].lower.to_sql})")) }
         def lc
           has_attribute?(:lc) ? self[:lc] : str.downcase
-        end
-      end
-
-      obj = TestClass.create(:str => "ABC")
-
-      tc = TestClass.select(:lc).find_by(:id => obj.id)
-      expect(tc.lc).to eq("abc")
-    end
-
-    it "supports aliased virtual attribute arel with nodes", :with_test_class do
-      class TestClass
-        # using an alias is not suggested. it will fail if used in an `order` or `where` clauses
-        virtual_attribute :lc, :string, :arel => ->(t) { Arel::Nodes::As.new(t[:str].lower, Arel.sql("downcased")) }
-        def lc
-          has_attribute?(:downcased) ? self[:downcased] : str.downcase
         end
       end
 
