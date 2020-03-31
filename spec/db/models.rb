@@ -51,9 +51,9 @@ class Author < VirtualTotalTestBase
   end
 
   # a (local) virtual_attribute without a uses, but with arel
-  virtual_attribute :nick_or_name, :string do |t|
+  virtual_attribute :nick_or_name, :string, :arel => (lambda do |t|
     t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [t[:nickname], t[:name]]))
-  end
+  end)
 
   def first_book_name
     books.first.name
