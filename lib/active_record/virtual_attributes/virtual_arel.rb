@@ -9,6 +9,10 @@ module ActiveRecord
     #
     # Model.select(Model.arel_table.grouping(Model.arel_table[:field2]).as(:field))
     # Model.attribute_supported_by_sql?(:field) # => true
+    class Arel::Nodes::Grouping
+      attr_accessor :name
+    end
+
     module VirtualArel
       extend ActiveSupport::Concern
 
@@ -21,8 +25,11 @@ module ActiveRecord
         def arel_attribute(column_name, arel_table = self.arel_table)
           load_schema
           if virtual_attribute?(column_name) && !attribute_alias?(column_name)
-            col = _virtual_arel[column_name.to_s]
-            col.call(arel_table) if col
+            if (col = _virtual_arel[column_name.to_s])
+              arel = col.call(arel_table)
+              arel.name = column_name if arel.kind_of?(Arel::Nodes::Grouping)
+              arel
+            end
           else
             super
           end
