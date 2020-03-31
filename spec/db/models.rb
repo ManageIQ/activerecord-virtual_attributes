@@ -10,7 +10,7 @@ class Author < VirtualTotalTestBase
   has_many :ordered_books,   -> { ordered },   :class_name => "Book"
   has_many :published_books, -> { published }, :class_name => "Book"
   has_many :wip_books,       -> { wip },       :class_name => "Book"
-  has_and_belongs_to_many :co_books, :class_name => "Book"
+  has_and_belongs_to_many :co_books,           :class_name => "Book"
   has_many :bookmarks,                         :class_name => "Bookmark", :through => :books
 
   virtual_total :total_books, :books
@@ -32,7 +32,7 @@ class Author < VirtualTotalTestBase
   # NOTE: this is tailored to the use case and is not an optimal solution
   def named_books
     # I didn't have the creativity needed to find a good ruby only check here
-    books.select { |b| b.name }
+    books.select(&:name)
   end
 
   # virtual_has_many that depends upon a hash of a virtual column in another model.

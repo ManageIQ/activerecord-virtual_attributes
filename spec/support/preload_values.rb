@@ -12,10 +12,10 @@
 #
 # Example usage:
 #   expect(MyModel.includes(:relation)).to preload_values(:attribute, "foo")
-#   expect { MyModel.includes(:relation).to_a }.to preload_values(:attribute, %w(foo bar baz))
+#   expect { MyModel.includes(:relation).to_a }.to preload_values(:attribute, %w[foo bar baz])
 #
 # Which is similar to:
-#   expect(MyModel.includes(:relation).map(&:attribute)).to eq(%w(foo foo foo))
+#   expect(MyModel.includes(:relation).map(&:attribute)).to eq(%w[foo foo foo])
 
 RSpec::Matchers.define :preload_values do |field, expected_values|
   match(:notify_expectation_failures => true) do |block|

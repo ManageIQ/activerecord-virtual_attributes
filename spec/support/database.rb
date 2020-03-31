@@ -2,7 +2,8 @@ require "logger"
 require "active_record"
 
 class Database
-  attr_accessor :dirname, :adapter
+  attr_accessor :dirname
+
   def initialize
     @dirname = "#{File.dirname(__FILE__)}/../db"
   end
@@ -13,8 +14,8 @@ class Database
 
   def setup
     if defined?(I18n)
-      I18n.enforce_available_locales = false  if I18n.respond_to?(:enforce_available_locales=)
-      #I18n.fallbacks = [I18n.default_locale] if I18n.respond_to?(:fallbacks=)
+      I18n.enforce_available_locales = false if I18n.respond_to?(:enforce_available_locales=)
+      # I18n.fallbacks = [I18n.default_locale] if I18n.respond_to?(:fallbacks=)
     end
     log = Logger.new(STDERR)
     # log = Logger.new('db.log')
@@ -26,7 +27,7 @@ class Database
 
   def migrate
     ActiveRecord::Migration.verbose = false
-    ActiveRecord::Base.configurations = YAML::load(ERB.new(IO.read("#{dirname}/database.yml")).result)
+    ActiveRecord::Base.configurations = YAML.load(ERB.new(IO.read("#{dirname}/database.yml")).result)
     ActiveRecord::Base.establish_connection ActiveRecord::Base.configurations[adapter]
 
     require "#{dirname}/schema"

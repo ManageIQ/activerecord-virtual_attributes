@@ -128,7 +128,8 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
 
   context "with has_one and order (and many records)" do
     before do
-      class TestOtherClass < ActiveRecord::Base # OperatingSystem (child)
+      # OperatingSystem (child)
+      class TestOtherClass < ActiveRecord::Base
         def self.connection
           TestClassBase.connection
         end
