@@ -216,6 +216,19 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "preloads attribute (:uses => :book)" do
       expect(Author.preload(:total_books)).to preload_values(:total_books, 3)
     end
+
+    it "double preloads (with some nulls in the data)" do
+      Book.create
+
+      books = Book.order(:id).includes(:author).to_a
+      expect(books.last.author).to be_nil # the book just created does not have an author
+
+      # the second time preloading throws an error
+      preloader = ActiveRecord::Associations::Preloader.new
+      preloader.preload(books, :author => :books)
+
+      expect(books.size).to be(4)
+    end
   end
 
   context "preloads virtual_attribute with preloader" do
