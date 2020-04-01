@@ -179,9 +179,10 @@ module ActiveRecord
           # preloader.rb active record 6.0
           # changed:
           # different from 5.2. But not called outside these redefined methods here, so it works fine
+          # did add compact to fix a 5.2 double preload nil bug
           def grouped_records(orig_association, records, polymorphic_parent)
             h = {}
-            records.each do |record|
+            records.compact.each do |record|
               # each class can resolve virtual_{attributes,includes} differently
               association = record.class.replace_virtual_fields(orig_association)
               # 1 line optimization for single element array:
