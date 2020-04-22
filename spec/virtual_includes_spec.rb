@@ -297,13 +297,20 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
 
     if ActiveRecord.version.to_s >= "5.2"
-      # Note: this is non-standard 5.2. 5.2 has a bug that eats these invalid references. This code handles that case correctly
-      it "catches errors" do
-        expect { Author.includes(:invalid).load }.to raise_error(ActiveRecord::ConfigurationError)
-        expect { Author.includes(:books => :invalid).load }.to raise_error(ActiveRecord::ConfigurationError)
+      # NOTE: ActiveSupport::Deprecation.debug = true will show the whole backtrace
+      it "deprecates invalid include" do
+        expect do
+          Author.preload(:invalid).load
+        end.to output(/DEPRECATION WARNING.*virtual_includes_spec/).to_stderr
+      end
+
+      it "deprecates invalid nested includes" do
+        expect do
+          Author.preload(:books => :invalid).load
+        end.to output(/DEPRECATION WARNING.*virtual_includes_spec/).to_stderr
       end
     else
-      it "ignores errors" do
+      it "ignores invalid includes" do
         expect { Author.includes(:invalid).load }.not_to raise_error
         expect { Author.includes(:books => :invalid).load }.not_to raise_error
       end
