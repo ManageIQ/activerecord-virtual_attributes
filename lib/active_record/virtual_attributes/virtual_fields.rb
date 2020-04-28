@@ -208,7 +208,7 @@ module ActiveRecord
           def display_virtual_attribute_deprecation(str)
             short_caller = caller
             # if debugging is turned on, don't prune the backtrace.
-            # if debuggint is off, prune down to the line where the sql is executed
+            # if debugging is off, prune down to the line where the sql is executed
             # this defaults to false and only displays 1 line number.
             unless ActiveSupport::Deprecation.debug
               bc = ActiveSupport::BacktraceCleaner.new
