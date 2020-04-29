@@ -5,6 +5,12 @@ a nice looking [Changelog](http://keepachangelog.com).
 
 ## Version [Unreleased]
 
+## Version [1.6.0] <small>2019-12-02</small>
+
+* rails 5.2 support
+* fix Arel#name error
+* Display deprecation notices for invalid associations (rather than throw an error)
+
 ## Version [1.5.0] <small>2019-12-02</small>
 
 * `select()` no longer modifies `select_values`. It understands virtual attributes at a lower level.
@@ -54,7 +60,8 @@ a nice looking [Changelog](http://keepachangelog.com).
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.3.1...v1.4.0
 [1.3.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.3.0...v1.3.1
