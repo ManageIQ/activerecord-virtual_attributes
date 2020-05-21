@@ -48,13 +48,9 @@ module ActiveRecord
       #
 
       # Compatibility method: `virtual_attribute` is a more accurate name
-      def virtual_column(name, type_or_options, **options)
-        if type_or_options.kind_of?(Hash)
-          options = options.merge(type_or_options)
-          type = options.delete(:type)
-        else
-          type = type_or_options
-        end
+      def virtual_column(name, **options)
+        type = options.delete(:type)
+        raise ArgumentError, "missing :type attribute" unless type
 
         virtual_attribute(name, type, **options)
       end
