@@ -3,7 +3,13 @@
 Doing our best at supporting [SemVer](http://semver.org/) with
 a nice looking [Changelog](http://keepachangelog.com).
 
-## Version [Unreleased]
+## Version [Unreleased] <small>tbd</small>
+
+## Version [2.0.0] <small>2020-05-22</small>
+
+* This is a trivial release, but because it modifies a public interface, the jump makes it look significant.
+* removed legacy virtual_column parameter support. (it is not ruby 2.7 compatible)
+* fixed warnings in ruby 2.7
 
 ## Version [1.6.0] <small>2019-12-02</small>
 
@@ -60,7 +66,8 @@ a nice looking [Changelog](http://keepachangelog.com).
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.6.0...v2.0.0
 [1.6.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.3.1...v1.4.0
