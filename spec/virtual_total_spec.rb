@@ -68,7 +68,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         expect do
           expect(author0.total_books).to eq(0)
           expect(author2.total_books).to eq(2)
-        end.to match_query_limit_of(2)
+        end.to make_database_queries(:count => 2)
       end
 
       it "calculates totals with preloaded association" do
@@ -77,7 +77,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
         expect do
           expect(author.total_books).to eq(2)
-        end.to match_query_limit_of(0)
+        end.to_not make_database_queries
       end
 
       it "calculates totals with preloaded associations with no associated records" do
@@ -86,7 +86,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
         expect do
           expect(author.total_books).to eq(0)
-        end.to match_query_limit_of(0)
+        end.to_not make_database_queries
       end
 
       it "calculates totals with attribute" do
@@ -97,7 +97,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           author_query = Author.select(:id, :total_books)
           expect(author_query).to match_array([author3, author1, author2])
           expect(author_query.map(&:total_books)).to match_array([3, 1, 2])
-        end.to match_query_limit_of(1)
+        end.to make_database_queries(:count => 1)
       end
 
       it "with no associated records calculates totals with attribute" do
@@ -105,7 +105,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         query = Author.select(:id, :total_books).load
         expect do
           expect(query.map(&:total_books)).to match_array([0])
-        end.to match_query_limit_of(0)
+        end.to_not make_database_queries
       end
     end
 
@@ -136,7 +136,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           expect(Author.find(author2.id).total_books).to eq(3)
           expect(Author.find(author2.id).total_books_published).to eq(1)
           expect(Author.find(author2.id).total_books_in_progress).to eq(2)
-        end.to match_query_limit_of(12)
+        end.to make_database_queries(:count => 12)
       end
 
       it "can bring back totals in primary query" do
@@ -154,7 +154,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           expect(author_query.map(&:total_books)).to match_array([7, 6, 8])
           expect(author_query.map(&:total_books_published)).to match_array([4, 5, 6])
           expect(author_query.map(&:total_books_in_progress)).to match_array([3, 1, 2])
-        end.to match_query_limit_of(1)
+        end.to make_database_queries(:count => 1)
       end
     end
 
@@ -184,7 +184,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           expect(Author.find(author0.id).sum_recently_published_books_rating).to eq(4)
           expect(Author.find(author2.id).total_recently_published_books).to eq(1)
           expect(Author.find(author2.id).sum_recently_published_books_rating).to eq(5)
-        end.to match_query_limit_of(8)
+        end.to make_database_queries(:count => 8)
       end
 
       it "can bring back totals in primary query" do
@@ -201,7 +201,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           expect(author_query).to match_array([author3, author1, author2])
           expect(author_query.map(&:total_recently_published_books)).to match_array([2, 3, 1])
           expect(author_query.map(&:sum_recently_published_books_rating)).to match_array([4, 3, 5])
-        end.to match_query_limit_of(1)
+        end.to make_database_queries(:count => 1)
       end
     end
 
@@ -260,7 +260,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
             expect(Author.find(author2.id).total_books).to eq(8)
             expect(Author.find(author2.id).total_special_books).to eq(6)
             expect(Author.find(author2.id).total_special_books_published).to eq(1)
-          end.to match_query_limit_of(12)
+          end.to make_database_queries(:count => 12)
         end
 
         it "can bring back totals in primary query" do
@@ -287,7 +287,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
             expect(author_query.map(&:total_books_published)).to match_array([4, 2, 1])
             expect(author_query.map(&:total_special_books)).to match_array([0, 4, 6])
             expect(author_query.map(&:total_special_books_published)).to match_array([0, 2, 1])
-          end.to match_query_limit_of(1)
+          end.to make_database_queries(:count => 1)
         end
       end
     end
@@ -318,7 +318,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         ms = mc.select(:id, :total_books)
         expect(ms).to match_array([m3, m2, m1])
         expect(ms.map(&:total_books)).to match_array([3, 2, 1])
-      end.to match_query_limit_of(1)
+      end.to make_database_queries(:count => 1)
     end
 
     def model_with_children(count)
@@ -374,7 +374,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
       expect do
         expect(base_model.select(:id, :total_bookmarks).order(:total_bookmarks => :desc).map(&:total_bookmarks)).to eq([6, 2, 0])
-      end.to match_query_limit_of(1)
+      end.to make_database_queries(:count => 1)
     end
 
     def model_with_children(count)
@@ -406,7 +406,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         expect do
           expect(query).to match_array([auth1, auth2])
           expect(query.map(&:total_ordered_books)).to match_array([0, 2])
-        end.to match_query_limit_of(0)
+        end.to_not make_database_queries
       end
 
       def model_with_children(count)
@@ -441,7 +441,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
         expect do
           expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
-        end.to match_query_limit_of(4)
+        end.to make_database_queries(:count => 4)
       end
 
       it "calculates sum from preloaded association" do
@@ -449,7 +449,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
         expect do
           expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, 0])
-        end.to match_query_limit_of(0)
+        end.to_not make_database_queries
       end
 
       it "calculates sum from attribute" do
@@ -457,7 +457,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         query = Author.select(:id, :sum_recently_published_books_rating).order(:id).load
         expect do
           expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
-        end.to match_query_limit_of(2)
+        end.to make_database_queries(:count => 2)
       end
 
       it "calculates sum from attribute (and preloaded association)" do
@@ -465,7 +465,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         query = Author.includes(:recently_published_books).select(:id, :sum_recently_published_books_rating).order(:id).load
         expect do
           expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, 0])
-        end.to match_query_limit_of(0)
+        end.to_not make_database_queries
       end
     end
   end
