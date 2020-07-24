@@ -71,14 +71,14 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
     it "preloads through polymorphic (polymorphic => virtual_attribute)" do
       books = Book.includes(:author_or_bookmark => :total_books).load
-      expect { expect(books.map { |b| b.author_or_bookmark.total_books }).to eq([3, 3, 3]) }.to match_query_limit_of(0)
+      expect { expect(books.map { |b| b.author_or_bookmark.total_books }).to eq([3, 3, 3]) }.to_not make_database_queries
     end
 
     it "preloads through virtual_has_many (virtual_has_many => virtual_attribute)" do
       authors = Author.includes(:named_books => :author_name).load
       expect do
         expect(authors.first.named_books.map(&:author_name)).to eq([author_name] * 3)
-      end.to match_query_limit_of(0)
+      end.to_not make_database_queries
     end
 
     it "preloads habtm" do
@@ -274,13 +274,13 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
     it "preloads through association" do
       books = preloaded(Book.all.to_a, :author => :total_books)
-      expect { books.map(&:author).map(&:total_books) }.to match_query_limit_of(0)
+      expect { books.map(&:author).map(&:total_books) }.to_not make_database_queries
     end
 
     it "doesn't preloads through polymorphic" do ##
       # not sure what is expected to happen for preloading a column (that is not standard rails) use select instead
       a = preloaded(Book.all.to_a, :author_or_bookmark => :total_books)
-      expect { a.map(&:author_or_bookmark).map(&:total_books) }.to match_query_limit_of(0)
+      expect { a.map(&:author_or_bookmark).map(&:total_books) }.to_not make_database_queries
     end
 
     it "uses included associations" do

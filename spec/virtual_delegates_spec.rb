@@ -81,7 +81,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
       tc = TestClass.create(:ref2 => child)
       tcs = TestClass.all.select(:id, :col1, :child_col1).to_a
-      expect { expect(tcs.map(&:child_col1)).to match_array([nil, tc.id]) }.to match_query_limit_of(0)
+      expect { expect(tcs.map(&:child_col1)).to match_array([nil, tc.id]) }.to_not make_database_queries
     end
 
     # this may fail in the future as our way of building queries may change
@@ -180,7 +180,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x"))
       expect(tcs.map(&:x)).to match_array([nil, 99])
 
-      expect { tcs = TestOtherClass.all.select(:id, :ocol1, :col1).load }.to match_query_limit_of(1)
+      expect { tcs = TestOtherClass.all.select(:id, :ocol1, :col1).load }.to make_database_queries(:count => 1)
       expect(tcs.map(&:col1)).to match_array([nil, 99])
     end
 

@@ -8,6 +8,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../lib')
 require "bundler/setup"
 require "active_record/virtual_attributes"
 require "active_record/virtual_attributes/rspec"
+require "db-query-matchers"
 
 Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
 
