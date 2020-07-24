@@ -1,14 +1,14 @@
 #
-# Sometimes, it is not necessary to know the exact number of queries it takes to preload a record
-# Instead it is only necessary to know that the values actually do get preloaded
+# Sometimes it is not necessary to know the exact number of queries it takes to preload a record
+# Instead, it is necessary only to know that the values actually do get preloaded
 #
 # This takes a relation or array as a block or argument.
 # It runs order by id if it is not already ordered
 # It loads the relation if necessary (by running load)
 #
-# It then ensures the correct values, and in the process counts queries to ensure they were preloaded
+# It then ensures the correct values, and in the process, counts queries to ensure they were preloaded
 #
-# If a single value is passed it, it assumes all records have the same value
+# If a single value is passed in, it assumes all records have the same value
 #
 # Example usage:
 #   expect(MyModel.includes(:relation)).to preload_values(:attribute, "foo")
