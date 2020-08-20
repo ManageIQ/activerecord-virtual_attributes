@@ -816,16 +816,38 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
   end
 
   describe ".order" do
-    it "supports virtual attributes symbol" do
-      Author.order(:nick_or_name).first # fails
+    before do
+      Author.delete_all
+      authors
     end
 
-    it "supports virtual attributes hash" do
-      Author.order(:nick_or_name => "ASC").first # fails
+    let(:authors) do
+      [
+        Author.create(:name => "aaa"),
+        Author.create(:nickname => "bbb"),
+        Author.create(:name => "ccc")
+      ]
     end
 
-    it "supports virtual attributes arel" do
-      Author.order(Author.arel_attribute(:nick_or_name)).first
+    it "orders by virtual attributes symbol" do
+      expect(Author.order(:nick_or_name)).to eq(authors)
+    end
+
+    it "orders by virtual attributes hash" do
+      expect(Author.order(:nick_or_name => "DESC")).to eq(authors.reverse)
+    end
+
+    it "orders by virtual attributes arel" do
+      expect(Author.order(Author.arel_attribute(:nick_or_name))).to eq(authors)
+    end
+
+    it "orders by virtual attributes inline arel" do
+      expect(Author.order(Author.arel_attribute(:nick_or_name).desc)).to eq(authors.reverse)
+    end
+
+    it "orders by virtual attributes inline arel" do
+      desc_node = Arel::Nodes::Descending.new(Author.arel_attribute(:nick_or_name))
+      expect(Author.order(desc_node)).to eq(authors.reverse)
     end
   end
 
