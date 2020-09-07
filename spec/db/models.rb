@@ -1,4 +1,3 @@
-# rubocop:disable Style/SingleLineMethods, Layout/EmptyLineBetweenDefs, Naming/AccessorMethodName
 class VirtualTotalTestBase < ActiveRecord::Base
   self.abstract_class = true
 
@@ -12,6 +11,8 @@ class Author < VirtualTotalTestBase
   has_many :wip_books,       -> { wip },       :class_name => "Book"
   has_and_belongs_to_many :co_books,           :class_name => "Book"
   has_many :bookmarks,                         :class_name => "Bookmark", :through => :books
+  has_many :photos, :as => :imageable, :class_name => "Photo"
+  has_one :current_photo, -> { all.merge(Photo.order(:id => :desc)) }, :as => :imageable, :class_name => "Photo"
 
   virtual_total :total_books, :books
   virtual_total :total_books_published, :published_books
@@ -27,6 +28,7 @@ class Author < VirtualTotalTestBase
 
   virtual_total :total_recently_published_books, :recently_published_books
   virtual_aggregate :sum_recently_published_books_rating, :recently_published_books, :sum, :rating
+  virtual_delegate :description, :to => :current_photo, :prefix => true
 
   # This is here to provide a virtual_total of a virtual_has_many that depends upon an array of associations.
   # NOTE: this is tailored to the use case and is not an optimal solution
@@ -73,7 +75,9 @@ class Author < VirtualTotalTestBase
   end
 
   virtual_has_one :book_with_most_bookmarks, :uses => {:books => :bookmarks}
+  # attribute using a relation
   virtual_attribute :first_book_name, :string, :uses => [:books]
+  # attribute on a double relation
   virtual_attribute :first_book_author_name, :string, :uses => {:books => :author_name}
   # uses another virtual attribute that uses a relation
   virtual_attribute :upper_first_book_author_name, :string, :uses => :first_book_author_name
@@ -95,13 +99,17 @@ class Book < VirtualTotalTestBase
   has_and_belongs_to_many :co_authors, :class_name => "Author"
   belongs_to :author_or_bookmark, :polymorphic => true, :foreign_key => "author_id", :foreign_type => "author_type"
 
+  has_many :photos, :as => :imageable, :class_name => "Photo"
+  has_one :current_photo, -> { all.merge(Photo.order(:id => :desc)) }, :as => :imageable, :class_name => "Photo"
+
   scope :ordered,   -> { order(:created_on => :desc) }
   scope :published, -> { where(:published => true)  }
   scope :wip,       -> { where(:published => false) }
-
   # this tests delegate
   # this also tests an attribute :uses clause with a single symbol
   virtual_delegate :name, :to => :author, :prefix => true
+  # delegate to a polymorphic
+  virtual_delegate :description, :to => :current_photo, :prefix => true, :type => :string, :allow_nil => true
 
   # simple uses to a virtual attribute
   virtual_attribute :upper_author_name, :string, :uses => [:author_name]
@@ -129,4 +137,7 @@ end
 class Bookmark < VirtualTotalTestBase
   belongs_to :book
 end
-# rubocop:enable Style/SingleLineMethods, Layout/EmptyLineBetweenDefs, Naming/AccessorMethodName
+
+class Photo < VirtualTotalTestBase
+  belongs_to :imageable, :polymorphic => true
+end
