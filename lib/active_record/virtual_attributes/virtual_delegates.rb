@@ -240,6 +240,7 @@ module ActiveRecord
       #     (SELECT "vms_sub"."name" FROM "vms" AS "vms_ss" WHERE "vms_ss"."id" = "vms"."src_template_id")
       #
 
+      # Based upon ActiveRecord AssociationScope.scope
       def self.select_from_alias(to_ref, col, to_model_col_name, src_model_id)
         query = if to_ref.scope
                   to_ref.klass.instance_exec(nil, &to_ref.scope)
@@ -247,12 +248,20 @@ module ActiveRecord
                   to_ref.klass.all
                 end
 
+        src_model   = to_ref.active_record
         to_table    = select_from_alias_table(to_ref.klass, src_model_id.relation)
         to_model_id = to_ref.klass.arel_attribute(to_model_col_name, to_table)
         to_column   = to_ref.klass.arel_attribute(col, to_table)
         arel        = query.except(:select).select(to_column).arel
                            .from(to_table)
                            .where(to_model_id.eq(src_model_id))
+
+        # :type is in the reflection definition (meaning it is polymorphic)
+        if to_ref.type
+          # get the class name (e.g. "Host")
+          polymorphic_type = src_model.base_class.name
+          arel = arel.where(to_ref.klass.arel_attribute(to_ref.type).eq(polymorphic_type))
+        end
 
         yield arel if block_given?
 

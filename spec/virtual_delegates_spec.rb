@@ -234,4 +234,16 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       expect { model.new }.to raise_error(NameError)
     end
   end
+
+  context "with polymorphic has_one" do
+    it "respects type" do
+      author = Author.create(:name => "no one of consequence")
+      book = author.books.create(:name => "nothing of consequence", :id => author.id)
+      author.photos.create(:description => 'good')
+      book.photos.create(:description => 'bad')
+
+      author = Author.select(:id, :current_photo_description).find(author.id)
+      expect(author.current_photo_description).to eq("good")
+    end
+  end
 end
