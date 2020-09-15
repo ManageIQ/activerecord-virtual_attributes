@@ -42,7 +42,7 @@ module VirtualAttributes
       #
       #    def allocated_disk_storage
       #      if disks.loaded?
-      #        disks.blank? ? nil : disks.map(&:size).compact.sum
+      #        disks.map(&:size).compact.sum
       #      else
       #        disks.sum(:size) || 0
       #      end
@@ -85,10 +85,10 @@ module VirtualAttributes
 
       def define_virtual_aggregate_method(name, relation, method_name, column)
         define_method(name) do
-          if attribute_present?(name)
-            self[name]
+          if has_attribute?(name)
+            self[name] || 0
           elsif (rel = send(relation)).loaded?
-            rel.blank? ? nil : rel.map { |t| t.send(column) }.compact.send(method_name)
+            rel.map { |t| t.send(column) }.compact.send(method_name)
           else
             rel.try(method_name, column) || 0
           end
@@ -128,7 +128,9 @@ module VirtualAttributes
                  end
 
           # add () around query
-          t.grouping(Arel::Nodes::SqlLiteral.new(sql))
+          query = t.grouping(Arel::Nodes::SqlLiteral.new(sql))
+          # add coalesce to ensure correct value comes out
+          t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [query, Arel::Nodes::SqlLiteral.new("0")]))
         end
       end
     end
