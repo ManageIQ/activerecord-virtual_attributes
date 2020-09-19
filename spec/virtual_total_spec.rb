@@ -435,37 +435,149 @@ RSpec.describe VirtualAttributes::VirtualTotal do
       let(:author3) { Author.create }
       let(:author4) { Author.create.tap { |a| a.create_books(1, :published => true) } }
 
-      # NOTE: rails converts the nil to a 0
-      it "calculates sum with one off query" do
-        authors
+      describe ":sum" do
+        # NOTE: rails converts the nil to a 0
+        it "calculates sum with one off query" do
+          authors
 
-        expect do
-          expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
-        end.to make_database_queries(:count => 4)
+          expect do
+            expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
+          end.to make_database_queries(:count => 4)
+        end
+
+        it "calculates sum from preloaded association" do
+          authors.each { |a| a.recently_published_books.load }
+
+          expect do
+            expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, nil])
+          end.to_not make_database_queries
+        end
+
+        it "calculates sum from attribute" do
+          authors
+          query = Author.select(:id, :sum_recently_published_books_rating).order(:id).load
+          expect do
+            expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
+          end.to_not make_database_queries
+        end
+
+        it "calculates sum from attribute (and preloaded association)" do
+          authors
+          query = Author.includes(:recently_published_books).select(:id, :sum_recently_published_books_rating).order(:id).load
+          expect do
+            expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
+          end.to_not make_database_queries
+        end
+
+        it "orders by values with a nil (having the nil (defaulted to 0) first" do
+          authors
+          query = Author.order(:sum_recently_published_books_rating)
+          expect(query.map(&:id)).to eq([author3, author4, author2, author].map(&:id))
+        end
       end
 
-      it "calculates sum from preloaded association" do
-        authors.each { |a| a.recently_published_books.load }
+      describe ":average" do
+        # NOTE: rails converts the nil to a 0
+        it "calculates avg with one off query" do
+          authors
+          expect do
+            expect(authors.map(&:average_recently_published_books_rating)).to eq([3, 5, 0, 0])
+          end.to make_database_queries(:count => 4)
+        end
 
-        expect do
-          expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
-        end.to_not make_database_queries
+        it "calculates avg from preloaded association" do
+          authors.each { |a| a.recently_published_books.load }
+
+          expect do
+            expect(authors.map(&:average_recently_published_books_rating)).to eq([3, 5, 0, 0])
+          end.to_not make_database_queries
+        end
+
+        it "calculates avg from attribute" do
+          authors
+          query = Author.select(:id, :average_recently_published_books_rating).order(:id).load
+          expect do
+            expect(query.map(&:average_recently_published_books_rating)).to eq([3, 5, 0, 0])
+          end.to_not make_database_queries
+        end
+
+        it "calculates avg from attribute (and preloaded association)" do
+          authors
+          query = Author.includes(:recently_published_books).select(:id, :average_recently_published_books_rating).order(:id).load
+          expect do
+            expect(query.map(&:average_recently_published_books_rating)).to eq([3, 5, 0, 0])
+          end.to_not make_database_queries
+        end
       end
 
-      it "calculates sum from attribute" do
-        authors
-        query = Author.select(:id, :sum_recently_published_books_rating).order(:id).load
-        expect do
-          expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
-        end.to make_database_queries(:count => 0)
+      describe ":maximum" do
+        # NOTE: rails converts the nil to a 0
+        it "calculates max with one off query" do
+          authors
+
+          expect do
+            expect(authors.map(&:maximum_recently_published_books_rating)).to eq([4, 5, 0, 0])
+          end.to make_database_queries(:count => 4)
+        end
+
+        it "calculates max from preloaded association" do
+          authors.each { |a| a.recently_published_books.load }
+
+          expect do
+            expect(authors.map(&:maximum_recently_published_books_rating)).to eq([4, 5, nil, nil])
+          end.to_not make_database_queries
+        end
+
+        it "calculates max from attribute" do
+          authors
+          query = Author.select(:id, :maximum_recently_published_books_rating).order(:id).load
+          expect do
+            expect(query.map(&:maximum_recently_published_books_rating)).to eq([4, 5, 0, 0])
+          end.to_not make_database_queries
+        end
+
+        it "calculates max from attribute (and preloaded association)" do
+          authors
+          query = Author.includes(:recently_published_books).select(:id, :maximum_recently_published_books_rating).order(:id).load
+          expect do
+            expect(query.map(&:maximum_recently_published_books_rating)).to eq([4, 5, 0, 0])
+          end.to_not make_database_queries
+        end
       end
 
-      it "calculates sum from attribute (and preloaded association)" do
-        authors
-        query = Author.includes(:recently_published_books).select(:id, :sum_recently_published_books_rating).order(:id).load
-        expect do
-          expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
-        end.to_not make_database_queries
+      describe ":minimum" do
+        # NOTE: rails converts the nil to a 0
+        it "calculates min with one off query" do
+          authors
+
+          expect do
+            expect(authors.map(&:minimum_recently_published_books_rating)).to eq([2, 5, 0, 0])
+          end.to make_database_queries(:count => 4)
+        end
+
+        it "calculates min from preloaded association" do
+          authors.each { |a| a.recently_published_books.load }
+
+          expect do
+            expect(authors.map(&:minimum_recently_published_books_rating)).to eq([2, 5, nil, nil])
+          end.to_not make_database_queries
+        end
+
+        it "calculates min from attribute" do
+          authors
+          query = Author.select(:id, :minimum_recently_published_books_rating).order(:id).load
+          expect do
+            expect(query.map(&:minimum_recently_published_books_rating)).to eq([2, 5, 0, 0])
+          end.to_not make_database_queries
+        end
+
+        it "calculates min from attribute (and preloaded association)" do
+          authors
+          query = Author.includes(:recently_published_books).select(:id, :minimum_recently_published_books_rating).order(:id).load
+          expect do
+            expect(query.map(&:minimum_recently_published_books_rating)).to eq([2, 5, 0, 0])
+          end.to_not make_database_queries
+        end
       end
 
       it "orders by values with a nil (having the nil (defaulted to 0) first" do

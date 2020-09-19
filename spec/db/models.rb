@@ -27,7 +27,10 @@ class Author < VirtualTotalTestBase
            :class_name => "Book", :foreign_key => "author_id"
 
   virtual_total :total_recently_published_books, :recently_published_books
-  virtual_aggregate :sum_recently_published_books_rating, :recently_published_books, :sum, :rating
+  virtual_average :average_recently_published_books_rating, :recently_published_books, :rating
+  virtual_minimum :minimum_recently_published_books_rating, :recently_published_books, :rating
+  virtual_maximum :maximum_recently_published_books_rating, :recently_published_books, :rating
+  virtual_sum :sum_recently_published_books_rating, :recently_published_books, :rating
   virtual_delegate :description, :to => :current_photo, :prefix => true
 
   # This is here to provide a virtual_total of a virtual_has_many that depends upon an array of associations.
