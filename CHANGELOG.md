@@ -5,6 +5,12 @@ a nice looking [Changelog](http://keepachangelog.com).
 
 ## Version [Unreleased] <small>tbd</small>
 
+## Version [3.0.0] <small>2020-09-28</small>
+
+* fix virtual_aggregate to return a consistent 0 when calculating a sum of no records
+* fix virtual delegate to include the type column when fetching associated models for polymorphism
+* add virtual_average, virtual_minimum, and virtual_maximum
+
 ## Version [2.0.0] <small>2020-05-22</small>
 
 * This is a trivial release, but because it modifies a public interface, the jump makes it look significant.
@@ -66,7 +72,8 @@ a nice looking [Changelog](http://keepachangelog.com).
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.6.0...v2.0.0
 [1.6.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.4.0...v1.5.0
