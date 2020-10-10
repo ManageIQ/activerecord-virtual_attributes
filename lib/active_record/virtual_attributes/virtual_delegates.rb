@@ -151,11 +151,7 @@ module ActiveRecord
           # There is currently no way to propagate sql over a virtual association
           if reflect_on_association(to_ref.name) && (to_ref.macro == :has_one || to_ref.macro == :belongs_to)
             lambda do |t|
-              join_keys = if ActiveRecord.version.to_s >= "5.1"
-                            to_ref.join_keys
-                          else
-                            to_ref.join_keys(to_ref.klass)
-                          end
+              join_keys = to_ref.join_keys
               src_model_id = arel_attribute(join_keys.foreign_key, t)
               blk = ->(arel) { arel.limit = 1 } if to_ref.macro == :has_one
               VirtualDelegates.select_from_alias(to_ref, col, join_keys.key, src_model_id, &blk)

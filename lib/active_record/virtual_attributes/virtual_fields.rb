@@ -438,12 +438,6 @@ module ActiveRecord
 
       # From ActiveRecord::Calculations
       def calculate(operation, attribute_name)
-        if ActiveRecord.version.to_s < "5.1"
-          if (arel = klass.arel_attribute(attribute_name)) && virtual_attribute?(attribute_name)
-            attribute_name = arel
-          end
-        end
-
         # allow calculate to work with includes and a virtual attribute
         real = without_virtual_includes
         return super if real.equal?(self)
