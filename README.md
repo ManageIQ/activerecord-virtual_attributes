@@ -5,16 +5,13 @@
 [![Test Coverage](https://api.codeclimate.com/v1/badges/e1a0c26941c00f4edb55/test_coverage)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/test_coverage)
 [![Security](https://hakiri.io/github/ManageIQ/activerecord-virtual_attributes/master.svg)](https://hakiri.io/github/ManageIQ/activerecord-virtual_attributes/master)
 
-This allows you to define a ruby method that acts like an attribute or relation.
+VirtualAttributes allows you to define a ruby method that acts like an attribute or relation.
 
-Sometimes you have a model with an attribute defined in ruby, but you want to sort by it or filter by it.
-Well, to filter by that attribute, you need to fetch all the rows from the database and filter it in ruby.
-For large tables, this is slow and takes up a lot of memory
+Sometimes you have a model with an attribute defined in ruby but you want to sort or filter by it. Filtering by that attribute necessitates fetching all the rows from the database and filtering in ruby. For large tables, this is slow and takes up a lot of memory.
 
-This gem allows you to represent these attribute in sql so `ORDER BY` `WHERE` clauses will work.
+This gem allows you to represent these attributes in sql so `ORDER BY` `WHERE` clauses will work.
 
-This gem also allows you to calculate counts, and treat those counts as a field accessible with `select(:child_count)`
-to get rid of the N+1 problem of running a `count(*)` on a subcollection for each row.
+This also allows you to calculate counts and treat those as a field accessible with `select(:child_count)` to get rid of the N+1 problem of running a `count(*)` on a subcollection for each row.
 
 ## Installation
 
