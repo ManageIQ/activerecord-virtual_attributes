@@ -248,7 +248,7 @@ module ActiveRecord
     # syntax from the original codebase.
     #
     # rubocop:disable Style/BlockDelimiters, Layout/SpaceAfterComma, Style/HashSyntax
-    # rubocop:disable Layout/AlignHash
+    # rubocop:disable Layout/HashAlignment
     class JoinDependency
       def instantiate(result_set, *_, &block)
         primary_key = aliases.column_alias(join_root, join_root.primary_key)
@@ -289,7 +289,7 @@ module ActiveRecord
         parents.values
       end
       # rubocop:enable Style/BlockDelimiters, Layout/SpaceAfterComma, Style/HashSyntax
-      # rubocop:enable Layout/AlignHash
+      # rubocop:enable Layout/HashAlignment
 
       #
       # This monkey patches the ActiveRecord::Associations::JoinDependency to
