@@ -2,9 +2,9 @@
 
 source "https://rubygems.org"
 
-gem "activerecord", "~> 5.0.7"
-gem "mysql2", '~> 0.4.0'
+gem "activerecord", "~> 6.0.0"
+gem "mysql2"
 gem "pg"
-gem "sqlite3", "~> 1.3.6"
+gem "sqlite3"
 
 gemspec
