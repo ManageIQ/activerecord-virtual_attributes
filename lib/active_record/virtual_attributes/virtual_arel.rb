@@ -31,7 +31,7 @@ module ActiveRecord
               arel
             end
           else
-            super
+            arel_table[column_name]
           end
         end
 

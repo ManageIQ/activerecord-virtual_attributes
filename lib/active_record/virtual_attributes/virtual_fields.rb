@@ -376,7 +376,7 @@ module ActiveRecord
         if select_values.any?
           arel.project(*arel_columns(select_values.uniq, true))
         elsif klass.ignored_columns.any?
-          arel.project(*klass.column_names.map { |field| arel_attribute(field) })
+          arel.project(*klass.column_names.map { |field| arel_table[field] })
         else
           arel.project(table[Arel.star])
         end
@@ -406,7 +406,7 @@ module ActiveRecord
         from = from_clause.name || from_clause.value
 
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
-          arel_attribute(field)
+          arel_table[field]
         elsif virtual_attribute?(field)
           virtual_attribute_arel_column(field, allow_alias, &block)
         else
@@ -415,7 +415,7 @@ module ActiveRecord
       end
 
       def virtual_attribute_arel_column(field, allow_alias)
-        arel = arel_attribute(field)
+        arel = arel_table[field]
         if arel.nil?
           yield field
         elsif allow_alias && arel && arel.respond_to?(:as) && !arel.kind_of?(Arel::Nodes::As) && !arel.try(:alias)
