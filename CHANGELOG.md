@@ -5,6 +5,10 @@ a nice looking [Changelog](http://keepachangelog.com).
 
 ## Version [Unreleased] <small>tbd</small>
 
+## Version [4.0.0] <small>2021-02-07</small>
+
+* Once again, a trivial release: dropped support for activerecord 5.0 and 5.1
+
 ## Version [3.0.0] <small>2020-09-28</small>
 
 * fix virtual_aggregate to return a consistent 0 when calculating a sum of no records
@@ -72,7 +76,8 @@ a nice looking [Changelog](http://keepachangelog.com).
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v4.0.0...HEAD
+[3.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v3.0.0...v4.0.0
 [3.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.6.0...v2.0.0
 [1.6.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.5.0...v1.6.0
