@@ -28,7 +28,8 @@ class Database
   def migrate
     ActiveRecord::Migration.verbose = false
     ActiveRecord::Base.configurations = YAML.load(ERB.new(IO.read("#{dirname}/database.yml")).result)
-    ActiveRecord::Base.establish_connection ActiveRecord::Base.configurations[adapter]
+    ActiveRecord::Base.establish_connection ActiveRecord::Base.configurations.configs_for(:name => adapter)
+
 
     require "#{dirname}/schema"
     require "#{dirname}/models"
