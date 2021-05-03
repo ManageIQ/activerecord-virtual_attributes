@@ -139,11 +139,7 @@ module VirtualAttributes
 
           # convert bind variables from ? to actual values. otherwise, sql is incomplete
           conn = connection
-          sql  = if ActiveRecord.version.to_s >= "5.2"
-                   conn.unprepared_statement { conn.to_sql(query) }
-                 else
-                   conn.unprepared_statement { conn.to_sql(query, relation_query.bound_attributes) }
-                 end
+          sql = conn.unprepared_statement { conn.to_sql(query) }
 
           # add () around query
           query = t.grouping(Arel::Nodes::SqlLiteral.new(sql))
