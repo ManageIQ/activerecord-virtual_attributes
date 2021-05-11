@@ -18,6 +18,9 @@ pg:
   schema_search_path: public
 
 mysql2:
-  <<: *common
+  host: 127.0.0.1
+  encoding: utf8
+  database: <%= ENV["MYSQL_DATABASE"].presence %>
+  port: <%= ENV["PORT"].presence&.to_i || 3306 %>
   adapter: mysql2
   username: root
