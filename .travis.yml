@@ -2,7 +2,7 @@
 language: ruby
 cache: bundler
 rvm:
-- 2.7.0
+- 2.6.5
 services:
 - mysql
 - postgresql
@@ -16,11 +16,11 @@ gemfile:
 
 jobs:
   include:
-  - rvm: 2.7.0
+  - rvm: 2.6.5
     gemfile: gemfiles/gemfile_61.gemfile
     env: DB=pg
   allow_failures:
-  - rvm: 2.7.0
+  - rvm: 2.6.5
     gemfile: gemfiles/gemfile_61.gemfile
     env: DB=pg
 
