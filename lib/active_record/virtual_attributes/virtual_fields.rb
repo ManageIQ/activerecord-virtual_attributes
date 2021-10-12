@@ -351,12 +351,12 @@ module ActiveRecord
 
     include(Module.new {
       # From ActiveRecord::FinderMethods
-      def apply_join_dependency(*args, &block)
+      def apply_join_dependency(*args, **kargs, &block)
         real = without_virtual_includes
         if real.equal?(self)
           super
         else
-          real.apply_join_dependency(*args, &block)
+          real.apply_join_dependency(*args, **kargs, &block)
         end
       end
 
