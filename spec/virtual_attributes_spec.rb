@@ -57,7 +57,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
       it "with arel" do
         TestClass.virtual_column :vcol1, :type => :boolean, :arel => ->(t) { t.grouping(t[:vcol].lower) }
-        expect(TestClass.arel_attribute("vcol1").to_sql).to match(/LOWER\(["`]test_classes["`].["`]vcol["`]\)/)
+        expect(TestClass.select("vcol1").to_sql).to match(/LOWER\(["`]test_classes["`].["`]vcol["`]\)/)
       end
 
       it "can have multiple virtual columns defined by string or symbol" do
