@@ -115,7 +115,7 @@ module ActiveRecord
               super(reflection, records, scope)
             end
           end
-        elsif ActiveRecord.version.to_s >= "5.2" # < 6.0
+        else
           # preloader.rb active record 6.0
           # else block changed to reflect how 5.2 preloaders_for_one works
           def preloaders_for_reflection(reflection, records, scope, polymorphic_parent)
@@ -218,24 +218,6 @@ module ActiveRecord
             end
 
             ActiveSupport::Deprecation.warn(str, short_caller)
-          end
-        else
-          def preloaders_for_one(association, records, scope)
-            klass_map = records.compact.group_by(&:class)
-
-            # new logic: preload virtual fields / virtual includes
-            loaders = klass_map.keys.group_by { |klass| klass.virtual_includes(association) }.flat_map do |virtuals, klasses|
-              subset = klasses.flat_map { |klass| klass_map[klass] }
-              preload(subset, virtuals)
-            end
-            # /new logic
-
-            records_with_association = klass_map.select { |k, _rs| k.reflect_on_association(association) }.flat_map { |_k, rs| rs }
-            if records_with_association.any?
-              loaders.concat(super(association, records_with_association, scope))
-            end
-
-            loaders
           end
         end
       })
