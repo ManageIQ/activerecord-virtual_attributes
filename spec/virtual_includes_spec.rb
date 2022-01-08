@@ -307,26 +307,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "uses preloaded fields" do
       expect(preloaded(Author.all.to_a, :books => :author_name)).to preload_values(:first_book_author_name, author_name)
     end
-
-    if ActiveRecord.version.to_s >= "5.2"
-      # NOTE: ActiveSupport::Deprecation.debug = true will show the whole backtrace
-      it "deprecates invalid include" do
-        expect do
-          Author.preload(:invalid).load
-        end.to output(/DEPRECATION WARNING.*virtual_includes_spec/).to_stderr
-      end
-
-      it "deprecates invalid nested includes" do
-        expect do
-          Author.preload(:books => :invalid).load
-        end.to output(/DEPRECATION WARNING.*virtual_includes_spec/).to_stderr
-      end
-    else
-      it "ignores invalid includes" do
-        expect { Author.includes(:invalid).load }.not_to raise_error
-        expect { Author.includes(:books => :invalid).load }.not_to raise_error
-      end
-    end
   end
 
   context "preloads virtual_reflection with includes" do

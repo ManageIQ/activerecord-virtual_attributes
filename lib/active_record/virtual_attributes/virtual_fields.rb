@@ -190,10 +190,8 @@ module ActiveRecord
 
               case association
               when Symbol, String
-                # 4/24/20 we want to revert #67 once we handle all these error cases in our codebase.
                 reflection = record.class._reflect_on_association(association)
-                display_virtual_attribute_deprecation("#{record.class.name}.#{association} does not exist") if !reflection && !polymorphic_parent
-                next if !reflection || !record.association(association).klass
+                next if polymorphic_parent && !reflection || !record.association(association).klass
               when nil
                 next
               else # need parent (preloaders_for_{hash,one}) to handle this Array/Hash
@@ -204,21 +202,6 @@ module ActiveRecord
             h
           end
           # rubocop:enable Style/BlockDelimiters, Lint/AmbiguousBlockAssociation, Style/MethodCallWithArgsParentheses
-
-          def display_virtual_attribute_deprecation(str)
-            short_caller = caller
-            # if debugging is turned on, don't prune the backtrace.
-            # if debugging is off, prune down to the line where the sql is executed
-            # this defaults to false and only displays 1 line number.
-            unless ActiveSupport::Deprecation.debug
-              bc = ActiveSupport::BacktraceCleaner.new
-              bc.add_silencer { |line| line =~ /virtual_fields/ }
-              bc.add_silencer { |line| line =~ /active_record/ }
-              short_caller = bc.clean(caller)
-            end
-
-            ActiveSupport::Deprecation.warn(str, short_caller)
-          end
         end
       })
     end
