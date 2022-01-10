@@ -1,6 +1,6 @@
 # VirtualAttributes
 
-![Build Status](https://github.com/ManageIQ/activerecord-virtual_attributes/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/ManageIQ/activerecord-virtual_attributes/actions/workflows/ci.yaml/badge.svg)](https://github.com/ManageIQ/activerecord-virtual_attributes/actions/workflows/ci.yaml)
 [![Maintainability](https://api.codeclimate.com/v1/badges/e1a0c26941c00f4edb55/maintainability)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/e1a0c26941c00f4edb55/test_coverage)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/test_coverage)
 
