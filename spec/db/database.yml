@@ -21,3 +21,4 @@ mysql2:
   <<: *common
   adapter: mysql2
   username: root
+  host: 127.0.0.1

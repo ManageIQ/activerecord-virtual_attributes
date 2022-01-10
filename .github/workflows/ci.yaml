@@ -1,0 +1,79 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version:
+        - '2.7'
+        activerecord:
+        - "52"
+        - "60"
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: virtual_attributes
+        ports:
+        - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 5
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: virtual_attributes
+        ports:
+        - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -P 3306 --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+    env:
+      # for the pg cli (psql, pg_isready) and possibly rails
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: password
+      # for the mysql cli (mysql, mysqladmin)
+      MYSQL_HOST: 127.0.0.1
+      MYSQL_PWD: password
+      # for rails tests (from matrix)
+      BUNDLE_GEMFILE: gemfiles/gemfile_${{ matrix.activerecord }}.gemfile
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+      - name: Run SQLite tests
+        env:
+          DB: sqlite3
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        run: bundle exec rake
+      - name: Run Postgres tests
+        env:
+          DB: pg
+          COLLATE_SYMBOLS: false
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        run: bundle exec rake
+      - name: Run MySQL tests
+        env:
+          DB: mysql2
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        run: bundle exec rake
+      - if: ${{ github.ref == 'refs/heads/master' && matrix.ruby-version == '2.7' }}
+        name: Report code coverage
+        continue-on-error: true
+        uses: paambaati/codeclimate-action@v3.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
