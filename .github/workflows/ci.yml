@@ -1,0 +1,107 @@
+name: run-test-suite
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    services:
+      # https://github.com/docker-library/docs/blob/master/postgres/README.md
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: virtual_attributes
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mysql:
+          image: mysql:8.0
+          env:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: virtual_attributes
+          ports:
+            - "3306:3306"
+          options: >-
+            --health-cmd="mysqladmin ping"
+            --health-interval=10s
+            --health-timeout=5s
+            --health-retries=3
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - ruby: 2.7
+            activerecord: 52
+          - ruby: 2.7
+            activerecord: 60
+    env:
+      # for the pg cli (psql, pg_isready) and possibly rails
+      PGHOST: 127.0.0.1 # container is mapping it locally
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: password
+      # for the mysql cli (mysql, mysqladmin)
+      MYSQL_HOST: 127.0.0.1
+      MYSQL_PWD: password
+      # for rails tests (from matrix)
+      BUNDLE_GEMFILE: gemfiles/gemfile_${{ matrix.activerecord }}.gemfile
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
+      - name: setup Ruby
+        # https://github.com/ruby/setup-ruby#versioning
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      - name: fetch code climate
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          # ./cc-test-reporter before-build
+      - name: run sqlite tests
+        env:
+          DB: sqlite3
+        run: |
+          # for this database, run all the forms of our tests
+          bundle exec rake
+      - name: run pg tests
+        env:
+          DB: pg
+          COLLATE_SYMBOLS: false
+        run: |
+          COUNT=1
+          while ! pg_isready ; do
+            echo "waiting for postgres to start"
+            COUNT=$(($COUNT + 1))
+            [[ $COUNT -lt 20 ]] || break
+            sleep 1
+          done
+          # db container is currently creating the database
+          # psql -c 'create database virtual_attributes;' || echo 'db exists'
+          bundle exec rake
+      - name: run mysql tests
+        env:
+          DB: mysql2
+        run: |
+          COUNT=1
+          while ! mysqladmin ping -h $MYSQL_HOST -P3306 --silent ; do
+            echo "waiting for mysql to start"
+            COUNT=$(($COUNT + 1))
+            [[ $COUNT -lt 20 ]] || break
+            sleep 1
+          done
+          # db container is currently creating the database
+          # mysql --host $MYSQL_HOST --port 3306 -u $MYSQL_USER  -e 'CREATE SCHEMA IF NOT EXISTS 'virtual_attributes';'
+          bundle exec rake
+      # - name: report code climate
+      #   run: |
+      #     ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT

@@ -1,6 +1,6 @@
 # VirtualAttributes
 
-[![Build Status](https://travis-ci.org/ManageIQ/activerecord-virtual_attributes.svg?branch=master)](https://travis-ci.org/ManageIQ/activerecord-virtual_attributes)
+![Build Status](https://github.com/ManageIQ/activerecord-virtual_attributes/actions/workflows/ci.yml/badge.svg)
 [![Maintainability](https://api.codeclimate.com/v1/badges/e1a0c26941c00f4edb55/maintainability)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/e1a0c26941c00f4edb55/test_coverage)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/test_coverage)
 [![Security](https://hakiri.io/github/ManageIQ/activerecord-virtual_attributes/master.svg)](https://hakiri.io/github/ManageIQ/activerecord-virtual_attributes/master)
