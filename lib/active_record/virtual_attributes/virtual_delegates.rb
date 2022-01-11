@@ -260,6 +260,7 @@ module ActiveRecord
 
         yield arel if block_given?
 
+        # convert arel to sql to populate with bind variables
         Arel.sql("(#{arel.to_sql})")
       end
 

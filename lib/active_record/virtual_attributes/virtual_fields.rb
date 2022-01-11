@@ -363,7 +363,10 @@ module ActiveRecord
       # From ActiveRecord::QueryMethods (rails 5.2 - 6.0)
       def build_select(arel)
         if select_values.any?
+          # change: pass allow_alias=true
+          # build_select builds a SELECT, so we want aliases on the columns. (this is the only place we do)
           arel.project(*arel_columns(select_values.uniq, true))
+          # /change
         elsif klass.ignored_columns.any?
           arel.project(*klass.column_names.map { |field| arel_attribute(field) })
         else
@@ -372,15 +375,21 @@ module ActiveRecord
       end
 
       # from ActiveRecord::QueryMethods (rails 5.2 - 6.0)
+      # @param allow_alias include AS alias for the generated SQL
+      #        value is true for SELECT and false for all others (e.g.: GROUP BY or COUNT)
       def arel_columns(columns, allow_alias = false)
         columns.flat_map do |field|
           case field
           when Symbol
+            # change: pass allow_alias
             arel_column(field.to_s, allow_alias) do |attr_name|
+            # /change
               connection.quote_table_name(attr_name)
             end
           when String
+            # change: pass allow_alias
             arel_column(field, allow_alias, &:itself)
+            # /change
           when Proc
             field.call
           else
@@ -390,19 +399,24 @@ module ActiveRecord
       end
 
       # from ActiveRecord::QueryMethods (rails 5.2 - 6.0)
+      # @param allow_alias include AS alias for the generated SQL
+      #        value is true for SELECT and false for all others (e.g.: GROUP BY or COUNT)
       def arel_column(field, allow_alias = false, &block)
         field = klass.attribute_aliases[field] || field
         from = from_clause.name || from_clause.value
 
         if klass.columns_hash.key?(field) && (!from || table_name_matches?(from))
           arel_attribute(field)
+        # change: handle virtual attributes
         elsif virtual_attribute?(field)
           virtual_attribute_arel_column(field, allow_alias, &block)
+        # /change
         else
           yield field
         end
       end
 
+      # private: output the arel for a virtual attribute
       def virtual_attribute_arel_column(field, allow_alias)
         arel = arel_attribute(field)
         if arel.nil?
@@ -415,17 +429,23 @@ module ActiveRecord
       end
 
       # From ActiveRecord::QueryMethods
-      def table_name_matches?(from)
-        /(?:\A|(?<!FROM)\s)(?:\b#{table.name}\b|#{connection.quote_table_name(table.name)})(?!\.)/i.match?(from.to_s)
+      # Our implementation of arel_column calls this method.
+      # This method is not introduced until rails 6.0. It is further improved in 6.1
+      if ActiveRecord.version.to_s < "6.0"
+        def table_name_matches?(from)
+          /(?:\A|(?<!FROM)\s)(?:\b#{table.name}\b|#{connection.quote_table_name(table.name)})(?!\.)/i.match?(from.to_s)
+        end
       end
 
       # From ActiveRecord::QueryMethods
+      # introduces virtual includes support for left joins
       def build_left_outer_joins(manager, outer_joins, *rest)
         outer_joins = klass.replace_virtual_fields(outer_joins)
         super if outer_joins.present?
       end
 
       # From ActiveRecord::Calculations
+      # introduces virtual includes support for calculate (we mostly use COUNT(*))
       def calculate(operation, attribute_name)
         # allow calculate to work with includes and a virtual attribute
         real = without_virtual_includes
