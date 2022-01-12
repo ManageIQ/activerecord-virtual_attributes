@@ -151,4 +151,4 @@ module VirtualAttributes
   end
 end
 
-ActiveRecord::Base.send(:include, VirtualAttributes::VirtualTotal)
+ActiveRecord::Base.include VirtualAttributes::VirtualTotal

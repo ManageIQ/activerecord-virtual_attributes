@@ -200,6 +200,18 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   end
 
   context "preloads virtual_attribute with select.includes.references" do
+    # select().references().includes() for a single field never worked well together.
+    #
+    # brings back column (author_name) in subselect
+    # brings back (via joins and selects) author record
+    #
+    # issues:
+    #
+    # 1. It brings back authors table for no reason. The author_name subselect is plenty.
+    # 2. The main query SELECT does not have author_id which is needed to join to the authors table.
+    #
+    # rails 6.0 brings back all of books.*, authors.*, so the query works
+    # rails 6.1 brings back books.id, authors.*, (missing author_id) and blows up.
     it "preloads virtual_attribute (:uses => {:book => :author_name})" do
       expect(Book.select(:author_name).includes(:author_name).references(:author_name)).to preload_values(:author_name, author_name)
     end
@@ -294,26 +306,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
     it "uses preloaded fields" do
       expect(preloaded(Author.all.to_a, :books => :author_name)).to preload_values(:first_book_author_name, author_name)
-    end
-
-    if ActiveRecord.version.to_s >= "5.2"
-      # NOTE: ActiveSupport::Deprecation.debug = true will show the whole backtrace
-      it "deprecates invalid include" do
-        expect do
-          Author.preload(:invalid).load
-        end.to output(/DEPRECATION WARNING.*virtual_includes_spec/).to_stderr
-      end
-
-      it "deprecates invalid nested includes" do
-        expect do
-          Author.preload(:books => :invalid).load
-        end.to output(/DEPRECATION WARNING.*virtual_includes_spec/).to_stderr
-      end
-    else
-      it "ignores invalid includes" do
-        expect { Author.includes(:invalid).load }.not_to raise_error
-        expect { Author.includes(:books => :invalid).load }.not_to raise_error
-      end
     end
   end
 
@@ -467,9 +459,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   end
 
   context "supports left_joins with virtual attributes" do
-    it "doesn't freak when virtual attribute in " do
-      # sorry, :author_name will not be available
-      # in that case, just .where.not(:author_name => nil) - no need for left_joins
+    it "supports virtual includes in left joins" do
       expect { Book.left_joins(:author_name).where.not(:authors => {:name => nil}).load }.not_to raise_error
     end
   end
