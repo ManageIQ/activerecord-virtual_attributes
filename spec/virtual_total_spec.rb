@@ -109,6 +109,19 @@ RSpec.describe VirtualAttributes::VirtualTotal do
       end
     end
 
+    context "virtual sum of a virtual sum" do
+      it "calculates sum of a sum" do
+        author2 = Author.create
+        author2.create_books(2, :published => true, :rating => 5) # 2*5
+        author0 = Author.create
+        author0.create_books(3, :published => true, :rating => 2) # 3*2
+        author1 = Author.create_with_books(1)
+        author1.create_books(1, :published => true, :rating => 0) # 0
+
+        expect(Author.sum(:sum_recently_published_books_rating)).to eq(16)
+      end
+    end
+
     context "with a has_many that includes a scope" do
       it "sorts by total" do
         author2 = Author.create_with_books(2)
