@@ -151,7 +151,7 @@ module ActiveRecord
           # There is currently no way to propagate sql over a virtual association
           if reflect_on_association(to_ref.name) && (to_ref.macro == :has_one || to_ref.macro == :belongs_to)
             lambda do |t|
-              src_model_id = arel_attribute(to_ref.join_foreign_key, t)
+              src_model_id = arel_table[to_ref.join_foreign_key, t]
               blk = ->(arel) { arel.limit = 1 } if to_ref.macro == :has_one
               VirtualDelegates.select_from_alias(to_ref, col, to_ref.join_primary_key, src_model_id, &blk)
             end
@@ -243,19 +243,19 @@ module ActiveRecord
                   to_ref.klass.all
                 end
 
-        src_model   = to_ref.active_record
-        to_table    = select_from_alias_table(to_ref.klass, src_model_id.relation)
-        to_model_id = to_ref.klass.arel_attribute(to_model_col_name, to_table)
-        to_column   = to_ref.klass.arel_attribute(col, to_table)
-        arel        = query.except(:select).select(to_column).arel
-                           .from(to_table)
-                           .where(to_model_id.eq(src_model_id))
+        src_model = to_ref.active_record
+        to_table  = select_from_alias_table(to_ref.klass, src_model_id.relation)
+        to_model_id = to_ref.klass.arel_table[to_model_col_name, to_table]
+        to_column   = to_ref.klass.arel_table[col, to_table]
+        arel = query.except(:select).select(to_column).arel
+                    .from(to_table)
+                    .where(to_model_id.eq(src_model_id))
 
         # :type is in the reflection definition (meaning it is polymorphic)
         if to_ref.type
           # get the class name (e.g. "Host")
           polymorphic_type = src_model.base_class.name
-          arel = arel.where(to_ref.klass.arel_attribute(to_ref.type).eq(polymorphic_type))
+          arel = arel.where(to_ref.klass.arel_table[to_ref.type].eq(polymorphic_type))
         end
 
         yield arel if block_given?

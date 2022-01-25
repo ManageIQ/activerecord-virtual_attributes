@@ -17,7 +17,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
     end
 
     it "supports virtual_totals arel syntax" do
-      Author.where(Author.arel_attribute(:total_books).gt(5)).first
+      Author.where(Author.arel_table[:total_books].gt(5)).first
     end
   end
 

@@ -16,6 +16,60 @@ module ActiveRecord
     end
 
     module VirtualArel
+      # This arel table proxy is our shim to get our functionality into rails
+      class ArelTableProxy < Arel::Table
+        attr_accessor :klass
+
+        if ActiveRecord.version.to_s < "6.1"
+          # overrides Arel::Table#[]
+          # This deviates by supporting 2 attributes instead of just 1.
+          # We are calling directly into here and so we added a little bit of
+          #   the 4.x-6.0 arel_attribute code to support
+          #   aliases and a second table argument.
+          #
+          # @returns Arel::Attributes::Attribute|Arel::Nodes::Grouping|Nil
+          # for regular database columns:
+          #     returns an Arel::Attribute (just like Arel::Table#[])
+          # for virtual attributes:
+          #     returns the arel for the value
+          # for non sql friendly virtual attributes:
+          #     returns nil
+          def [](name, table = self)
+            if (col_alias = @klass.attribute_alias(name))
+              name = col_alias
+            end
+            if @klass.virtual_attribute?(name)
+              @klass.arel_for_virtual_attribute(name, table)
+            elsif table == self
+              super(name)
+            else # mimic core's arel_attribute() code when 2 attributes
+              table[name, table]
+            end
+          end
+        else
+          # overrides Arel::Table#[]
+          # adds aliases and virtual attribute arel (aka sql)
+          #
+          # @returns Arel::Attributes::Attribute|Arel::Nodes::Grouping|Nil
+          # for regular database columns:
+          #     returns an Arel::Attribute (just like Arel::Table#[])
+          # for virtual attributes:
+          #     returns the arel for the value
+          # for non sql friendly virtual attributes:
+          #     returns nil
+          def [](name, table = self)
+            if (col_alias = @klass.attribute_alias(name))
+              name = col_alias
+            end
+            if @klass.virtual_attribute?(name)
+              @klass.arel_for_virtual_attribute(name, table)
+            else
+              super
+            end
+          end
+        end
+      end
+
       extend ActiveSupport::Concern
 
       included do
@@ -24,13 +78,15 @@ module ActiveRecord
       end
 
       module ClassMethods
-        # Overriding rails method
-        def arel_attribute(column_name, arel_table = self.arel_table)
-          load_schema
-          if virtual_attribute?(column_name) && !attribute_alias?(column_name)
-            arel_for_virtual_attribute(column_name, arel_table)
-          else
-            super
+        if ActiveRecord.version.to_s < "6.1"
+          # ActiveRecord::Core 6.0 (every version of active record seems to do this differently)
+          def arel_table
+            @arel_table ||= ArelTableProxy.new(table_name, :type_caster => type_caster).tap { |t| t.klass = self }
+          end
+        else
+          # ActiveRecord::Core 6.1
+          def arel_table
+            @arel_table ||= ArelTableProxy.new(table_name, :klass => self)
           end
         end
 
@@ -50,7 +106,7 @@ module ActiveRecord
         #   for virtual attributes:
         #       returns the arel for the column
         #   for non sql friendly virtual attributes:
-        #       returns nil        
+        #       returns nil
         def arel_for_virtual_attribute(column_name, table) # :nodoc:
           arel_lambda = _virtual_arel[column_name.to_s]
           return unless arel_lambda
