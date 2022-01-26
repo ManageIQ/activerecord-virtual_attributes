@@ -124,7 +124,6 @@ require "active_record/virtual_attributes/virtual_fields"
 #
 
 require "active_record/virtual_attributes/virtual_total"
-require "active_record/virtual_attributes/arel_groups"
 
 # legacy support for sql types
 module VirtualAttributes
