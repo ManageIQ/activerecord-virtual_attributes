@@ -56,7 +56,8 @@ module ActiveRecord
           return unless arel_lambda
 
           arel = arel_lambda.call(table)
-          arel.name = column_name if arel.kind_of?(Arel::Nodes::Grouping)
+          arel = Arel::Nodes::Grouping.new(arel) unless arel.kind_of?(Arel::Nodes::Grouping)
+          arel.name = column_name
           arel
         end
 
