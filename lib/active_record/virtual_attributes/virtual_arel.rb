@@ -9,6 +9,8 @@ module ActiveRecord
     #
     # Model.select(Model.arel_table.grouping(Model.arel_table[:field2]).as(:field))
     # Model.attribute_supported_by_sql?(:field) # => true
+
+    # in essence, this is our Arel::Nodes::VirtualAttribute
     class Arel::Nodes::Grouping
       attr_accessor :name
     end
@@ -22,20 +24,17 @@ module ActiveRecord
       end
 
       module ClassMethods
+        # Overriding rails method
         def arel_attribute(column_name, arel_table = self.arel_table)
           load_schema
           if virtual_attribute?(column_name) && !attribute_alias?(column_name)
-            if (col = _virtual_arel[column_name.to_s])
-              arel = col.call(arel_table)
-              arel.name = column_name if arel.kind_of?(Arel::Nodes::Grouping)
-              arel
-            end
+            arel_for_virtual_attribute(column_name, arel_table)
           else
             super
           end
         end
 
-        # supported by sql if
+        # supported by sql if any are true:
         # - it is an attribute alias
         # - it is an attribute that is non virtual
         # - it is an attribute that is virtual and has arel defined
@@ -45,9 +44,26 @@ module ActiveRecord
             (has_attribute?(name) && (!virtual_attribute?(name) || !!_virtual_arel[name.to_s]))
         end
 
+        # private api
+        #
+        # @return [Nil|Arel::Nodes::Grouping]
+        #   for virtual attributes:
+        #       returns the arel for the column
+        #   for non sql friendly virtual attributes:
+        #       returns nil        
+        def arel_for_virtual_attribute(column_name, table) # :nodoc:
+          arel_lambda = _virtual_arel[column_name.to_s]
+          return unless arel_lambda
+
+          arel = arel_lambda.call(table)
+          arel = Arel::Nodes::Grouping.new(arel) unless arel.kind_of?(Arel::Nodes::Grouping)
+          arel.name = column_name
+          arel
+        end
+
         private
 
-        def define_virtual_arel(name, arel)
+        def define_virtual_arel(name, arel) # :nodoc:
           self._virtual_arel = _virtual_arel.merge(name => arel)
         end
       end

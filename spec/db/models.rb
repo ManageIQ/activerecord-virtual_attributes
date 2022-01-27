@@ -55,9 +55,17 @@ class Author < VirtualTotalTestBase
     nickname || name
   end
 
+  alias name_no_group nick_or_name
+
   # a (local) virtual_attribute without a uses, but with arel
   virtual_attribute :nick_or_name, :string, :arel => (lambda do |t|
     t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [t[:nickname], t[:name]]))
+  end)
+
+  # We did not support arel returning something other than Grouping.
+  # this is here to test what happens when we do
+  virtual_attribute :name_no_group, :string, :arel => (lambda do |t|
+    Arel::Nodes::NamedFunction.new('COALESCE', [t[:nickname], t[:name]])
   end)
 
   def first_book_name

@@ -803,6 +803,11 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     it "supports virtual attributes" do
       Author.select(:id, :nick_or_name).first
     end
+
+    it "supports virtual attributes with non grouping return" do
+      author = Author.select(:id, :name_no_group).first
+      expect(author.has_attribute?(:name_no_group)).to be(true)
+    end
   end
 
   describe ".where" do
