@@ -20,52 +20,24 @@ module ActiveRecord
       class ArelTableProxy < Arel::Table
         attr_accessor :klass
 
-        if ActiveRecord.version.to_s < "6.1"
-          # overrides Arel::Table#[]
-          # This deviates by supporting 2 attributes instead of just 1.
-          # We are calling directly into here and so we added a little bit of
-          #   the 4.x-6.0 arel_attribute code to support
-          #   aliases and a second table argument.
-          #
-          # @returns Arel::Attributes::Attribute|Arel::Nodes::Grouping|Nil
-          # for regular database columns:
-          #     returns an Arel::Attribute (just like Arel::Table#[])
-          # for virtual attributes:
-          #     returns the arel for the value
-          # for non sql friendly virtual attributes:
-          #     returns nil
-          def [](name, table = self)
-            if (col_alias = @klass.attribute_alias(name))
-              name = col_alias
-            end
-            if @klass.virtual_attribute?(name)
-              @klass.arel_for_virtual_attribute(name, table)
-            elsif table == self
-              super(name)
-            else # mimic core's arel_attribute() code when 2 attributes
-              table[name, table]
-            end
+        # overrides Arel::Table#[]
+        # adds aliases and virtual attribute arel (aka sql)
+        #
+        # @returns Arel::Attributes::Attribute|Arel::Nodes::Grouping|Nil
+        # for regular database columns:
+        #     returns an Arel::Attribute (just like Arel::Table#[])
+        # for virtual attributes:
+        #     returns the arel for the value
+        # for non sql friendly virtual attributes:
+        #     returns nil
+        def [](name, table = self)
+          if (col_alias = @klass.attribute_alias(name))
+            name = col_alias
           end
-        else
-          # overrides Arel::Table#[]
-          # adds aliases and virtual attribute arel (aka sql)
-          #
-          # @returns Arel::Attributes::Attribute|Arel::Nodes::Grouping|Nil
-          # for regular database columns:
-          #     returns an Arel::Attribute (just like Arel::Table#[])
-          # for virtual attributes:
-          #     returns the arel for the value
-          # for non sql friendly virtual attributes:
-          #     returns nil
-          def [](name, table = self)
-            if (col_alias = @klass.attribute_alias(name))
-              name = col_alias
-            end
-            if @klass.virtual_attribute?(name)
-              @klass.arel_for_virtual_attribute(name, table)
-            else
-              super
-            end
+          if @klass.virtual_attribute?(name)
+            @klass.arel_for_virtual_attribute(name, table)
+          else
+            super
           end
         end
       end
