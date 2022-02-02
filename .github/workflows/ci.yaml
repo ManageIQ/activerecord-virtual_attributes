@@ -12,6 +12,7 @@ jobs:
         activerecord:
         - "52"
         - "60"
+        - "61"
     services:
       postgres:
         image: postgres:13

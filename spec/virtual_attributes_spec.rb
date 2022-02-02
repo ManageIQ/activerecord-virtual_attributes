@@ -469,7 +469,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
       it "supports virtual columns with arel" do
         class TestClass
-          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(t.class.arel_attribute(:col1)) }
+          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(t.class.arel_table[:col1]) }
           def col2
             col1
           end
@@ -517,7 +517,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
       it "supports virtual columns with arel" do
         class TestClass
-          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(t.class.arel_attribute(:col1)) }
+          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(t.class.arel_table[:col1]) }
           def col2
             col1
           end
@@ -532,31 +532,33 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       end
     end
 
-    describe ".arel_attribute" do
-      it "supports aliases" do
-        TestClass.alias_attribute :col2, :col1
+    if ActiveRecord.version.to_s < "6.1"
+      describe ".arel_attribute[]" do
+        it "supports aliases" do
+          TestClass.alias_attribute :col2, :col1
 
-        arel_attr = TestClass.arel_attribute(:col2)
-        expect(arel_attr).to_not be_nil
-        expect(arel_attr.name).to eq("col1") # typically this is a symbol. not perfect but it works
-      end
+          arel_attr = TestClass.arel_attribute(:col2)
+          expect(arel_attr).to_not be_nil
+          expect(arel_attr.name).to eq("col1") # typically this is a symbol. not perfect but it works
+        end
 
-      # NOTE: should not need to add a virtual attribute to an alias
-      # TODO: change code for reports and automate to expose aliases like it does with attributes/virtual attributes.
-      it "supports aliases marked as a virtual_attribute" do
-        TestClass.alias_attribute :col2, :col1
-        TestClass.virtual_attribute :col2, :integer
+        # NOTE: should not need to add a virtual attribute to an alias
+        # TODO: change code for reports and automate to expose aliases like it does with attributes/virtual attributes.
+        it "supports aliases marked as a virtual_attribute" do
+          TestClass.alias_attribute :col2, :col1
+          TestClass.virtual_attribute :col2, :integer
 
-        arel_attr = TestClass.arel_attribute(:col2)
-        expect(arel_attr).to_not be_nil
-        expect(arel_attr.name).to eq("col1") # typically this is a symbol. not perfect but it works
+          arel_attr = TestClass.arel_attribute(:col2)
+          expect(arel_attr).to_not be_nil
+          expect(arel_attr.name).to eq("col1") # typically this is a symbol. not perfect but it works
+        end
       end
     end
 
     describe "#select" do
       it "supports virtual attributes" do
         class TestClass
-          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(arel_attribute(:col1)) }
+          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(arel_table[:col1]) }
           def col2
             if has_attribute?("col2")
               col2
@@ -659,7 +661,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     describe "#sum" do
       it "supports virtual attributes" do
         class TestClass
-          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(arel_attribute(:col1)) }
+          virtual_attribute :col2, :integer, :arel => ->(t) { t.grouping(arel_table[:col1]) }
           def col2
             col1
           end
@@ -779,7 +781,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
       obj = TestClass.create(:str => "ABC")
 
-      tc = TestClass.select(TestClass.arel_attribute(:lc).as("downcased")).find_by(:id => obj.id)
+      tc = TestClass.select(TestClass.arel_table[:lc].as("downcased")).find_by(:id => obj.id)
       expect(tc[:downcased]).to eq("abc")
     end
 
@@ -812,11 +814,11 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
   describe ".where" do
     it "supports virtual attributes hash syntax" do
-      Author.where(:nick_or_name => "abc").first # fails
+      Author.where(:nick_or_name => "abc").first
     end
 
     it "supports virtual attributes arel syntax" do
-      Author.where(Author.arel_attribute(:total_books).gt(5)).first
+      Author.where(Author.arel_table[:total_books].gt(5)).first
     end
   end
 
@@ -843,15 +845,15 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
 
     it "orders by virtual attributes arel" do
-      expect(Author.order(Author.arel_attribute(:nick_or_name))).to eq(authors)
+      expect(Author.order(Author.arel_table[:nick_or_name])).to eq(authors)
     end
 
     it "orders by virtual attributes inline arel" do
-      expect(Author.order(Author.arel_attribute(:nick_or_name).desc)).to eq(authors.reverse)
+      expect(Author.order(Author.arel_table[:nick_or_name].desc)).to eq(authors.reverse)
     end
 
     it "orders by virtual attributes inline arel" do
-      desc_node = Arel::Nodes::Descending.new(Author.arel_attribute(:nick_or_name))
+      desc_node = Arel::Nodes::Descending.new(Author.arel_table[:nick_or_name])
       expect(Author.order(desc_node)).to eq(authors.reverse)
     end
   end

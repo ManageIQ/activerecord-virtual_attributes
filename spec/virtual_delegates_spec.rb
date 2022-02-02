@@ -22,7 +22,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
   it "delegates to parent (sql)" do
     TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
     TestClass.create(:ref1 => parent)
-    tcs = TestClass.all.select(:id, :col1, TestClass.arel_attribute(:parent_col1).as("x"))
+    tcs = TestClass.all.select(:id, :col1, TestClass.arel_table[:parent_col1].as("x"))
     expect(tcs.map(&:x)).to match_array([nil, 4])
   end
 
@@ -177,7 +177,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       TestOtherClass.virtual_delegate :col1, :to => :oref1
       TestOtherClass.create(:oref1 => TestClass.create)
       TestOtherClass.create(:oref1 => TestClass.create(:col1 => 99))
-      tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x"))
+      tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_table[:col1].as("x"))
       expect(tcs.map(&:x)).to match_array([nil, 99])
 
       expect { tcs = TestOtherClass.all.select(:id, :ocol1, :col1).load }.to make_database_queries(:count => 1)
@@ -188,7 +188,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     # just want to make sure it changed due to intentional changes
     it "delegates to another table without alias" do
       TestOtherClass.virtual_delegate :col1, :to => :oref1
-      sql = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x")).to_sql
+      sql = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_table[:col1].as("x")).to_sql
       expect(sql).to match(/["`]test_classes["`].["`]col1["`]/i)
     end
 
@@ -196,7 +196,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       TestOtherClass.virtual_delegate :col1, :to => :oref1, :type => :integer
       TestOtherClass.create(:oref1 => TestClass.create)
       TestOtherClass.create(:oref1 => TestClass.create(:col1 => 99))
-      tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_attribute(:col1).as("x"))
+      tcs = TestOtherClass.all.select(:id, :ocol1, TestOtherClass.arel_table[:col1].as("x"))
       expect(tcs.map(&:x)).to match_array([nil, 99])
     end
 

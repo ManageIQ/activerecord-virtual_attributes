@@ -17,7 +17,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
     end
 
     it "supports virtual_totals arel syntax" do
-      Author.where(Author.arel_attribute(:total_books).gt(5)).first
+      Author.where(Author.arel_table[:total_books].gt(5)).first
     end
   end
 
@@ -106,6 +106,19 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         expect do
           expect(query.map(&:total_books)).to match_array([0])
         end.to_not make_database_queries
+      end
+    end
+
+    context "virtual sum of a virtual sum" do
+      it "calculates sum of a sum" do
+        author2 = Author.create
+        author2.create_books(2, :published => true, :rating => 5) # 2*5
+        author0 = Author.create
+        author0.create_books(3, :published => true, :rating => 2) # 3*2
+        author1 = Author.create_with_books(1)
+        author1.create_books(1, :published => true, :rating => 0) # 0
+
+        expect(Author.sum(:sum_recently_published_books_rating)).to eq(16)
       end
     end
 

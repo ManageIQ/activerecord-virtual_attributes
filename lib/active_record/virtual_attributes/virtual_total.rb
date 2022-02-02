@@ -119,7 +119,7 @@ module VirtualAttributes
         # need db access for the reflection join_keys, so delaying all this key lookup until call time
         lambda do |t|
           # strings and symbols are converted across, arel objects are not
-          column = reflection.klass.arel_attribute(column) unless column.respond_to?(:count)
+          column = reflection.klass.arel_table[column] unless column.respond_to?(:count)
 
           # query: SELECT COUNT(*) FROM main_table JOIN foreign_table ON main_table.id = foreign_table.id JOIN ...
           relation_query   = joins(reflection.name).select(column.send(method_name))
