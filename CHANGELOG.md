@@ -2,14 +2,13 @@
 
 Versioning of this gem follows ActiveRecord versioning, and does not follow SemVer.
 
-e.g.: virtual attributes 6.0.x supports all versions of rails 6.0.
-      virtual attributes 6.1.x supports all versions of rails 6.1.
+e.g.: virtual attributes 6.1.x supports all versions of rails 6.1.
 
 Use the latest version of both this gem and rails where the first 2 digits match.
 
 ## [Unreleased]
 
-## [6.0.0] - 2022-02-02
+## [6.1.0] - 2022-02-03
 
 * **BREAKING** Dropped support for Rails 5.0, 5.1, 5.2
 * **BREAKING** This gem will now no longer follow Symantic Versioning,
@@ -87,8 +86,8 @@ Use the latest version of both this gem and rails where the first 2 digits match
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.0.0...HEAD
-[6.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v3.0.0...v6.0.0
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.0...HEAD
+[6.1.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v3.0.0...v6.0.0
 [3.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.6.0...v2.0.0
 [1.6.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.5.0...v1.6.0
