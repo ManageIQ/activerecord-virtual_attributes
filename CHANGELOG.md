@@ -10,8 +10,8 @@ Use the latest version of both this gem and rails where the first 2 digits match
 
 ## [6.1.0] - 2022-02-03
 
-* **BREAKING** Dropped support for Rails 5.0, 5.1, 5.2
-* **BREAKING** This gem will now no longer follow Symantic Versioning,
+* **BREAKING** Dropped support for Rails 5.0, 5.1, 5.2, 6.0
+* **BREAKING** This gem will now no longer follow Semantic Versioning,
   but instead follow Rails' versioning numbers in order to simplify version
   matches between them both.
 * Added Rails 6.1 support
@@ -87,7 +87,7 @@ Use the latest version of both this gem and rails where the first 2 digits match
 * Extracted from ManageIQ/manageiq
 
 [Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.0...HEAD
-[6.1.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v3.0.0...v6.0.0
+[6.1.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v3.0.0...v6.1.0
 [3.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.6.0...v2.0.0
 [1.6.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.5.0...v1.6.0
