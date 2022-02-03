@@ -532,29 +532,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       end
     end
 
-    if ActiveRecord.version.to_s < "6.1"
-      describe ".arel_attribute[]" do
-        it "supports aliases" do
-          TestClass.alias_attribute :col2, :col1
-
-          arel_attr = TestClass.arel_attribute(:col2)
-          expect(arel_attr).to_not be_nil
-          expect(arel_attr.name).to eq("col1") # typically this is a symbol. not perfect but it works
-        end
-
-        # NOTE: should not need to add a virtual attribute to an alias
-        # TODO: change code for reports and automate to expose aliases like it does with attributes/virtual attributes.
-        it "supports aliases marked as a virtual_attribute" do
-          TestClass.alias_attribute :col2, :col1
-          TestClass.virtual_attribute :col2, :integer
-
-          arel_attr = TestClass.arel_attribute(:col2)
-          expect(arel_attr).to_not be_nil
-          expect(arel_attr.name).to eq("col1") # typically this is a symbol. not perfect but it works
-        end
-      end
-    end
-
     describe "#select" do
       it "supports virtual attributes" do
         class TestClass

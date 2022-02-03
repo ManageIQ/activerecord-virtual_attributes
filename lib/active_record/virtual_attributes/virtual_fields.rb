@@ -171,97 +171,6 @@ module ActiveRecord
         # rubocop:enable Style/BlockDelimiters, Lint/AmbiguousBlockAssociation, Style/MethodCallWithArgsParentheses
       })
     end
-
-    if ActiveRecord.version.to_s < "6.1"
-      # FIXME: Hopefully we can get this into Rails core so this is no longer
-      # required in our codebase, but the rule that are broken here are mostly
-      # due to the style of the Rails codebase conflicting with our own.
-      # Ignoring them to avoid noise in RuboCop, but allow us to keep the same
-      # syntax from the original codebase.
-      #
-      # rubocop:disable Style/BlockDelimiters, Layout/SpaceAfterComma, Style/HashSyntax
-      # rubocop:disable Layout/HashAlignment
-      class JoinDependency
-        def instantiate(result_set, *_, &block)
-          primary_key = aliases.column_alias(join_root, join_root.primary_key)
-
-          seen = Hash.new { |i, object_id|
-            i[object_id] = Hash.new { |j, child_class|
-              j[child_class] = {}
-            }
-          }
-
-          model_cache = Hash.new { |h,klass| h[klass] = {} }
-          parents = model_cache[join_root]
-          column_aliases = aliases.column_aliases(join_root)
-
-          # New Code
-          column_aliases += select_values_from_references(column_aliases, result_set) if result_set.present?
-          # End of New Code
-
-          message_bus = ActiveSupport::Notifications.instrumenter
-
-          payload = {
-            record_count: result_set.length,
-            class_name: join_root.base_klass.name
-          }
-
-          message_bus.instrument('instantiation.active_record', payload) do
-            result_set.each { |row_hash|
-              parent_key = primary_key ? row_hash[primary_key] : row_hash
-              parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, &block)
-              construct(parent, join_root, row_hash, seen, model_cache)
-            }
-          end
-
-          parents.values
-        end
-        # rubocop:enable Style/BlockDelimiters, Layout/SpaceAfterComma, Style/HashSyntax
-        # rubocop:enable Layout/HashAlignment
-
-        #
-        # This monkey patches the ActiveRecord::Associations::JoinDependency to
-        # include columns into the main record that might have been added
-        # through a `select` clause.
-        #
-        # This can be seen with the following:
-        #
-        #   Vm.select(Vm.arel_table[Arel.star]).select(:some_vm_virtual_col)
-        #     .includes(:tags => {}).references(:tags)
-        #
-        # Which will produce a SQL SELECT statement kind of like this:
-        #
-        #   SELECT "vms".*,
-        #          (<virtual_attribute_arel>) AS some_vm_virtual_col,
-        #          "vms"."id"      AS t0_r0
-        #          "vms"."vendor"  AS t0_r1
-        #          "vms"."format"  AS t0_r1
-        #          "vms"."version" AS t0_r1
-        #          ...
-        #          "tags"."id"     AS t1_r0
-        #          "tags"."name"   AS t1_r1
-        #
-        # This is because rails is trying to reduce the number of queries
-        # needed to fetch all of the records in the include, so it grabs the
-        # columns for both of the tables together to do it.  Unfortunately (or
-        # fortunately... depending on how you look at it), it does not remove
-        # any `.select` columns from the query that is run in the process, so
-        # that is brought along for the ride, but never used when this method
-        # instanciates the objects.
-        #
-        # The "New Code" here simply also instanciates any extra rows that
-        # might have been included in the select (virtual_columns) as well and
-        # brought back with the result set.
-        def select_values_from_references(column_aliases, result_set)
-          join_dep_keys         = aliases.columns.map(&:right)
-          join_root_aliases     = column_aliases.map(&:first)
-          additional_attributes = result_set.first.keys
-                                            .reject { |k| join_dep_keys.include?(k) }
-                                            .reject { |k| join_root_aliases.include?(k) }
-          additional_attributes.map { |k| Aliases::Column.new(k, k) }
-        end
-      end
-    end
   end
 
   class Relation
@@ -303,6 +212,7 @@ module ActiveRecord
       end
 
       # from ActiveRecord::QueryMethods (rails 5.2 - 6.0)
+      # TODO: remove from rails 7.0
       def arel_column(field, &block)
         if virtual_attribute?(field) && (arel = table[field])
           arel
@@ -311,18 +221,9 @@ module ActiveRecord
         end
       end
 
-      # From ActiveRecord::QueryMethods
-      # introduces virtual includes support for left joins
-      if ActiveRecord.version.to_s < "6.1"
-        def build_left_outer_joins(manager, outer_joins, *rest)
-          outer_joins = klass.replace_virtual_fields(outer_joins)
-          super if outer_joins.present?
-        end
-      else
-        def construct_join_dependency(associations, join_type) # :nodoc:
-          associations = klass.replace_virtual_fields(associations)
-          super
-        end
+      def construct_join_dependency(associations, join_type) # :nodoc:
+        associations = klass.replace_virtual_fields(associations)
+        super
       end
 
       # From ActiveRecord::Calculations
