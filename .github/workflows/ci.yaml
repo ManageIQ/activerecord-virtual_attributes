@@ -10,7 +10,6 @@ jobs:
         ruby-version:
         - '2.7'
         activerecord:
-        - "52"
         - "60"
         - "61"
     services:
