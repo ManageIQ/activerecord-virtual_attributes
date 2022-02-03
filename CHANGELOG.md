@@ -1,10 +1,6 @@
 # Change Log
 
-Versioning of this gem follows ActiveRecord versioning, and does not follow SemVer.
-
-e.g.: virtual attributes 6.1.x supports all versions of rails 6.1.
-
-Use the latest version of both this gem and rails where the first 2 digits match.
+The versioning of this gem follows ActiveRecord versioning, and does not follow SemVer.  See the [README](./README.md) for more details.
 
 ## [Unreleased]
 

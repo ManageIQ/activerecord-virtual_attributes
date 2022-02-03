@@ -12,6 +12,12 @@ This gem allows you to represent these attributes in sql so `ORDER BY` `WHERE` c
 
 This also allows you to calculate counts and treat those as a field accessible with `select(:child_count)` to get rid of the N+1 problem of running a `count(*)` on a subcollection for each row.
 
+## Versioning
+
+As of v6.1.0, the versioning of this gem follows ActiveRecord versioning, and does not follow SemVer (e.g. virtual attributes v6.1.x supports all versions of Rails 6.1). Version v3.0.0 supports Rails 6.0 and lower.
+
+Use the latest version of both this gem and Rails where the first 2 digits match.
+
 ## Installation
 
 Add this line to your application's Gemfile:
