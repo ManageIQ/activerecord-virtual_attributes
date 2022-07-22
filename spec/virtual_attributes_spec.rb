@@ -779,23 +779,49 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
   end
 
   describe ".select" do
+    before do
+      Author.delete_all
+    end
     it "supports virtual attributes" do
-      Author.select(:id, :nick_or_name).first
+      Author.create(:name => "abc")
+      expect(Author.select(:id, :nick_or_name).first.nick_or_name).to eq("abc")
     end
 
     it "supports virtual attributes with non grouping return" do
+      Author.create(:name => "abc")
       author = Author.select(:id, :name_no_group).first
       expect(author.has_attribute?(:name_no_group)).to be(true)
     end
   end
 
   describe ".where" do
-    it "supports virtual attributes hash syntax" do
-      Author.where(:nick_or_name => "abc").first
+    before do
+      Author.delete_all
+    end
+
+    it "supports virtual attributes hash syntax a" do
+      author = Author.create(:name => "name")
+      Author.create(:name => "other")
+
+      expect(Author.where(:nick_or_name => "name").first).to eq(author)
+      expect(Author.where(:nick_or_name => "name").count).to eq(1)
+    end
+
+    it "supports virtual attributes hash syntax b" do
+      author = Author.create(:nickname => "nick")
+      Author.create(:nickname => "other")
+
+      expect(Author.where(:nick_or_name => "nick").first).to eq(author)
+      expect(Author.where(:nick_or_name => "nick").count).to eq(1)
     end
 
     it "supports virtual attributes arel syntax" do
-      Author.where(Author.arel_table[:total_books].gt(5)).first
+      author = Author.create_with_books(6)
+      Author.create_with_books(2)
+
+      rslt = Author.where(Author.arel_table[:total_books].gt(5)).first
+      expect(rslt).to eq(author)
+      expect(Author.where(Author.arel_table[:total_books].gt(5)).count).to eq(1)
     end
   end
 
