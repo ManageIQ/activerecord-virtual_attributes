@@ -18,6 +18,21 @@ module ActiveRecord
       def type_caster
         relation.type_for_attribute(name)
       end
+
+      # Create a node for lowering this attribute
+      def lower
+        relation.lower(self)
+      end
+
+      def type_cast_for_database(value)
+        relation.type_cast_for_database(name, value)
+      end
+
+      # rubocop:disable Rails/Delegate
+      def able_to_type_cast?
+        relation.able_to_type_cast?
+      end
+      # rubocop:enable Rails/Delegate
     end
 
     module VirtualArel
