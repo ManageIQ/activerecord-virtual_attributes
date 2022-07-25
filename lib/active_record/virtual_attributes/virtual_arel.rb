@@ -12,7 +12,12 @@ module ActiveRecord
 
     # in essence, this is our Arel::Nodes::VirtualAttribute
     class Arel::Nodes::Grouping
-      attr_accessor :name
+      attr_accessor :name, :relation
+
+      # methods from Arel::Nodes::Attribute
+      def type_caster
+        relation.type_for_attribute(name)
+      end
     end
 
     module VirtualArel
@@ -86,6 +91,7 @@ module ActiveRecord
           arel = arel_lambda.call(table)
           arel = Arel::Nodes::Grouping.new(arel) unless arel.kind_of?(Arel::Nodes::Grouping)
           arel.name = column_name
+          arel.relation = table
           arel
         end
 

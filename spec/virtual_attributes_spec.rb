@@ -815,6 +815,12 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       expect(Author.where(:nick_or_name => "nick").count).to eq(1)
     end
 
+    it "supports virtual attributes hash in syntax" do
+      author = Author.create(:name => "abc")
+      rslt = Author.where(:nick_or_name => %w[abc def]).first
+      expect(rslt).to eq(author)
+    end
+
     it "supports virtual attributes arel syntax" do
       author = Author.create_with_books(6)
       Author.create_with_books(2)
