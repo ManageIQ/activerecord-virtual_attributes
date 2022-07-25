@@ -98,3 +98,43 @@ module ActiveRecord
     end
   end
 end
+
+module Arel # :nodoc: all
+  # rubocop:disable Naming/MethodName
+  # rubocop:disable Naming/MethodParameterName
+  # rubocop:disable Style/ConditionalAssignment
+  module Visitors
+    # rails 6.1...
+    class ToSql
+      private
+
+      def visit_Arel_Nodes_HomogeneousIn(o, collector)
+        collector.preparable = false
+
+        # change:
+        # See https://github.com/rails/rails/pull/45642
+        visit(o.left, collector)
+        # /change
+
+        if o.type == :in
+          collector << " IN ("
+        else
+          collector << " NOT IN ("
+        end
+
+        values = o.casted_values
+
+        if values.empty?
+          collector << @connection.quote(nil)
+        else
+          collector.add_binds(values, o.proc_for_binds, &bind_block)
+        end
+
+        collector << ")"
+      end
+    end
+  end
+  # rubocop:enable Naming/MethodName
+  # rubocop:enable Naming/MethodParameterName
+  # rubocop:enable Style/ConditionalAssignment
+end
