@@ -52,10 +52,13 @@ class Author < VirtualTotalTestBase
   alias v_total_named_books total_named_books
 
   def nick_or_name
-    nickname || name
+    has_attribute?("nick_or_name") ? self["nick_or_name"] : nickname || name
   end
 
-  alias name_no_group nick_or_name
+  # sorry. no creativity on this one (just copied nick_or_name)
+  def name_no_group
+    has_attribute?("name_no_group") ? self["name_no_group"] : nickname || name
+  end
 
   # a (local) virtual_attribute without a uses, but with arel
   virtual_attribute :nick_or_name, :string, :arel => (lambda do |t|
@@ -69,15 +72,15 @@ class Author < VirtualTotalTestBase
   end)
 
   def first_book_name
-    books.first.name
+    has_attribute?("first_book_name") ? self["first_book_name"] : books.first.name
   end
 
   def first_book_author_name
-    books.first.author_name
+    has_attribute?("first_book_author_name") ? self["first_book_author_name"] : books.first.author_name
   end
 
   def upper_first_book_author_name
-    first_book_author_name.upcase
+    has_attribute?("upper_first_book_author_name") ? self["upper_first_book_author_name"] : first_book_author_name.upcase
   end
 
   # basic attribute with uses that doesn't use a virtual attribute
@@ -127,11 +130,11 @@ class Book < VirtualTotalTestBase
   virtual_attribute :upper_author_name_def, :string, :uses => :upper_author_name
 
   def upper_author_name
-    author_name.upcase
+    has_attribute?("upper_author_name") ? self["upper_author_name"] : author_name.upcase
   end
 
   def upper_author_name_def
-    upper_author_name || "other"
+    has_attribute?("upper_author_name_def") ? self["upper_author_name_def"] : upper_author_name || "other"
   end
 
   def self.create_with_bookmarks(count)

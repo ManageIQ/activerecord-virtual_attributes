@@ -12,7 +12,27 @@ module ActiveRecord
 
     # in essence, this is our Arel::Nodes::VirtualAttribute
     class Arel::Nodes::Grouping
-      attr_accessor :name
+      attr_accessor :name, :relation
+
+      # methods from Arel::Nodes::Attribute
+      def type_caster
+        relation.type_for_attribute(name)
+      end
+
+      # Create a node for lowering this attribute
+      def lower
+        relation.lower(self)
+      end
+
+      def type_cast_for_database(value)
+        relation.type_cast_for_database(name, value)
+      end
+
+      # rubocop:disable Rails/Delegate
+      def able_to_type_cast?
+        relation.able_to_type_cast?
+      end
+      # rubocop:enable Rails/Delegate
     end
 
     module VirtualArel
@@ -86,6 +106,7 @@ module ActiveRecord
           arel = arel_lambda.call(table)
           arel = Arel::Nodes::Grouping.new(arel) unless arel.kind_of?(Arel::Nodes::Grouping)
           arel.name = column_name
+          arel.relation = table
           arel
         end
 
@@ -97,4 +118,44 @@ module ActiveRecord
       end
     end
   end
+end
+
+module Arel # :nodoc: all
+  # rubocop:disable Naming/MethodName
+  # rubocop:disable Naming/MethodParameterName
+  # rubocop:disable Style/ConditionalAssignment
+  module Visitors
+    # rails 6.1...
+    class ToSql
+      private
+
+      def visit_Arel_Nodes_HomogeneousIn(o, collector)
+        collector.preparable = false
+
+        # change:
+        # See https://github.com/rails/rails/pull/45642
+        visit(o.left, collector)
+        # /change
+
+        if o.type == :in
+          collector << " IN ("
+        else
+          collector << " NOT IN ("
+        end
+
+        values = o.casted_values
+
+        if values.empty?
+          collector << @connection.quote(nil)
+        else
+          collector.add_binds(values, o.proc_for_binds, &bind_block)
+        end
+
+        collector << ")"
+      end
+    end
+  end
+  # rubocop:enable Naming/MethodName
+  # rubocop:enable Naming/MethodParameterName
+  # rubocop:enable Style/ConditionalAssignment
 end
