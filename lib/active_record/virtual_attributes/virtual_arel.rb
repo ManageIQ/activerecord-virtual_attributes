@@ -36,10 +36,8 @@ module ActiveRecord
     end
 
     module VirtualArel
-      # This arel table proxy is our shim to get our functionality into rails
+      # This arel table proxy. This allows WHERE clauses to use virtual attributes
       class ArelTableProxy < Arel::Table
-        attr_accessor :klass
-
         # overrides Arel::Table#[]
         # adds aliases and virtual attribute arel (aka sql)
         #
@@ -70,16 +68,9 @@ module ActiveRecord
       end
 
       module ClassMethods
-        if ActiveRecord.version.to_s < "6.1"
-          # ActiveRecord::Core 6.0 (every version of active record seems to do this differently)
-          def arel_table
-            @arel_table ||= ArelTableProxy.new(table_name, :type_caster => type_caster).tap { |t| t.klass = self }
-          end
-        else
-          # ActiveRecord::Core 6.1
-          def arel_table
-            @arel_table ||= ArelTableProxy.new(table_name, :klass => self)
-          end
+        # ActiveRecord::Core 6.1
+        def arel_table
+          @arel_table ||= ArelTableProxy.new(table_name, :klass => self)
         end
 
         # supported by sql if any are true:
