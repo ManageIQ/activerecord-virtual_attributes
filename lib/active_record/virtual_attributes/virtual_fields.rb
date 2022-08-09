@@ -207,7 +207,7 @@ module ActiveRecord
         if select_values.any?
           cols = arel_columns(select_values.uniq).map do |col|
             # if it is a virtual attribute, then add aliases to those columns
-            if col.kind_of?(Arel::Nodes::Grouping) && col.name
+            if col.kind_of?(Arel::Nodes::VirtualAttribute)
               col.as(connection.quote_column_name(col.name))
             else
               col
