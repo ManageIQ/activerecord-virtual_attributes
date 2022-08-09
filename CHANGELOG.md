@@ -4,6 +4,10 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 
 ## [Unreleased]
 
+## [6.1.1] - 2022-08-09
+
+* fix HomogeneousIn clauses [#111](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/111)
+
 ## [6.1.0] - 2022-02-03
 
 * **BREAKING** Dropped support for Rails 5.0, 5.1, 5.2, 6.0
@@ -82,7 +86,8 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.0...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.1...HEAD
+[6.1.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.0...v6.1.1
 [6.1.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v3.0.0...v6.1.0
 [3.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v1.6.0...v2.0.0
