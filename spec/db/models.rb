@@ -31,7 +31,7 @@ class Author < VirtualTotalTestBase
   virtual_minimum :minimum_recently_published_books_rating, :recently_published_books, :rating
   virtual_maximum :maximum_recently_published_books_rating, :recently_published_books, :rating
   virtual_sum :sum_recently_published_books_rating, :recently_published_books, :rating
-  virtual_delegate :description, :to => :current_photo, :prefix => true
+  virtual_delegate :description, :to => :current_photo, :prefix => true, :type => :string
 
   # This is here to provide a virtual_total of a virtual_has_many that depends upon an array of associations.
   # NOTE: this is tailored to the use case and is not an optimal solution
@@ -121,7 +121,7 @@ class Book < VirtualTotalTestBase
   scope :wip,       -> { where(:published => false) }
   # this tests delegate
   # this also tests an attribute :uses clause with a single symbol
-  virtual_delegate :name, :to => :author, :prefix => true
+  virtual_delegate :name, :to => :author, :prefix => true, :type => :string
   # delegate to a polymorphic
   virtual_delegate :description, :to => :current_photo, :prefix => true, :type => :string, :allow_nil => true
 
