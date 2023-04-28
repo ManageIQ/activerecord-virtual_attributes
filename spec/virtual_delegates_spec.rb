@@ -236,14 +236,48 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
   end
 
   context "with polymorphic has_one" do
-    it "respects type" do
+    it "supports select" do
       author = Author.create(:name => "no one of consequence")
-      book = author.books.create(:name => "nothing of consequence", :id => author.id)
       author.photos.create(:description => 'good')
-      book.photos.create(:description => 'bad')
 
       author = Author.select(:id, :current_photo_description).find(author.id)
       expect(author.current_photo_description).to eq("good")
+    end
+
+    it "respects type" do
+      Author.delete_all
+      Book.delete_all
+      author = Author.create(:name => "no one of consequence")
+      book = author.books.create(:name => "nothing of consequence", :id => author.id)
+      book.photos.create(:description => 'bad')
+
+      author = Author.select(:id, :current_photo_description).find(author.id)
+      expect(author.current_photo_description).to eq(nil)
+    end
+
+    it "handles polymorphic in" do
+      Author.delete_all
+      Book.delete_all
+      author = Author.create(:name => "no one of consequence")
+      author.books.create(:name => "nothing of consequence", :id => author.id)
+      author.photos.create(:description => 'good')
+
+      actual = Author.where(:current_photo_description => %w[good ok]).find(author.id)
+      expect(actual).to eq(author)
+    end
+
+    it "handles polymorphic or" do
+      Author.delete_all
+      Book.delete_all
+      author = Author.create(:name => "no one of consequence")
+      author.books.create(:name => "nothing of consequence", :id => author.id)
+      author.photos.create(:description => 'good')
+
+      # ensuring that the parens for delegates don't mess up sql
+      actual = Author.where(:current_photo_description => "good")
+                     .or(Author.where(:current_photo_description => "ok"))
+                     .first
+      expect(actual).to eq(author)
     end
   end
 end
