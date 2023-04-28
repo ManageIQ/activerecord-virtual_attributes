@@ -13,6 +13,7 @@ jobs:
       matrix:
         ruby-version:
         - '2.7'
+        - '3.1'
     services:
       postgres:
         image: postgres:13
@@ -62,7 +63,7 @@ jobs:
           DB: mysql2
         run: bundle exec rake
       - name: Report code coverage
-        if: ${{ github.ref == 'refs/heads/master' && matrix.ruby-version == '2.7' }}
+        if: ${{ github.ref == 'refs/heads/master' && matrix.ruby-version == '3.1' }}
         continue-on-error: true
         uses: paambaati/codeclimate-action@v3.0.0
         env:
