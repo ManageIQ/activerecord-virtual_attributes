@@ -1,13 +1,13 @@
 RSpec.describe "preloads_values" do
   before do
-    Author.create_with_books(3).books.first.create_bookmarks(2)
+    Author.create_with_books(2)
   end
 
   let(:author_name) { "foo" }
   let(:book_name) { "bar" }
 
   it "detects preloaded values" do
-    expect(Book.select(:author_name)).to preload_values(:author_name, [author_name, author_name, author_name])
+    expect(Book.select(:author_name)).to preload_values(:author_name, [author_name, author_name])
   end
 
   it "detects preloaded values converts to array" do
@@ -17,7 +17,7 @@ RSpec.describe "preloads_values" do
   it "detects not preloaded" do
     expect do
       expect(Book).to preload_values(:author_name, author_name)
-    end.to raise_error(RSpec::Expectations::ExpectationNotMetError, "Expected to preload author_name but executed 3 queries instead")
+    end.to raise_error(RSpec::Expectations::ExpectationNotMetError, "Expected to preload author_name but executed 2 queries instead")
   end
 
   it "detects incorrect values" do
