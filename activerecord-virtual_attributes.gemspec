@@ -28,6 +28,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "activerecord", "~> 6.1.0"
 
   spec.add_development_dependency "byebug"
+  spec.add_development_dependency "database_cleaner-active_record", "~> 2.1"
   spec.add_development_dependency "db-query-matchers"
   spec.add_development_dependency "manageiq-style"
   spec.add_development_dependency "rake", "~> 13.0"

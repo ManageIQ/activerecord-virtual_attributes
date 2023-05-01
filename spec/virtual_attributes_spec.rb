@@ -779,9 +779,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
   end
 
   describe ".select" do
-    before do
-      Author.delete_all
-    end
     it "supports virtual attributes" do
       Author.create(:name => "abc")
       expect(Author.select(:id, :nick_or_name).first.nick_or_name).to eq("abc")
@@ -795,10 +792,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
   end
 
   describe ".where" do
-    before do
-      Author.delete_all
-    end
-
     it "supports virtual attributes hash syntax a" do
       author = Author.create(:name => "name")
       Author.create(:name => "other")
@@ -832,12 +825,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
   end
 
   describe ".order" do
-    before do
-      Author.delete_all
-      authors
-    end
-
-    let(:authors) do
+    let!(:authors) do
       [
         Author.create(:name => "aaa"),
         Author.create(:nickname => "bbb"),
