@@ -8,6 +8,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../lib')
 require "bundler/setup"
 require "active_record/virtual_attributes"
 require "active_record/virtual_attributes/rspec"
+require "database_cleaner/active_record"
 require "db-query-matchers"
 
 Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
@@ -22,5 +23,18 @@ RSpec.configure do |config|
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
+  end
+
+  config.before(:suite) do
+    # truncate at startup
+    DatabaseCleaner.clean_with :truncation
+    # transaction between examples (mysql requires truncation)
+    DatabaseCleaner.strategy = ENV["DB"].to_s.include?("mysql") ? :truncation : :transaction
+  end
+
+  config.around(:each) do |example|
+    DatabaseCleaner.cleaning do
+      example.run
+    end
   end
 end

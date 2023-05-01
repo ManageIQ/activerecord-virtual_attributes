@@ -1,10 +1,4 @@
 RSpec.describe VirtualAttributes::VirtualTotal do
-  before do
-    Author.delete_all
-    Book.delete_all
-    Bookmark.delete_all
-  end
-
   describe ".select" do
     it "supports virtual_totals" do
       Author.select(:id, :total_books).first

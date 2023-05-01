@@ -1,7 +1,5 @@
 RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   before do
-    Author.destroy_all
-    Book.destroy_all
     Author.create_with_books(3).books.first.create_bookmarks(2)
   end
 

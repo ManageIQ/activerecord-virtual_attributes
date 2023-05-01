@@ -245,8 +245,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     end
 
     it "respects type" do
-      Author.delete_all
-      Book.delete_all
       author = Author.create(:name => "no one of consequence")
       book = author.books.create(:name => "nothing of consequence", :id => author.id)
       book.photos.create(:description => 'bad')
@@ -256,8 +254,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     end
 
     it "handles polymorphic in" do
-      Author.delete_all
-      Book.delete_all
       author = Author.create(:name => "no one of consequence")
       author.books.create(:name => "nothing of consequence", :id => author.id)
       author.photos.create(:description => 'good')
@@ -267,8 +263,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     end
 
     it "handles polymorphic or" do
-      Author.delete_all
-      Book.delete_all
       author = Author.create(:name => "no one of consequence")
       author.books.create(:name => "nothing of consequence", :id => author.id)
       author.photos.create(:description => 'good')
