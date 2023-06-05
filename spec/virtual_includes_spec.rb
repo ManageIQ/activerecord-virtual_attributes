@@ -525,7 +525,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
 
     it "handles hash form of delegates" do
-      expect(Book.replace_virtual_fields([{:author_name => {}}, {:author_name2 => {}}])).to eq([{:author => {}}, {"author" => {}}])
+      expect(Book.replace_virtual_fields([{:author_name => {}}, {:author_name2 => {}}])).to eq([{:author => {}}, {:author => {}}])
     end
 
     it "handles non-'includes' virtual_attributes" do

@@ -43,7 +43,7 @@ module ActiveRecord
             method_prefix = virtual_delegate_name_prefix(options[:prefix], to)
             method_name = "#{method_prefix}#{method}"
             if to.include?(".") # to => "target.method"
-              to, method = to.split(".")
+              to, method = to.split(".").map(&:to_sym)
               options[:to] = to
             end
 
