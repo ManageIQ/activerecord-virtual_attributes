@@ -77,15 +77,14 @@ module ActiveRecord
           end
         end
 
-        # @param [Hash] hash1
-        # @param [Hash] hash2
+        # @param [Hash] hash1 (incoming hash is modified and returned)
+        # @param [Hash|Symbol|nil] hash2 (this hash will not be modified)
         def merge_includes(hash1, hash2)
           return hash1 if hash2.blank?
 
-          hash1 = include_to_hash(hash1)
-          hash2 = include_to_hash(hash2)
-          hash1.deep_merge!(hash2) do |_k, v1, v2|
-            merge_includes(v1, v2)
+          hash1.deep_merge!(include_to_hash(hash2)) do |_k, v1, v2|
+            # this block is conflict resolution when a key has 2 values
+            merge_includes(include_to_hash(v1), v2)
           end
         end
       end
