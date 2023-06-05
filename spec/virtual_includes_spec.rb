@@ -11,6 +11,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   context "preloads virtual_attribute with select" do
     it "preloads virtual_attribute (:uses => {:author})" do
       expect(Book.select(:author_name)).to preload_values(:author_name, author_name)
+      expect(Book.select(:author_name2)).to preload_values(:author_name2, author_name)
       expect(Book.select(:id, :author_name)).to preload_values(:author_name, author_name)
     end
   end
@@ -37,6 +38,11 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Book.includes(:author_name)).to preload_values(:author_name, author_name)
       expect(Book.includes([:author_name])).to preload_values(:author_name, author_name)
       expect(Book.includes(:author_name => {})).to preload_values(:author_name, author_name)
+    end
+
+    it "preloads virtual_attribute (:uses => :author, :uses => :author)" do
+      expect(Book.includes(:author_name, :author_name2)).to preload_values(:author_name, author_name)
+      expect(Book.includes(:author_name2 => {})).to preload_values(:author_name, author_name)
     end
 
     it "preloads virtual_attribute (:uses => :upper_author_name) (:uses => :author_name)" do
@@ -339,6 +345,11 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       bookmarked_book = Author.first.books.first
       expect(Author.includes(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
+
+    it "preloads virtual_reflection(:uses => :books => :bookmarks, :uses => :books) (multiple overlapping relations)" do
+      bookmarked_book = Author.first.books.first
+      expect(Author.includes(:book_with_most_bookmarks, :books)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
+    end
   end
 
   context "preloads virtual_reflection with includes.references" do
@@ -357,6 +368,11 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
       bookmarked_book = Author.first.books.first
       expect(Author.includes(:book_with_most_bookmarks).references(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
+    end
+
+    it "preloads virtual_reflection(:uses => :books => :bookmarks, :books)" do
+      bookmarked_book = Author.first.books.first
+      expect(Author.includes([{:book_with_most_bookmarks => {}}, :books]).references(:book_with_most_bookmarks, :books)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
   end
 
@@ -454,11 +470,59 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       result = {:key => {:more => {:third => {:fourth1 => {}, :fourth2 => true}}}}
       expect(Author.merge_includes(first, second)).to eq(result)
     end
+
+    it "merges hash, symbol" do
+      first  = {:key => {:more => {}}}
+      second = :key
+      result = {:key => {:more => {}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges hash, string" do
+      first  = {:key => {:more => {}}}
+      second = "key"
+      result = {:key => {:more => {}}, "key" => {}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges hash, nil" do
+      first  = {:key => {:more => {}}}
+      second = nil
+      result = {:key => {:more => {}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
+
+    it "merges hash, array" do
+      first  = {:key => {:more => {}}}
+      second = [:key]
+      result = {:key => {:more => {}}}
+      expect(Author.merge_includes(first, second)).to eq(result)
+    end
   end
 
   context "supports left_joins with virtual attributes" do
     it "supports virtual includes in left joins" do
       expect { Book.left_joins(:author_name).where.not(:authors => {:name => nil}).load }.not_to raise_error
+    end
+  end
+
+  context ".replace_virtual_field (private)" do
+    # TODO: produce {:books => :bookmarks} without the extra :books
+    it "handles deep includes(:uses => :books => :bookmarks)" do
+      expect(Author.replace_virtual_fields([:book_with_most_bookmarks, :books])).to eq([{:books => :bookmarks}, :books])
+      expect(Author.replace_virtual_fields(["book_with_most_bookmarks", "books"])).to eq([{:books => :bookmarks}, "books"])
+      expect(Author.replace_virtual_fields([{:book_with_most_bookmarks => {}}, :books])).to eq([{:books => :bookmarks}, :books])
+      expect(Author.replace_virtual_fields([{:book_with_most_bookmarks => {}}, {:books => {}}])).to eq([{:books => :bookmarks}, {:books => {}}])
+    end
+
+    it "handles hash form of delegates" do
+      expect(Book.replace_virtual_fields([{:author_name => {}}, {:author_name2 => {}}])).to eq([{:author => {}}, {"author" => {}}])
+    end
+
+    it "handles non-'includes' virtual_attributes" do
+      expect(Author.replace_virtual_fields(:nick_or_name)).to eq(nil)
+      expect(Author.replace_virtual_fields([:nick_or_name])).to eq([])
+      expect(Author.replace_virtual_fields(:nick_or_name => {})).to eq({})
     end
   end
 

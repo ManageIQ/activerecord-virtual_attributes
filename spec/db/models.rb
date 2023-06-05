@@ -126,6 +126,8 @@ class Book < VirtualTotalTestBase
   # this tests delegate
   # this also tests an attribute :uses clause with a single symbol
   virtual_delegate :name, :to => :author, :prefix => true, :type => :string
+  # this tests delegates to named child attribute
+  virtual_delegate :author_name2, :to => "author.name", :type => :string
   # delegate to a polymorphic
   virtual_delegate :description, :to => :current_photo, :prefix => true, :type => :string, :allow_nil => true
 
