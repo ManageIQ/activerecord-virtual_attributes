@@ -69,7 +69,9 @@ module ActiveRecord
           when String, Symbol
             {value => {}}
           when Array
-            value.flatten.each_with_object({}) { |k, h| h[k] = {} }
+            value.flatten.each_with_object({}) do |k, h|
+              merge_includes(h, k)
+            end
           when nil
             {}
           else

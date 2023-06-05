@@ -374,6 +374,15 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       bookmarked_book = Author.first.books.first
       expect(Author.includes([{:book_with_most_bookmarks => {}}, :books]).references(:book_with_most_bookmarks, :books)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
+
+    it "preloads virtual_reflection(:uses => :books => :bookmarks, :books) (nothing virtual)" do
+      other_author_name = "Drew"
+      other_author = Author.create(:name => other_author_name)
+      Author.first.books.first.co_authors << other_author
+
+      # first author has [co-author], second author (aka other_author) has none
+      expect { Author.includes(:famous_co_authors).references(:famous_co_authors) }.to preload_values(:famous_co_authors, [[other_author], []])
+    end
   end
 
   context "preloads virtual_reflection with preloader" do
@@ -523,6 +532,10 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.replace_virtual_fields(:nick_or_name)).to eq(nil)
       expect(Author.replace_virtual_fields([:nick_or_name])).to eq([])
       expect(Author.replace_virtual_fields(:nick_or_name => {})).to eq({})
+    end
+
+    it "handles deep includes with va indirect uses(:uses => :books => :bookmarks)" do
+      expect(Author.replace_virtual_fields(:famous_co_authors => {})).to eq({:books => {:bookmarks => {}, :co_authors => {}}})
     end
   end
 
