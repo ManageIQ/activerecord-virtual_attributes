@@ -244,6 +244,14 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       expect(author.current_photo_description).to eq("good")
     end
 
+    it "supports bind variables in association" do
+      author = Author.create(:name => "no one of consequence")
+      author.photos.create(:description => 'good', :purpose => "fancy")
+
+      author = Author.select(:id, :fancy_photo_description).find(author.id)
+      expect(author).to preload_values(:fancy_photo_description, "good")
+    end
+
     it "respects type" do
       author = Author.create(:name => "no one of consequence")
       book = author.books.create(:name => "nothing of consequence", :id => author.id)

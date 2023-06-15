@@ -13,6 +13,7 @@ class Author < VirtualTotalTestBase
   has_many :bookmarks,                         :class_name => "Bookmark", :through => :books
   has_many :photos, :as => :imageable, :class_name => "Photo"
   has_one :current_photo, -> { all.merge(Photo.order(:id => :desc)) }, :as => :imageable, :class_name => "Photo"
+  has_one :fancy_photo, -> { where(:purpose => "fancy") }, :as => :imageable, :class_name => "Photo"
 
   virtual_total :total_books, :books
   virtual_total :total_books_published, :published_books
@@ -32,6 +33,7 @@ class Author < VirtualTotalTestBase
   virtual_maximum :maximum_recently_published_books_rating, :recently_published_books, :rating
   virtual_sum :sum_recently_published_books_rating, :recently_published_books, :rating
   virtual_delegate :description, :to => :current_photo, :prefix => true, :type => :string
+  virtual_delegate :description, :to => :fancy_photo, :prefix => true, :type => :string
 
   # This is here to provide a virtual_total of a virtual_has_many that depends upon an array of associations.
   # NOTE: this is tailored to the use case and is not an optimal solution

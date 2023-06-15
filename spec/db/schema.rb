@@ -31,6 +31,7 @@ ActiveRecord::Schema.define(:version => 0) do
 
   create_table "photos", :force => true do |t|
     t.references "imageable", :polymorphic => true
+    t.string "purpose"
     t.string "description"
   end
 end
