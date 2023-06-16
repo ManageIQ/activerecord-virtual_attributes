@@ -260,10 +260,7 @@ module ActiveRecord
 
         yield arel if block_given?
 
-        # convert arel to sql to populate with bind variables
-        conn = to_ref.klass.connection
-        sql = conn.unprepared_statement { conn.to_sql(arel) }
-        ::Arel::Nodes::Grouping.new(Arel.sql(sql))
+        ::Arel::Nodes::Grouping.new(arel)
       end
 
       # determine table reference to use for a sub query
