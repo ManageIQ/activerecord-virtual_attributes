@@ -11,6 +11,8 @@ require "active_record/virtual_attributes/rspec"
 require "database_cleaner/active_record"
 require "db-query-matchers"
 
+puts "\e[93mUsing ActiveRecord #{ActiveRecord.version}\e[0m"
+
 Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
 
 RSpec.configure do |config|

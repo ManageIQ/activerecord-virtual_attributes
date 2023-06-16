@@ -14,6 +14,9 @@ jobs:
         ruby-version:
         - '2.7'
         - '3.1'
+        rails-version:
+        - '6.1'
+        - '7.0'
     services:
       postgres:
         image: postgres:13
@@ -32,6 +35,7 @@ jobs:
         ports:
         - 3306:3306
     env:
+      RAILS_VERSION: ${{ matrix.rails-version }}
       CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       # for the pg cli (psql, pg_isready) and rails
       PGHOST: localhost
@@ -50,20 +54,23 @@ jobs:
           bundler-cache: true
         timeout-minutes: 30
       - name: Run SQLite tests
+        continue-on-error: ${{ matrix.rails-version != '6.1' }}
         env:
           DB: sqlite3
         run: bundle exec rake
       - name: Run PostgreSQL tests
+        continue-on-error: ${{ matrix.rails-version != '6.1' }}
         env:
           DB: postgresql
           COLLATE_SYMBOLS: false
         run: bundle exec rake
       - name: Run MySQL tests
+        continue-on-error: ${{ matrix.rails-version != '6.1' }}
         env:
           DB: mysql2
         run: bundle exec rake
       - name: Report code coverage
-        if: ${{ github.ref == 'refs/heads/master' && matrix.ruby-version == '3.1' }}
+        if: ${{ github.ref == 'refs/heads/master' && matrix.ruby-version == '3.1' && matrix.rails-version == '6.1' }}
         continue-on-error: true
         uses: paambaati/codeclimate-action@v3.0.0
         env:

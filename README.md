@@ -50,6 +50,11 @@ To test with different database adapters, set the DB environment variable:
     DB=mysql bundle exec rake
     DB=sqlite3 bundle exec rake
 
+To test with different versions of Rails, set the RAILS_VERSION environment variable:
+
+    RAILS_VERSION=6.1 bundle exec rake
+    RAILS_VERSION=7.0 bundle exec rake
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/ManageIQ/activerecord-virtual_attributes .
