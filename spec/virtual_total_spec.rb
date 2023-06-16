@@ -3,6 +3,14 @@ RSpec.describe VirtualAttributes::VirtualTotal do
     it "supports virtual_totals" do
       Author.select(:id, :total_books).first
     end
+
+    it "supports habtm" do
+      author = Author.create_with_books(2)
+      co_a = Author.create
+      author.books.each { |book| co_a.co_books << book }
+
+      expect(Author.select(:id, :total_co_books).find(co_a.id)).to preload_values(:total_co_books, 2)
+    end
   end
 
   describe ".where" do

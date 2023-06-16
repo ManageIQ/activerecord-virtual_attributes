@@ -19,9 +19,11 @@ class Author < VirtualTotalTestBase
   virtual_total :total_books_in_progress, :wip_books
   # same as total_books, but going through a relation with order
   virtual_total :total_ordered_books, :ordered_books
-  # virtual total using through
+  # virtual total using has_many :through
   virtual_total :total_bookmarks, :bookmarks
   alias v_total_bookmarks total_bookmarks
+  # virtual total using has_and_belongs_to_many
+  virtual_total :total_co_books, :co_books
 
   has_many :recently_published_books, -> { published.order(:created_on => :desc) },
            :class_name => "Book", :foreign_key => "author_id"
