@@ -138,7 +138,7 @@ module VirtualAttributes
           query.where(join.right.expr)
 
           # add coalesce to ensure correct value comes out
-          t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [t.grouping(query), Arel::Nodes::SqlLiteral.new("0")]))
+          Arel::Nodes::NamedFunction.new('COALESCE', [t.grouping(query), Arel::Nodes::SqlLiteral.new("0")])
         end
       end
     end
