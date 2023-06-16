@@ -137,14 +137,8 @@ module VirtualAttributes
           # query: SELECT COUNT(*) FROM foreign_table JOIN ... [WHERE main_table.id = foreign_table.id]
           query.where(join.right.expr)
 
-          # convert bind variables from ? to actual values. otherwise, sql is incomplete
-          conn = connection
-          sql = conn.unprepared_statement { conn.to_sql(query) }
-
-          # add () around query
-          query = t.grouping(Arel::Nodes::SqlLiteral.new(sql))
           # add coalesce to ensure correct value comes out
-          t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [query, Arel::Nodes::SqlLiteral.new("0")]))
+          t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [t.grouping(query), Arel::Nodes::SqlLiteral.new("0")]))
         end
       end
     end
