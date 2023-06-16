@@ -1,8 +1,8 @@
 # VirtualAttributes
 
 [![CI](https://github.com/ManageIQ/activerecord-virtual_attributes/actions/workflows/ci.yaml/badge.svg)](https://github.com/ManageIQ/activerecord-virtual_attributes/actions/workflows/ci.yaml)
-[![Maintainability](https://api.codeclimate.com/v1/badges/e1a0c26941c00f4edb55/maintainability)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/e1a0c26941c00f4edb55/test_coverage)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/test_coverage)
+[![Maintainability](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes.svg)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/maintainability)
+[![Test Coverage](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/coverage.svg)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/test_coverage)
 
 VirtualAttributes allows you to define a ruby method that acts like an attribute or relation.
 
@@ -40,14 +40,15 @@ TODO: Write usage instructions here
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `bundle exec rake` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
+To test with different database adapters, set the DB environment variable:
 
-To test with different versions of ruby, use `wwtd` gem or
-
-DB=pg BUNDLE_GEMFILE=gemfiles/gemfile_${version-52}.gemfile bundle exec rake
+    DB=postgresql bundle exec rake
+    DB=mysql bundle exec rake
+    DB=sqlite3 bundle exec rake
 
 ## Contributing
 
@@ -56,4 +57,3 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/Manage
 ## License
 
 This project is available as open source under the terms of the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
-

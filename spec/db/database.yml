@@ -3,7 +3,7 @@ sqlite3:
   database: ":memory:"
   encoding: utf8
 
-pg:
+postgresql:
   adapter: postgresql
   database: virtual_attributes
   encoding: utf8

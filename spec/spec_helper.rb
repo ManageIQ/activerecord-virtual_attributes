@@ -26,10 +26,13 @@ RSpec.configure do |config|
   end
 
   config.before(:suite) do
+    puts "\e[93mUsing database adapter #{Database.adapter}\e[0m"
+    Database.new.setup.migrate
+
     # truncate at startup
     DatabaseCleaner.clean_with :truncation
     # transaction between examples (mysql requires truncation)
-    DatabaseCleaner.strategy = ENV["DB"].to_s.include?("mysql") ? :truncation : :transaction
+    DatabaseCleaner.strategy = Database.adapter.include?("mysql") ? :truncation : :transaction
   end
 
   config.around(:each) do |example|

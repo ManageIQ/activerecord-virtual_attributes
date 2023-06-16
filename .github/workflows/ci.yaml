@@ -55,7 +55,7 @@ jobs:
         run: bundle exec rake
       - name: Run PostgreSQL tests
         env:
-          DB: pg
+          DB: postgresql
           COLLATE_SYMBOLS: false
         run: bundle exec rake
       - name: Run MySQL tests
