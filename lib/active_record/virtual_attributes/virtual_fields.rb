@@ -84,6 +84,13 @@ module ActiveRecord
         def merge_includes(hash1, hash2)
           return hash1 if hash2.blank?
 
+          # very common case.
+          # optimization to skip deep_merge and hash creation
+          if hash2.kind_of?(Symbol)
+            hash1[hash2] ||= {}
+            return hash1
+          end
+
           hash1.deep_merge!(include_to_hash(hash2)) do |_k, v1, v2|
             # this block is conflict resolution when a key has 2 values
             merge_includes(include_to_hash(v1), v2)
