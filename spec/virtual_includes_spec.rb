@@ -490,7 +490,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "merges hash, string" do
       first  = {:key => {:more => {}}}
       second = "key"
-      result = {:key => {:more => {}}, "key" => {}}
+      result = {:key => {:more => {}}}
       expect(Author.merge_includes(first, second)).to eq(result)
     end
 
@@ -519,7 +519,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     # TODO: produce {:books => :bookmarks} without the extra :books
     it "handles deep includes(:uses => :books => :bookmarks)" do
       expect(Author.replace_virtual_fields([:book_with_most_bookmarks, :books])).to eq([{:books => :bookmarks}, :books])
-      expect(Author.replace_virtual_fields(["book_with_most_bookmarks", "books"])).to eq([{:books => :bookmarks}, "books"])
+      expect(Author.replace_virtual_fields(["book_with_most_bookmarks", "books"])).to eq([{:books => :bookmarks}, :books])
       expect(Author.replace_virtual_fields([{:book_with_most_bookmarks => {}}, :books])).to eq([{:books => :bookmarks}, :books])
       expect(Author.replace_virtual_fields([{:book_with_most_bookmarks => {}}, {:books => {}}])).to eq([{:books => :bookmarks}, {:books => {}}])
     end
