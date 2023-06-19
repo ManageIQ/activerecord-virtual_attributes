@@ -4,6 +4,7 @@ require "active_record"
 require "active_record/virtual_attributes/virtual_includes"
 require "active_record/virtual_attributes/virtual_arel"
 require "active_record/virtual_attributes/virtual_delegates"
+require "active_record/virtual_attributes/ruby"
 
 module ActiveRecord
   module VirtualAttributes
@@ -11,6 +12,10 @@ module ActiveRecord
     include ActiveRecord::VirtualAttributes::VirtualIncludes
     include ActiveRecord::VirtualAttributes::VirtualArel
     include ActiveRecord::VirtualAttributes::VirtualDelegates
+
+    def self.ruby(value)
+      Ruby.new(value)
+    end
 
     module Type
       # TODO: do we actually need symbol types?

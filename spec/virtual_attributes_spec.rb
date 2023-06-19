@@ -633,6 +633,18 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
         tc = TestClass.new
         expect(tc.parent_col1).to eq("def")
       end
+
+      it "defaults for to nil child (complex string)" do
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => "'def'+1"
+        tc = TestClass.new
+        expect(tc.parent_col1).to eq("'def'+1")
+      end
+
+      it "defaults for to nil child (ruby)" do
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => ActiveRecord::VirtualAttributes.ruby('(1+2).to_s')
+        tc = TestClass.new
+        expect(tc.parent_col1).to eq("3")
+      end
     end
 
     describe "#sum" do
