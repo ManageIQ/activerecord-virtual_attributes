@@ -87,6 +87,10 @@ class Author < VirtualTotalTestBase
     has_attribute?("upper_first_book_author_name") ? self["upper_first_book_author_name"] : first_book_author_name.upcase
   end
 
+  def famous_co_authors
+    book_with_most_bookmarks&.co_authors || []
+  end
+
   # basic attribute with uses that doesn't use a virtual attribute
   def book_with_most_bookmarks
     books.max_by { |book| book.bookmarks.size }
@@ -99,6 +103,11 @@ class Author < VirtualTotalTestBase
   virtual_attribute :first_book_author_name, :string, :uses => {:books => :author_name}
   # uses another virtual attribute that uses a relation
   virtual_attribute :upper_first_book_author_name, :string, :uses => :first_book_author_name
+  # :uses points to a virtual_attribute that has a :uses with a hash
+  # NOTE: Please do not change the :uses format here.
+  #   This intentionally tests :uses with an array: [:bwmb, {:books => co_a}]
+  #   vs a more condensed format: {:bwmb => {}, :books => co_a}
+  virtual_has_many :famous_co_authors, :uses => [:book_with_most_bookmarks, {:books => :co_authors}]
 
   def self.create_with_books(count)
     create!(:name => "foo").tap { |author| author.create_books(count) }
@@ -126,6 +135,8 @@ class Book < VirtualTotalTestBase
   # this tests delegate
   # this also tests an attribute :uses clause with a single symbol
   virtual_delegate :name, :to => :author, :prefix => true, :type => :string
+  # this tests delegates to named child attribute
+  virtual_delegate :author_name2, :to => "author.name", :type => :string
   # delegate to a polymorphic
   virtual_delegate :description, :to => :current_photo, :prefix => true, :type => :string, :allow_nil => true
 
