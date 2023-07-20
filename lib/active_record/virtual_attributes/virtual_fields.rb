@@ -35,7 +35,7 @@ module ActiveRecord
 
           case associations
           when String, Symbol
-            virtual_field?(associations) ? replace_virtual_fields(virtual_includes(associations)) : associations
+            virtual_field?(associations) ? replace_virtual_fields(virtual_includes(associations)) : associations.to_sym
           when Array
             associations.collect { |association| replace_virtual_fields(association) }.compact
           when Hash
@@ -67,7 +67,7 @@ module ActiveRecord
         def include_to_hash(value)
           case value
           when String, Symbol
-            {value => {}}
+            {value.to_sym => {}}
           when Array
             value.flatten.each_with_object({}) do |k, h|
               merge_includes(h, k)
