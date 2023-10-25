@@ -4,6 +4,13 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 
 ## [Unreleased]
 
+## [6.1.2] - 2023-10-26
+
+* Fix bind variables for joins with static strings [#124](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/124)
+* Add `virtual_total` for `habtm` [#123](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/123)
+* Fix: `:uses` clause now works with an array and nested hashes. [#120](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/120)
+* Uses symbols in the `includes()` clause. defined by `virtual_attribute :uses` and virtual_delegate. [#128](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/128)
+
 ## [6.1.1] - 2022-08-09
 
 * fix HomogeneousIn clauses [#111](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/111)
@@ -86,7 +93,8 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.1...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.2...HEAD
+[6.1.2]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.1...v6.1.2
 [6.1.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.0...v6.1.1
 [6.1.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v3.0.0...v6.1.0
 [3.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v2.0.0...v3.0.0
