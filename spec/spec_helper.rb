@@ -41,3 +41,7 @@ RSpec.configure do |config|
     end
   end
 end
+
+require "active_record"
+puts
+puts "\e[93mUsing ActiveRecord #{ActiveRecord.version}\e[0m"
