@@ -210,26 +210,7 @@ module ActiveRecord
   end
 
   class Relation
-    def without_virtual_includes
-      filtered_includes = includes_values && klass.replace_virtual_fields(includes_values)
-      if filtered_includes != includes_values
-        spawn.tap { |other| other.includes_values = filtered_includes }
-      else
-        self
-      end
-    end if ActiveRecord.version < Gem::Version.new(6.1)
-
     include(Module.new {
-      # From ActiveRecord::FinderMethods
-      def apply_join_dependency(*args, **kargs, &block)
-        real = without_virtual_includes
-        if real.equal?(self)
-          super
-        else
-          real.apply_join_dependency(*args, **kargs, &block)
-        end
-      end if ActiveRecord.version < Gem::Version.new(6.1)
-
       # From ActiveRecord::QueryMethods (rails 5.2 - 6.1)
       def build_select(arel)
         if select_values.any?
@@ -261,16 +242,6 @@ module ActiveRecord
         associations = klass.replace_virtual_fields(associations)
         super
       end
-
-      # From ActiveRecord::Calculations
-      # introduces virtual includes support for calculate (we mostly use COUNT(*))
-      def calculate(operation, attribute_name)
-        # allow calculate to work with includes and a virtual attribute
-        real = without_virtual_includes
-        return super if real.equal?(self)
-
-        real.calculate(operation, attribute_name)
-      end if ActiveRecord.version < Gem::Version.new(6.1)
     })
   end
 end
