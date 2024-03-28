@@ -11,7 +11,13 @@ module ActiveRecord
     # Model.attribute_supported_by_sql?(:field) # => true
 
     # in essence, this is our Arel::Nodes::VirtualAttribute
-    class Arel::Nodes::Grouping
+    class ::Arel::Nodes::VirtualAttribute < Arel::Nodes::Grouping
+      def initialize(arel, name = nil, relation = nil)
+        super(arel)
+        @name = name
+        @relation = relation
+      end
+
       attr_accessor :name, :relation
 
       # methods from Arel::Nodes::Attribute
@@ -95,10 +101,8 @@ module ActiveRecord
           return unless arel_lambda
 
           arel = arel_lambda.call(table)
-          arel = Arel::Nodes::Grouping.new(arel) unless arel.kind_of?(Arel::Nodes::Grouping)
-          arel.name = column_name
-          arel.relation = table
-          arel
+          arel = arel.expr if arel.kind_of?(Arel::Nodes::Grouping) # not needed
+          Arel::Nodes::VirtualAttribute.new(arel, column_name, table)
         end
 
         private
