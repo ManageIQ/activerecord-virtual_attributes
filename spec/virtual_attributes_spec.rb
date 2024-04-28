@@ -1,3 +1,5 @@
+require "ostruct"
+
 RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
   context "TestClass", :with_test_class do
     it "should not have any virtual columns" do
