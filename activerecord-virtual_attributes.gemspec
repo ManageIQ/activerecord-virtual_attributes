@@ -16,6 +16,7 @@ Gem::Specification.new do |spec|
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/ManageIQ/activerecord-virtual_attributes"
   spec.metadata["changelog_uri"] = "https://github.com/ManageIQ/activerecord-virtual_attributes/blob/master/CHANGELOG.md"
+  spec.metadata['rubygems_mfa_required'] = "true"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
@@ -31,7 +32,10 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "database_cleaner-active_record", "~> 2.1"
   spec.add_development_dependency "db-query-matchers"
   spec.add_development_dependency "manageiq-style"
+  spec.add_development_dependency "mysql2"
+  spec.add_development_dependency "pg"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "simplecov", ">= 0.21.2"
+  spec.add_development_dependency "sqlite3"
 end
