@@ -186,10 +186,13 @@ module ActiveRecord
             polymorphic_parent = !root? && parent.polymorphic?
             source_records.each do |record|
               # each class can resolve virtual_{attributes,includes} differently
-              association = record.class.replace_virtual_fields(self.association)
+              @association = record.class.replace_virtual_fields(self.association)
 
               # 1 line optimization for single element array:
-              association = association.first if association.kind_of?(Array) && association.size == 1
+              @association = association.first if association.kind_of?(Array)# && association.size == 1
+
+              # !!!!
+              @association = association.keys.first if association.kind_of?(Hash)
 
               case association
               when Symbol, String
