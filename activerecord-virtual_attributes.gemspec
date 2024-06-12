@@ -31,7 +31,10 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "database_cleaner-active_record", "~> 2.1"
   spec.add_development_dependency "db-query-matchers"
   spec.add_development_dependency "manageiq-style"
+  spec.add_development_dependency "mysql2"
+  spec.add_development_dependency "pg"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "simplecov", ">= 0.21.2"
+  spec.add_development_dependency "sqlite3"
 end
