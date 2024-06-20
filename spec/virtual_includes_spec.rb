@@ -340,11 +340,13 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
 
     it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
+      skip "ActiveRecord Preloader doesn't preload collection associations in rails 7+. See: https://www.github.com/rails/rails/pull/42654" if ActiveRecord.version >= Gem::Version.new(7.0)
       bookmarked_book = Author.first.books.first
       expect(Author.includes(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
 
     it "preloads virtual_reflection(:uses => :books => :bookmarks, :uses => :books) (multiple overlapping relations)" do
+      skip "ActiveRecord Preloader doesn't preload collection associations in rails 7+. See: https://www.github.com/rails/rails/pull/42654" if ActiveRecord.version >= Gem::Version.new(7.0)
       bookmarked_book = Author.first.books.first
       expect(Author.includes(:book_with_most_bookmarks, :books)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
@@ -402,6 +404,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
 
     it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
+      skip "ActiveRecord Preloader doesn't preload collection associations in rails 7+. See: https://www.github.com/rails/rails/pull/42654" if ActiveRecord.version >= Gem::Version.new(7.0)
       bookmarked_book = Author.first.books.first
       expect(preloaded(Author.all.to_a, :book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
