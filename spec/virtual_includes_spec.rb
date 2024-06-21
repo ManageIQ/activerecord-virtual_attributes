@@ -240,9 +240,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(books.last.author).to be_nil # the book just created does not have an author
 
       # the second time preloading throws an error
-      preloader = ActiveRecord::Associations::Preloader.new
-      preloader.preload(books, :author => :books)
-
+      preloaded(books, :author => :books)
       expect(books.size).to be(4)
     end
   end
@@ -342,11 +340,13 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
 
     it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
+      skip "ActiveRecord Preloader doesn't preload collection associations in rails 7+. See: https://www.github.com/rails/rails/pull/42654" if ActiveRecord.version >= Gem::Version.new(7.0)
       bookmarked_book = Author.first.books.first
       expect(Author.includes(:book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
 
     it "preloads virtual_reflection(:uses => :books => :bookmarks, :uses => :books) (multiple overlapping relations)" do
+      skip "ActiveRecord Preloader doesn't preload collection associations in rails 7+. See: https://www.github.com/rails/rails/pull/42654" if ActiveRecord.version >= Gem::Version.new(7.0)
       bookmarked_book = Author.first.books.first
       expect(Author.includes(:book_with_most_bookmarks, :books)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
@@ -404,6 +404,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
 
     it "preloads virtual_reflection(:uses => :books => :bookmarks) (nothing virtual)" do
+      skip "ActiveRecord Preloader doesn't preload collection associations in rails 7+. See: https://www.github.com/rails/rails/pull/42654" if ActiveRecord.version >= Gem::Version.new(7.0)
       bookmarked_book = Author.first.books.first
       expect(preloaded(Author.all.to_a, :book_with_most_bookmarks)).to preload_values(:book_with_most_bookmarks, bookmarked_book)
     end
@@ -540,8 +541,13 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   end
 
   def preloaded(records, associations, preload_scope = nil)
-    preloader = ActiveRecord::Associations::Preloader.new
-    preloader.preload(records, associations, preload_scope)
+    if ActiveRecord::Associations::Preloader.instance_methods.include?(:preload)
+      preloader = ActiveRecord::Associations::Preloader.new
+      preloader.preload(records, associations, preload_scope)
+    else
+      # Rails 7+ interface, see rails commit: e3b9779cb701c63012bc1af007c71dc5a888d35a
+      ActiveRecord::Associations::Preloader.new(records: records, associations: associations, scope: preload_scope).call
+    end
     records
   end
 end

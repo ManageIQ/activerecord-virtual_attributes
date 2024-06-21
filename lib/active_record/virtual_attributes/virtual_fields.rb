@@ -178,34 +178,46 @@ module ActiveRecord
         end
         # rubocop:enable Style/BlockDelimiters, Lint/AmbiguousBlockAssociation, Style/MethodCallWithArgsParentheses
       })
+      class Branch
+        prepend(Module.new {
+          def grouped_records
+            # binding.pry
+            h = {}
+            polymorphic_parent = !root? && parent.polymorphic?
+            source_records.each do |record|
+              # each class can resolve virtual_{attributes,includes} differently
+              @association = record.class.replace_virtual_fields(self.association)
+
+              # 1 line optimization for single element array:
+              @association = association.first if association.kind_of?(Array)# && association.size == 1
+
+              # !!!!
+              @association = association.keys.first if association.kind_of?(Hash)
+
+              case association
+              when Symbol, String
+                reflection = record.class._reflect_on_association(association)
+                next if polymorphic_parent && !reflection || !record.association(association).klass
+              when nil
+                next
+              else # need parent (preloaders_for_{hash,one}) to handle this Array/Hash
+                reflection = association
+              end
+              (h[reflection] ||= []) << record
+            end
+            h
+          end
+        })
+      end if ActiveRecord.version >= Gem::Version.new(7.0)
     end
   end
 
   class Relation
-    def without_virtual_includes
-      filtered_includes = includes_values && klass.replace_virtual_fields(includes_values)
-      if filtered_includes != includes_values
-        spawn.tap { |other| other.includes_values = filtered_includes }
-      else
-        self
-      end
-    end
-
     include(Module.new {
-      # From ActiveRecord::FinderMethods
-      def apply_join_dependency(*args, **kargs, &block)
-        real = without_virtual_includes
-        if real.equal?(self)
-          super
-        else
-          real.apply_join_dependency(*args, **kargs, &block)
-        end
-      end
-
       # From ActiveRecord::QueryMethods (rails 5.2 - 6.1)
       def build_select(arel)
         if select_values.any?
-          cols = arel_columns(select_values.uniq).map do |col|
+          cols = arel_columns(select_values).map do |col|
             # if it is a virtual attribute, then add aliases to those columns
             if col.kind_of?(Arel::Nodes::Grouping) && col.name
               col.as(connection.quote_column_name(col.name))
@@ -221,7 +233,7 @@ module ActiveRecord
 
       # from ActiveRecord::QueryMethods (rails 5.2 - 6.0)
       # TODO: remove from rails 7.0
-      def arel_column(field, &block)
+      def arel_column(field)
         if virtual_attribute?(field) && (arel = table[field])
           arel
         else
@@ -232,16 +244,6 @@ module ActiveRecord
       def construct_join_dependency(associations, join_type) # :nodoc:
         associations = klass.replace_virtual_fields(associations)
         super
-      end
-
-      # From ActiveRecord::Calculations
-      # introduces virtual includes support for calculate (we mostly use COUNT(*))
-      def calculate(operation, attribute_name)
-        # allow calculate to work with includes and a virtual attribute
-        real = without_virtual_includes
-        return super if real.equal?(self)
-
-        real.calculate(operation, attribute_name)
       end
     })
   end
