@@ -101,6 +101,33 @@ module ActiveRecord
   end
 end
 
+def assert_klass_has_instance_method(klass, instance_method)
+  klass.instance_method(instance_method)
+rescue NameError => err
+  msg = "#{klass} is missing the method our prepended code is expecting to patch. Was the undefined method removed or renamed upstream?\nSee: #{__FILE__}.\nThe NameError was: #{err}. "
+  raise NameError, msg
+end
+
+if ActiveRecord.version >= Gem::Version.new(7.0) # Rails 7.0 expected methods to patch
+  %w[
+    grouped_records
+  ].each { |method| assert_klass_has_instance_method(ActiveRecord::Associations::Preloader::Branch, method) }
+elsif ActiveRecord.version >= Gem::Version.new(6.1) # Rails 6.1 methods to patch
+  %w[
+    preloaders_for_reflection
+    preloaders_for_hash
+    preloaders_for_one
+    grouped_records
+  ].each { |method| assert_klass_has_instance_method(ActiveRecord::Associations::Preloader, method) }
+end
+
+# Expected methods to patch on any version
+%w[
+  build_select
+  arel_column
+  construct_join_dependency
+].each { |method| assert_klass_has_instance_method(ActiveRecord::Relation, method) }
+
 module ActiveRecord
   class Base
     include ActiveRecord::VirtualAttributes::VirtualFields
