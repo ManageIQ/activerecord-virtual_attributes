@@ -191,6 +191,9 @@ module ActiveRecord
               # 1 line optimization for single element array:
               @association = association.first if association.kind_of?(Array)# && association.size == 1
 
+              # !!!!
+              @association = association.keys.first if association.kind_of?(Hash)
+
               case association
               when Symbol, String
                 reflection = record.class._reflect_on_association(association)
