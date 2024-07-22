@@ -1,5 +1,6 @@
 require "logger"
 require "active_record"
+require "erb"
 
 class Database
   VALID_ADAPTERS = %w[sqlite3 postgresql mysql2].freeze

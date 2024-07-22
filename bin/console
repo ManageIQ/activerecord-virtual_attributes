@@ -3,9 +3,12 @@
 require "bundler/setup"
 require "active_record-virtual_attributes"
 
+# any helper that is not rspec specific
+Dir['./spec/support/**/*.rb'].sort.select { |f| !File.read(f).include?("RSpec") }.each { |f| require f }
+
 # models for local testing
-require "rspec"
-Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
+Database.new.setup.migrate
+require_relative "../seed.rb"
 
 require "irb"
 IRB.start(__FILE__)
