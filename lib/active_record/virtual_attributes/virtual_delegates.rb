@@ -261,7 +261,7 @@ module ActiveRecord
 
         yield arel if block_given?
 
-        ::Arel::Nodes::Grouping.new(arel)
+        arel
       end
 
       # determine table reference to use for a sub query
