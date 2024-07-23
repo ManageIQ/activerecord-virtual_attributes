@@ -101,6 +101,33 @@ module ActiveRecord
   end
 end
 
+def assert_klass_has_instance_method(klass, instance_method)
+  klass.instance_method(instance_method)
+rescue NameError => err
+  msg = "#{klass} is missing the method our prepended code is expecting to patch. Was the undefined method removed or renamed upstream?\nSee: #{__FILE__}.\nThe NameError was: #{err}. "
+  raise NameError, msg
+end
+
+if ActiveRecord.version >= Gem::Version.new(7.0) # Rails 7.0 expected methods to patch
+  %w[
+    grouped_records
+  ].each { |method| assert_klass_has_instance_method(ActiveRecord::Associations::Preloader::Branch, method) }
+elsif ActiveRecord.version >= Gem::Version.new(6.1) # Rails 6.1 methods to patch
+  %w[
+    preloaders_for_reflection
+    preloaders_for_hash
+    preloaders_for_one
+    grouped_records
+  ].each { |method| assert_klass_has_instance_method(ActiveRecord::Associations::Preloader, method) }
+end
+
+# Expected methods to patch on any version
+%w[
+  build_select
+  arel_column
+  construct_join_dependency
+].each { |method| assert_klass_has_instance_method(ActiveRecord::Relation, method) }
+
 module ActiveRecord
   class Base
     include ActiveRecord::VirtualAttributes::VirtualFields
@@ -178,34 +205,42 @@ module ActiveRecord
         end
         # rubocop:enable Style/BlockDelimiters, Lint/AmbiguousBlockAssociation, Style/MethodCallWithArgsParentheses
       })
+      class Branch
+        prepend(Module.new {
+          def grouped_records
+            h = {}
+            polymorphic_parent = !root? && parent.polymorphic?
+            source_records.each do |record|
+              # each class can resolve virtual_{attributes,includes} differently
+              @association = record.class.replace_virtual_fields(association)
+
+              # 1 line optimization for single element array:
+              @association = association.first if association.kind_of?(Array) # && association.size == 1
+
+              case association
+              when Symbol, String
+                reflection = record.class._reflect_on_association(association)
+                next if polymorphic_parent && !reflection || !record.association(association).klass
+              when nil
+                next
+              else # need parent (preloaders_for_{hash,one}) to handle this Array/Hash
+                reflection = association
+              end
+              (h[reflection] ||= []) << record
+            end
+            h
+          end
+        })
+      end if ActiveRecord.version >= Gem::Version.new(7.0)
     end
   end
 
   class Relation
-    def without_virtual_includes
-      filtered_includes = includes_values && klass.replace_virtual_fields(includes_values)
-      if filtered_includes != includes_values
-        spawn.tap { |other| other.includes_values = filtered_includes }
-      else
-        self
-      end
-    end
-
     include(Module.new {
-      # From ActiveRecord::FinderMethods
-      def apply_join_dependency(*args, **kargs, &block)
-        real = without_virtual_includes
-        if real.equal?(self)
-          super
-        else
-          real.apply_join_dependency(*args, **kargs, &block)
-        end
-      end
-
       # From ActiveRecord::QueryMethods (rails 5.2 - 6.1)
       def build_select(arel)
         if select_values.any?
-          cols = arel_columns(select_values.uniq).map do |col|
+          cols = arel_columns(select_values).map do |col|
             # if it is a virtual attribute, then add aliases to those columns
             if col.kind_of?(Arel::Nodes::Grouping) && col.name
               col.as(connection.quote_column_name(col.name))
@@ -232,16 +267,6 @@ module ActiveRecord
       def construct_join_dependency(associations, join_type) # :nodoc:
         associations = klass.replace_virtual_fields(associations)
         super
-      end
-
-      # From ActiveRecord::Calculations
-      # introduces virtual includes support for calculate (we mostly use COUNT(*))
-      def calculate(operation, attribute_name)
-        # allow calculate to work with includes and a virtual attribute
-        real = without_virtual_includes
-        return super if real.equal?(self)
-
-        real.calculate(operation, attribute_name)
       end
     })
   end
