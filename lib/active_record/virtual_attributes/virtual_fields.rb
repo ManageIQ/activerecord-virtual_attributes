@@ -151,6 +151,30 @@ module ActiveRecord
 
   module Associations
     class Preloader
+      prepend(Module.new {
+        # preloader is called with virtual attributes - need to resolve
+        def call
+          # Possibly overkill since all records probably have the same class and associations
+          # use a cache so we only convert includes once per base class
+          assoc_cache = Hash.new { |h, klass| h[klass] = klass.replace_virtual_fields(associations) }
+
+          # convert the includes with virtual attributes to includes with proper associations
+          records_by_assoc = records.group_by { |rec| assoc_cache[rec.class] }
+          # if these are the same includes, then do the preloader work
+          return super if records_by_assoc.size == 1 && records_by_assoc.keys.first == associations
+
+          # for each of the associations, run a preloader
+          records_by_assoc.each do |klass_associations, klass_records|
+            next if klass_associations.blank?
+
+            Array[klass_associations].each do |klass_association| # rubocop:disable Style/RedundantArrayConstructor
+              # this calls back into itself, but it will take the short circuit
+              Preloader.new(:records => klass_records, :associations => klass_association, :scope => scope).call
+            end
+          end
+        end
+      })
+
       class Branch
         prepend(Module.new {
           # from branched.rb 7.0
@@ -167,6 +191,28 @@ module ActiveRecord
               (h[reflection] ||= []) << record
             end
             h
+          end
+
+          # branched.rb 7.0
+          def preloaders_for_reflection(reflection, reflection_records)
+            reflection_records.group_by do |record|
+              # begin virtual_attributes changes
+              needed_association = record.class.replace_virtual_fields(association)
+              # end virtual_attributes changes
+
+              klass = record.association(needed_association).klass
+
+              if reflection.scope && reflection.scope.arity != 0
+                # For instance dependent scopes, the scope is potentially
+                # different for each record. To allow this we'll group each
+                # object separately into its own preloader
+                reflection_scope = reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass, record).inject(&:merge!)
+              end
+
+              [klass, reflection_scope]
+            end.map do |(rhs_klass, reflection_scope), rs|
+              preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
+            end
           end
         })
       end if ActiveRecord.version >= Gem::Version.new(7.0)
