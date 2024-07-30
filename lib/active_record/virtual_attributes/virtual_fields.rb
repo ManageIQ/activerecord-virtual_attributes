@@ -270,9 +270,8 @@ module ActiveRecord
         end
       end
 
-      # from ActiveRecord::QueryMethods (rails 5.2 - 6.0)
-      # TODO: remove from rails 7.0
-      def arel_column(field, &block)
+      # from ActiveRecord::QueryMethods (rails 5.2 - 7.0)
+      def arel_column(field)
         if virtual_attribute?(field) && (arel = table[field])
           arel
         else
