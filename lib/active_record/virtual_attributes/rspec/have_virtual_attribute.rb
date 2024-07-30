@@ -1,4 +1,4 @@
-RSpec::Matchers.define :have_virtual_attribute do |name, type|
+RSpec::Matchers.define(:have_virtual_attribute) do |name, type|
   match do |klass|
     expect(klass.has_attribute?(name)).to be_truthy
     expect(klass.virtual_attribute?(name)).to be_truthy

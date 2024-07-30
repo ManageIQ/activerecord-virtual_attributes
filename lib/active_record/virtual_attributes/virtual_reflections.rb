@@ -17,7 +17,7 @@ module ActiveRecord
         end
 
         def virtual_has_many(name, options = {})
-          define_method("#{name.to_s.singularize}_ids") do
+          define_method(:"#{name.to_s.singularize}_ids") do
             records = send(name)
             records.respond_to?(:ids) ? records.ids : records.collect(&:id)
           end
@@ -57,11 +57,11 @@ module ActiveRecord
         end
 
         def follow_associations(association_names)
-          association_names.inject(self) { |klass, name| klass.try!(:reflect_on_association, name).try!(:klass) }
+          association_names.inject(self) { |klass, name| klass&.reflect_on_association(name)&.klass }
         end
 
         def follow_associations_with_virtual(association_names)
-          association_names.inject(self) { |klass, name| klass.try!(:reflection_with_virtual, name).try!(:klass) }
+          association_names.inject(self) { |klass, name| klass&.reflection_with_virtual(name)&.klass }
         end
 
         # invalid associations return a nil
@@ -97,6 +97,7 @@ module ActiveRecord
 
         def add_virtual_reflection(reflection, name, uses, _options)
           raise ArgumentError, "macro must be specified" unless reflection
+
           reset_virtual_reflection_information
           _virtual_reflections[name.to_sym] = reflection
           define_virtual_include(name.to_s, uses)

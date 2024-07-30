@@ -352,7 +352,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
     it "falls back to default when virtual association is not written correctly in ruby" do
       a = model_with_children(0)
-      # note: this is breaking the return to return nil. (it should return [] / none)
+      # NOTE: this is intentionally breaking the return to return nil. (it should return [] / none)
       # some of our associations (virtual) are broken.
       expect(a).to receive(:named_books).and_return(nil)
 

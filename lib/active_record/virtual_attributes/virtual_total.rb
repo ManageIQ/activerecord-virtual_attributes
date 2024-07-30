@@ -72,7 +72,7 @@ module VirtualAttributes
           if has_attribute?(name)
             self[name] || 0
           elsif (rel = send(relation)).loaded?
-            values = rel.map { |t| t.send(column) }.compact
+            values = rel.filter_map { |t| t.send(column) }
             if block_given?
               yield values
             else

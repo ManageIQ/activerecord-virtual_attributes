@@ -21,10 +21,8 @@ RSpec.shared_context 'with test_class', :with_test_class do
 
     ActiveRecord::Schema.define do
       # rails method - can't do anything about this name
-      # rubocop:disable Naming/AccessorMethodName
       def self.set_pk_sequence!(*)
       end
-      # rubocop:enable Naming/AccessorMethodName
 
       self.verbose = false
 
