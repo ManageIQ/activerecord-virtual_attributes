@@ -83,14 +83,6 @@ module ActiveRecord
         end
       end
 
-      def attributes_builder # :nodoc:
-        unless defined?(@attributes_builder) && @attributes_builder
-          defaults = _default_attributes.except(*(column_names - [primary_key]))
-          @attributes_builder = ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
-        end
-        @attributes_builder
-      end
-
       private
 
       def load_schema!
