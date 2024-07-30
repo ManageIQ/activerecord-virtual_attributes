@@ -33,18 +33,20 @@ module ActiveRecord
         end
 
         def replace_virtual_fields(associations)
-          return associations if associations.blank?
+          return nil if associations.blank?
 
-          case associations
-          when String, Symbol
-            virtual_field?(associations) ? replace_virtual_fields(virtual_includes(associations)) : associations.to_sym
-          when Array
-            associations.collect { |association| replace_virtual_fields(association) }.compact
-          when Hash
-            replace_virtual_field_hash(associations)
-          else
-            associations
-          end
+          ret =
+            case associations
+            when String, Symbol
+              virtual_field?(associations) ? replace_virtual_fields(virtual_includes(associations)) : associations.to_sym
+            when Array
+              associations.filter_map { |association| replace_virtual_fields(association) }
+            when Hash
+              replace_virtual_field_hash(associations)
+            else
+              associations
+            end
+          simplify_includes(ret)
         end
 
         def replace_virtual_field_hash(associations)
@@ -96,6 +98,18 @@ module ActiveRecord
           hash1.deep_merge!(include_to_hash(hash2)) do |_k, v1, v2|
             # this block is conflict resolution when a key has 2 values
             merge_includes(include_to_hash(v1), v2)
+          end
+        end
+
+        # @param [Hash|Array|Symbol|nil]
+        def simplify_includes(ret)
+          case ret
+          when Hash
+            ret.size <= 1 && ret.values.first.blank? ? ret.keys.first : ret
+          when Array
+            ret.size <= 1 ? ret.first : ret
+          else
+            ret
           end
         end
       end
@@ -267,7 +281,7 @@ module ActiveRecord
       end
 
       def construct_join_dependency(associations, join_type) # :nodoc:
-        associations = klass.replace_virtual_fields(associations)
+        associations = klass.replace_virtual_fields(associations) || {}
         super
       end
     })

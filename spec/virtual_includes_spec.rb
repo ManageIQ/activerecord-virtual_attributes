@@ -524,17 +524,17 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.replace_virtual_fields([:book_with_most_bookmarks, :books])).to eq([{:books => :bookmarks}, :books])
       expect(Author.replace_virtual_fields(["book_with_most_bookmarks", "books"])).to eq([{:books => :bookmarks}, :books])
       expect(Author.replace_virtual_fields([{:book_with_most_bookmarks => {}}, :books])).to eq([{:books => :bookmarks}, :books])
-      expect(Author.replace_virtual_fields([{:book_with_most_bookmarks => {}}, {:books => {}}])).to eq([{:books => :bookmarks}, {:books => {}}])
+      expect(Author.replace_virtual_fields([{:book_with_most_bookmarks => {}}, {:books => {}}])).to eq([{:books => :bookmarks}, :books])
     end
 
     it "handles hash form of delegates" do
-      expect(Book.replace_virtual_fields([{:author_name => {}}, {:author_name2 => {}}])).to eq([{:author => {}}, {:author => {}}])
+      expect(Book.replace_virtual_fields([{:author_name => {}}, {:author_name2 => {}}])).to eq([:author, :author])
     end
 
     it "handles non-'includes' virtual_attributes" do
       expect(Author.replace_virtual_fields(:nick_or_name)).to eq(nil)
-      expect(Author.replace_virtual_fields([:nick_or_name])).to eq([])
-      expect(Author.replace_virtual_fields(:nick_or_name => {})).to eq({})
+      expect(Author.replace_virtual_fields([:nick_or_name])).to eq(nil)
+      expect(Author.replace_virtual_fields(:nick_or_name => {})).to eq(nil)
     end
 
     it "handles deep includes with va indirect uses(:uses => :books => :bookmarks)" do
@@ -543,7 +543,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
     it "handles arrays" do
       value = Author.includes(:named_books).includes_values
-      expect(Author.replace_virtual_fields(value)).to eq([[:books]])
+      expect(Author.replace_virtual_fields(value)).to eq(:books)
     end
   end
 
