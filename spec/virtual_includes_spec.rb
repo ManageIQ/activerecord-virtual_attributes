@@ -546,13 +546,8 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   end
 
   def preloaded(records, associations, preload_scope = nil)
-    if ActiveRecord::Associations::Preloader.instance_methods.include?(:preload)
-      preloader = ActiveRecord::Associations::Preloader.new
-      preloader.preload(records, associations, preload_scope)
-    else
-      # Rails 7+ interface, see rails commit: e3b9779cb701c63012bc1af007c71dc5a888d35a
-      ActiveRecord::Associations::Preloader.new(records: records, associations: associations, scope: preload_scope).call
-    end
+    # Rails 7+ interface, see rails commit: e3b9779cb701c63012bc1af007c71dc5a888d35a
+    ActiveRecord::Associations::Preloader.new(:records => records, :associations => associations, :scope => preload_scope).call
     records
   end
 end

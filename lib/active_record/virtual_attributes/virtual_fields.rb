@@ -124,20 +124,12 @@ rescue NameError => err
   raise NameError, msg
 end
 
-if ActiveRecord.version >= Gem::Version.new(7.0) # Rails 7.0 expected methods to patch
-  %w[
-    grouped_records
-  ].each { |method| assert_klass_has_instance_method(ActiveRecord::Associations::Preloader::Branch, method) }
-elsif ActiveRecord.version >= Gem::Version.new(6.1) # Rails 6.1 methods to patch
-  %w[
-    preloaders_for_reflection
-    preloaders_for_hash
-    preloaders_for_one
-    grouped_records
-  ].each { |method| assert_klass_has_instance_method(ActiveRecord::Associations::Preloader, method) }
-end
+# Expect these methods to exist. (Otherwise we are patching the wrong methods)
+%w[
+  grouped_records
+  preloaders_for_reflection
+].each { |method| assert_klass_has_instance_method(ActiveRecord::Associations::Preloader::Branch, method) }
 
-# Expected methods to patch on any version
 %w[
   build_select
   arel_column
@@ -215,7 +207,7 @@ module ActiveRecord
             end
           end
         })
-      end if ActiveRecord.version >= Gem::Version.new(7.0)
+      end
     end
   end
 
