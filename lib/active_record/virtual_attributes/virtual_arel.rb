@@ -111,6 +111,8 @@ module ActiveRecord
   end
 end
 
+# fixed in https://github.com/rails/rails/pull/45642
+if ActiveRecord.version < Gem::Version.new(7.1)
 module Arel # :nodoc: all
   # rubocop:disable Naming/MethodName
   # rubocop:disable Naming/MethodParameterName
@@ -149,4 +151,5 @@ module Arel # :nodoc: all
   # rubocop:enable Naming/MethodName
   # rubocop:enable Naming/MethodParameterName
   # rubocop:enable Style/ConditionalAssignment
+end
 end
