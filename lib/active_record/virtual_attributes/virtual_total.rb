@@ -49,35 +49,6 @@ module VirtualAttributes
         define_virtual_aggregate_method(name, relation, column, :average) { |values| values.count == 0 ? 0 : values.sum / values.count }
       end
 
-      #  @param method_name
-      #    :count :average :minimum :maximum :sum
-      #
-      #  example:
-      #
-      #    class Hardware
-      #      has_many :disks
-      #      virtual_sum :allocated_disk_storage, :disks, :size
-      #    end
-      #
-      #    generates:
-      #
-      #    def allocated_disk_storage
-      #      if disks.loaded?
-      #        disks.map(&:size).compact.sum
-      #      else
-      #        disks.sum(:size) || 0
-      #      end
-      #    end
-      #
-      #    virtual_attribute :allocated_disk_storage, :integer, :uses => :disks, :arel => ...
-      #
-      #    # arel => (SELECT sum("disks"."size") where "hardware"."id" = "disks"."hardware_id")
-
-      def virtual_aggregate(name, relation, method_name = :sum, column = nil, options = {})
-        return virtual_total(name, relation, options) if method_name == :size
-        return virtual_sum(name, relation, column, options) if method_name == :sum
-      end
-
       def define_virtual_aggregate_attribute(name, relation, method_name, column, options)
         reflection = reflect_on_association(relation)
 
