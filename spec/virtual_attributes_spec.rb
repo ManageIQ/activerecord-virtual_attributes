@@ -556,7 +556,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
       before do
         # OperatingSystem (child)
-        class TestOtherClass < ActiveRecord::Base
+        class TestOtherClass < ActiveRecord::Base # rubocop:disable Rails/ApplicationRecord
           def self.connection
             TestClassBase.connection
           end

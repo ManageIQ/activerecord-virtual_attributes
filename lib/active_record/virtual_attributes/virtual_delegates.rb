@@ -74,12 +74,13 @@ module ActiveRecord
           type = options[:type] || to_ref.klass.type_for_attribute(col)
           type = ActiveRecord::Type.lookup(type) if type.kind_of?(Symbol)
           raise "unknown attribute #{to}##{col} referenced in #{name}" unless type
+
           arel = virtual_delegate_arel(col, to_ref)
           define_virtual_attribute(method_name, type, :uses => (options[:uses] || to), :arel => arel)
         end
 
         # see activesupport module/delegation.rb
-        def define_delegate(method_name, method, to: nil, allow_nil: nil, default: nil)
+        def define_delegate(method_name, method, to: nil, allow_nil: nil, default: nil) # rubocop:disable Naming/MethodParameterName
           location = caller_locations(2, 1).first
           file, line = location.path, location.lineno
 
@@ -125,7 +126,7 @@ module ActiveRecord
           module_eval(method_def, file, line)
         end
 
-        def virtual_delegate_name_prefix(prefix, to)
+        def virtual_delegate_name_prefix(prefix, to) # rubocop:disable Naming/MethodParameterName
           "#{prefix == true ? to : prefix}_" if prefix
         end
 

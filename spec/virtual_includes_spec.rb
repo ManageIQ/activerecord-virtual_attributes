@@ -224,7 +224,10 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   it "preloads virtual_attribute in :include when :conditions are also present in calculations" do
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.name = '#{author_name}'")).to preload_values(:author_name, author_name)
     expect(Book.includes([:author_name, :author]).references(:author).where(:authors => {:name => author_name})).to preload_values(:author_name, author_name)
+    # Disable Rails/WhereNot because we are testing this specific use case
+    # rubocop:disable Rails/WhereNot
     expect(Book.includes([:author_name, :author]).references(:author).where("authors.id IS NOT NULL")).to preload_values(:author_name, author_name)
+    # rubocop:enable Rails/WhereNot
     expect(Book.includes([:author_name, :author]).references(:author).where.not(:authors => {:id => nil})).to preload_values(:author_name, author_name)
   end
 
@@ -290,13 +293,13 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
     it "preloads through association" do
       books = preloaded(Book.all.to_a, :author => :total_books)
-      expect { books.map(&:author).map(&:total_books) }.to_not make_database_queries
+      expect { books.map { |book| book.author.total_books } }.to_not make_database_queries
     end
 
     it "doesn't preloads through polymorphic" do ##
       # not sure what is expected to happen for preloading a column (that is not standard rails) use select instead
       a = preloaded(Book.all.to_a, :author_or_bookmark => :total_books)
-      expect { a.map(&:author_or_bookmark).map(&:total_books) }.to_not make_database_queries
+      expect { a.map { |book| book.author_or_bookmark.total_books } }.to_not make_database_queries
     end
 
     it "uses included associations" do
