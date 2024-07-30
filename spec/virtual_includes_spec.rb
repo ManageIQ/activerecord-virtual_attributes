@@ -540,6 +540,11 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "handles deep includes with va indirect uses(:uses => :books => :bookmarks)" do
       expect(Author.replace_virtual_fields(:famous_co_authors => {})).to eq({:books => {:bookmarks => {}, :co_authors => {}}})
     end
+
+    it "handles arrays" do
+      value = Author.includes(:named_books).includes_values
+      expect(Author.replace_virtual_fields(value)).to eq([[:books]])
+    end
   end
 
   def preloaded(records, associations, preload_scope = nil)
