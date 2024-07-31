@@ -793,6 +793,18 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
   end
 
+  describe ".pluck" do
+    it "supports virtual attributes" do
+      Author.create(:name => "abc")
+      expect(Author.pluck(:nick_or_name).first).to eq("abc")
+    end
+
+    it "supports virtual attributes with non grouping return" do
+      Author.create(:name => "abc")
+      expect(Author.pluck(:name_no_group).first).to eq("abc")
+    end
+  end
+
   describe ".where" do
     it "supports virtual attributes hash syntax a" do
       author = Author.create(:name => "name")
