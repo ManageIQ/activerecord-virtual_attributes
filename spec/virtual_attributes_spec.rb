@@ -127,10 +127,10 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
         it ".replace_virtual_fields" do
           expect(TestClass.replace_virtual_fields(:vcol1)).to be_nil
           expect(TestClass.replace_virtual_fields(:ref1)).to eq(:ref1)
-          expect(TestClass.replace_virtual_fields([:vcol1])).to eq([])
-          expect(TestClass.replace_virtual_fields([:vcol1, :ref1])).to eq([:ref1])
-          expect(TestClass.replace_virtual_fields(:vcol1 => {})).to eq({})
-          expect(TestClass.replace_virtual_fields(:vcol1 => {}, :ref1 => {})).to eq(:ref1 => {})
+          expect(TestClass.replace_virtual_fields([:vcol1].freeze)).to be_nil
+          expect(TestClass.replace_virtual_fields([:vcol1, :ref1].freeze)).to eq(:ref1)
+          expect(TestClass.replace_virtual_fields({:vcol1 => {}}.freeze)).to be_nil
+          expect(TestClass.replace_virtual_fields({:vcol1 => {}, :ref1 => {}}.freeze)).to eq(:ref1)
         end
       end
     end
@@ -158,15 +158,15 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
         end
 
         it ".replace_virtual_fields" do
-          expect(test_sub_class.replace_virtual_fields(:vcol1)).to             be_nil
-          expect(test_sub_class.replace_virtual_fields(:vcolsub1)).to          be_nil
+          expect(test_sub_class.replace_virtual_fields(:vcol1)).to be_nil
+          expect(test_sub_class.replace_virtual_fields(:vcolsub1)).to be_nil
           expect(test_sub_class.replace_virtual_fields(:ref1)).to eq(:ref1)
-          expect(test_sub_class.replace_virtual_fields([:vcol1])).to eq([])
-          expect(test_sub_class.replace_virtual_fields([:vcolsub1])).to eq([])
-          expect(test_sub_class.replace_virtual_fields([:vcolsub1, :vcol1, :ref1])).to eq([:ref1])
-          expect(test_sub_class.replace_virtual_fields(:vcol1    => {})).to eq({})
-          expect(test_sub_class.replace_virtual_fields(:vcolsub1 => {})).to eq({})
-          expect(test_sub_class.replace_virtual_fields(:vcolsub1 => {}, :vcol1 => {}, :ref1 => {})).to eq(:ref1 => {})
+          expect(test_sub_class.replace_virtual_fields([:vcol1].freeze)).to be_nil
+          expect(test_sub_class.replace_virtual_fields([:vcolsub1].freeze)).to be_nil
+          expect(test_sub_class.replace_virtual_fields([:vcolsub1, :vcol1, :ref1].freeze)).to eq(:ref1)
+          expect(test_sub_class.replace_virtual_fields({:vcol1    => {}}.freeze)).to be_nil
+          expect(test_sub_class.replace_virtual_fields({:vcolsub1 => {}}.freeze)).to be_nil
+          expect(test_sub_class.replace_virtual_fields({:vcolsub1 => {}, :vcol1 => {}, :ref1 => {}}.freeze)).to eq(:ref1)
         end
       end
     end
@@ -341,10 +341,10 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
         it ".replace_virtual_fields" do
           expect(TestClass.replace_virtual_fields(:vref1)).to be_nil
           expect(TestClass.replace_virtual_fields(:ref1)).to eq(:ref1)
-          expect(TestClass.replace_virtual_fields([:vref1])).to eq([])
-          expect(TestClass.replace_virtual_fields([:vref1, :ref1])).to eq([:ref1])
-          expect(TestClass.replace_virtual_fields(:vref1 => {})).to eq({})
-          expect(TestClass.replace_virtual_fields(:vref1 => {}, :ref1 => {})).to eq(:ref1 => {})
+          expect(TestClass.replace_virtual_fields([:vref1].freeze)).to be_nil
+          expect(TestClass.replace_virtual_fields([:vref1, :ref1].freeze)).to eq(:ref1)
+          expect(TestClass.replace_virtual_fields({:vref1 => {}}.freeze)).to be_nil
+          expect(TestClass.replace_virtual_fields({:vref1 => {}, :ref1 => {}}.freeze)).to eq(:ref1)
         end
       end
     end
@@ -377,12 +377,12 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
           expect(test_sub_class.replace_virtual_fields(:vref1)).to be_nil
           expect(test_sub_class.replace_virtual_fields(:vrefsub1)).to be_nil
           expect(test_sub_class.replace_virtual_fields(:ref1)).to eq(:ref1)
-          expect(test_sub_class.replace_virtual_fields([:vref1])).to eq([])
-          expect(test_sub_class.replace_virtual_fields([:vrefsub1])).to eq([])
-          expect(test_sub_class.replace_virtual_fields([:vrefsub1, :vref1, :ref1])).to eq([:ref1])
-          expect(test_sub_class.replace_virtual_fields(:vref1 => {})).to eq({})
-          expect(test_sub_class.replace_virtual_fields(:vrefsub1 => {})).to eq({})
-          expect(test_sub_class.replace_virtual_fields(:vrefsub1 => {}, :vref1 => {}, :ref1 => {})).to eq(:ref1 => {})
+          expect(test_sub_class.replace_virtual_fields([:vref1].freeze)).to be_nil
+          expect(test_sub_class.replace_virtual_fields([:vrefsub1].freeze)).to be_nil
+          expect(test_sub_class.replace_virtual_fields([:vrefsub1, :vref1, :ref1].freeze)).to eq(:ref1)
+          expect(test_sub_class.replace_virtual_fields({:vref1 => {}}.freeze)).to be_nil
+          expect(test_sub_class.replace_virtual_fields({:vrefsub1 => {}}.freeze)).to be_nil
+          expect(test_sub_class.replace_virtual_fields({:vrefsub1 => {}, :vref1 => {}, :ref1 => {}}.freeze)).to eq(:ref1)
         end
       end
     end
