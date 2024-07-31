@@ -10,8 +10,13 @@ module ActiveRecord
     # Model.select(Model.arel_table.grouping(Model.arel_table[:field2]).as(:field))
     # Model.attribute_supported_by_sql?(:field) # => true
 
-    # in essence, this is our Arel::Nodes::VirtualAttribute
-    class Arel::Nodes::Grouping
+    class VirtualAttribute < Arel::Nodes::Grouping
+      def initialize(arel, name = nil, relation = nil)
+        super(arel)
+        @name = name
+        @relation = relation
+      end
+
       attr_accessor :name, :relation
 
       # methods from Arel::Nodes::Attribute
@@ -95,10 +100,12 @@ module ActiveRecord
           return unless arel_lambda
 
           arel = arel_lambda.call(table)
-          arel = Arel::Nodes::Grouping.new(arel) unless arel.kind_of?(Arel::Nodes::Grouping)
-          arel.name = column_name
-          arel.relation = table
-          arel
+          # By convention, all attributes are defined with a grouping.
+          # Since we're adding a VirtualAttribute node, which is essentially a
+          # grouping, there is no need to keep both and end up with double parens
+          arel = arel.expr if arel.kind_of?(Arel::Nodes::Grouping)
+
+          VirtualAttribute.new(arel, column_name, table)
         end
 
         private
