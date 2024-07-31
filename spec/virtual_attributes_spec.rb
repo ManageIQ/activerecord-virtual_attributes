@@ -793,6 +793,18 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
   end
 
+  describe ".pluck" do
+    it "supports virtual attributes" do
+      Author.create(:name => "abc")
+      expect(Author.pluck(:nick_or_name).first).to eq("abc")
+    end
+
+    it "supports virtual attributes with non grouping return" do
+      Author.create(:name => "abc")
+      expect(Author.pluck(:name_no_group).first).to eq("abc")
+    end
+  end
+
   describe ".where" do
     it "supports virtual attributes hash syntax a" do
       author = Author.create(:name => "name")
@@ -854,6 +866,15 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     it "orders by virtual attributes inline arel" do
       desc_node = Arel::Nodes::Descending.new(Author.arel_table[:nick_or_name])
       expect(Author.order(desc_node)).to eq(authors.reverse)
+    end
+
+    it "distinct orders by has_one with an order clause" do
+      Author.all.order(:id).each_with_index do |author, i|
+        author.photos.create(:description => "photo#{i}") # ignored photo
+        author.photos.create(:description => "photo#{5-i}") # reverse order
+      end
+
+      expect(Author.select(Arel.star, :current_photo_description).distinct.order(:current_photo_description)).to eq(authors.reverse)
     end
   end
 
