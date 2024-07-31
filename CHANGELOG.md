@@ -4,6 +4,19 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 
 ## [Unreleased]
 
+## [7.0.0] - 2024-08-01
+
+* Use Arel.literal [#154](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/154)
+* drop attribute_builder [#153](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/153)
+* dropped virtual_aggregate [#152](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/152)
+* resolve rubocops (also fix bin/console) [#151](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/151)
+* Rails 7.0 support / dropping 6.1 [#150](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/150)
+* condense includes produced by replace_virtual_fields [#149](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/149)
+* fix bin/console [#148](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/148)
+* Rails 7.0 support pt1 [#146](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/146)
+* Fix sqlite3 v2 and rails [#140](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/140)
+* Use custom Arel node [#114](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/114)
+
 ## [6.1.2] - 2023-10-26
 
 * Fix bind variables for joins with static strings [#124](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/124)
@@ -93,7 +106,8 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.2...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.0.0...HEAD
+[7.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.2...v7.0.0
 [6.1.2]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.1...v6.1.2
 [6.1.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.0...v6.1.1
 [6.1.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v3.0.0...v6.1.0

@@ -124,20 +124,12 @@ rescue NameError => err
   raise NameError, msg
 end
 
-if ActiveRecord.version >= Gem::Version.new(7.0) # Rails 7.0 expected methods to patch
-  %w[
-    grouped_records
-  ].each { |method| assert_klass_has_instance_method(ActiveRecord::Associations::Preloader::Branch, method) }
-elsif ActiveRecord.version >= Gem::Version.new(6.1) # Rails 6.1 methods to patch
-  %w[
-    preloaders_for_reflection
-    preloaders_for_hash
-    preloaders_for_one
-    grouped_records
-  ].each { |method| assert_klass_has_instance_method(ActiveRecord::Associations::Preloader, method) }
-end
+# Expect these methods to exist. (Otherwise we are patching the wrong methods)
+%w[
+  grouped_records
+  preloaders_for_reflection
+].each { |method| assert_klass_has_instance_method(ActiveRecord::Associations::Preloader::Branch, method) }
 
-# Expected methods to patch on any version
 %w[
   build_select
   arel_column
@@ -152,102 +144,70 @@ module ActiveRecord
   module Associations
     class Preloader
       prepend(Module.new {
-        # preloader.rb active record 6.0
-        # changed:
-        # since grouped_records can return a hash/array, we need to handle those 2 new cases
-        def preloaders_for_reflection(reflection, records, scope, polymorphic_parent)
-          case reflection
-          when Array
-            reflection.flat_map { |ref| preloaders_on(ref, records, scope, polymorphic_parent) }
-          when Hash
-            preloaders_on(reflection, records, scope, polymorphic_parent)
-          else
-            super(reflection, records, scope)
+        # preloader is called with virtual attributes - need to resolve
+        def call
+          # Possibly overkill since all records probably have the same class and associations
+          # use a cache so we only convert includes once per base class
+          assoc_cache = Hash.new { |h, klass| h[klass] = klass.replace_virtual_fields(associations) }
+
+          # convert the includes with virtual attributes to includes with proper associations
+          records_by_assoc = records.group_by { |rec| assoc_cache[rec.class] }
+          # if these are the same includes, then do the preloader work
+          return super if records_by_assoc.size == 1 && records_by_assoc.keys.first == associations
+
+          # for each of the associations, run a preloader
+          records_by_assoc.each do |klass_associations, klass_records|
+            next if klass_associations.blank?
+
+            Array[klass_associations].each do |klass_association| # rubocop:disable Style/RedundantArrayConstructor
+              # this calls back into itself, but it will take the short circuit
+              Preloader.new(:records => klass_records, :associations => klass_association, :scope => scope).call
+            end
           end
         end
-
-        # rubocop:disable Style/BlockDelimiters, Lint/AmbiguousBlockAssociation, Style/MethodCallWithArgsParentheses
-        # preloader.rb active record 6.0
-        # changed:
-        # passing polymorphic around (and makes 5.2 more similar to 6.0)
-        def preloaders_for_hash(association, records, scope, polymorphic_parent)
-          association.flat_map { |parent, child|
-            grouped_records(parent, records, polymorphic_parent).flat_map do |reflection, reflection_records|
-              loaders = preloaders_for_reflection(reflection, reflection_records, scope, polymorphic_parent)
-              recs = loaders.flat_map(&:preloaded_records).uniq
-              child_polymorphic_parent = reflection && reflection.respond_to?(:options) && reflection.options[:polymorphic]
-              loaders.concat Array.wrap(child).flat_map { |assoc|
-                preloaders_on assoc, recs, scope, child_polymorphic_parent
-              }
-              loaders
-            end
-          }
-        end
-
-        # preloader.rb active record 6.0
-        # changed:
-        # passing polymorphic_parent to preloaders_for_reflection
-        def preloaders_for_one(association, records, scope, polymorphic_parent)
-          grouped_records(association, records, polymorphic_parent)
-            .flat_map do |reflection, reflection_records|
-              preloaders_for_reflection(reflection, reflection_records, scope, polymorphic_parent)
-            end
-        end
-
-        # preloader.rb active record 6.0, 6.1
-        def grouped_records(orig_association, records, polymorphic_parent)
-          h = {}
-          records.each do |record|
-            # The virtual_field lookup can return Symbol/Nil/Other (typically a Hash)
-            #   so the case statement and the cases for Nil/Other are new
-
-            # each class can resolve virtual_{attributes,includes} differently
-            association = record.class.replace_virtual_fields(orig_association)
-            # 1 line optimization for single element array:
-            association = association.first if association.kind_of?(Array) && association.size == 1
-
-            case association
-            when Symbol, String
-              reflection = record.class._reflect_on_association(association)
-              next if polymorphic_parent && !reflection || !record.association(association).klass
-            when nil
-              next
-            else # need parent (preloaders_for_{hash,one}) to handle this Array/Hash
-              reflection = association
-            end
-            (h[reflection] ||= []) << record
-          end
-          h
-        end
-        # rubocop:enable Style/BlockDelimiters, Lint/AmbiguousBlockAssociation, Style/MethodCallWithArgsParentheses
       })
+
       class Branch
         prepend(Module.new {
+          # from branched.rb 7.0
           def grouped_records
             h = {}
             polymorphic_parent = !root? && parent.polymorphic?
             source_records.each do |record|
-              # each class can resolve virtual_{attributes,includes} differently
-              @association = record.class.replace_virtual_fields(association)
+              # begin virtual_attributes changes
+              association = record.class.replace_virtual_fields(self.association)
+              # end virtual_attributes changes
 
-              # 1 line optimization for single element array:
-              @association = association.first if association.kind_of?(Array) # && association.size == 1
-
-              case association
-              when Symbol, String
-                reflection = record.class._reflect_on_association(association)
-                next if polymorphic_parent && !reflection || !record.association(association).klass
-              when nil
-                next
-              else # need parent (preloaders_for_{hash,one}) to handle this Array/Hash
-                reflection = association
-              end
+              reflection = record.class._reflect_on_association(association)
+              next if polymorphic_parent && !reflection || !record.association(association).klass
               (h[reflection] ||= []) << record
             end
             h
           end
+
+          # branched.rb 7.0
+          def preloaders_for_reflection(reflection, reflection_records)
+            reflection_records.group_by do |record|
+              # begin virtual_attributes changes
+              needed_association = record.class.replace_virtual_fields(association)
+              # end virtual_attributes changes
+
+              klass = record.association(needed_association).klass
+
+              if reflection.scope && reflection.scope.arity != 0
+                # For instance dependent scopes, the scope is potentially
+                # different for each record. To allow this we'll group each
+                # object separately into its own preloader
+                reflection_scope = reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass, record).inject(&:merge!)
+              end
+
+              [klass, reflection_scope]
+            end.map do |(rhs_klass, reflection_scope), rs|
+              preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
+            end
+          end
         })
-      end if ActiveRecord.version >= Gem::Version.new(7.0)
+      end
     end
   end
 
@@ -270,9 +230,8 @@ module ActiveRecord
         end
       end
 
-      # from ActiveRecord::QueryMethods (rails 5.2 - 6.0)
-      # TODO: remove from rails 7.0
-      def arel_column(field, &block)
+      # from ActiveRecord::QueryMethods (rails 5.2 - 7.0)
+      def arel_column(field)
         if virtual_attribute?(field) && (arel = table[field])
           arel
         else
