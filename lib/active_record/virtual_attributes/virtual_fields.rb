@@ -159,7 +159,7 @@ module ActiveRecord
           records_by_assoc.each do |klass_associations, klass_records|
             next if klass_associations.blank?
 
-            Array[klass_associations].each do |klass_association| # rubocop:disable Style/RedundantArrayConstructor
+            Array.wrap(klass_associations).each do |klass_association|
               # this calls back into itself, but it will take the short circuit
               Preloader.new(:records => klass_records, :associations => klass_association, :scope => scope).call
             end
