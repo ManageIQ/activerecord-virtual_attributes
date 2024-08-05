@@ -8,7 +8,11 @@ Dir['./spec/support/**/*.rb'].sort.select { |f| !File.read(f).include?("RSpec") 
 
 # models for local testing
 Database.new.setup.migrate
-require_relative "../seed"
+
+# data for local testing
+Author.create_with_books(3)
+Author.create_with_books(4)
+Author.create_with_books(2)
 
 require "irb"
 IRB.start(__FILE__)
