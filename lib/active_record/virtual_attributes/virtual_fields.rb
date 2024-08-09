@@ -161,7 +161,7 @@ module ActiveRecord
 
             Array.wrap(klass_associations).each do |klass_association|
               # this calls back into itself, but it will take the short circuit
-              Preloader.new(:records => klass_records, :associations => klass_association, :scope => scope).call
+              Preloader.new(:records => klass_records, :associations => klass_association, :scope => scope, :available_records => @available_records, :associate_by_default => @associate_by_default).call
             end
           end
         end
