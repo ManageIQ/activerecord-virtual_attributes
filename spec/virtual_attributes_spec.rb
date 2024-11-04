@@ -691,7 +691,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
   end
 
-  describe "collect_reflections" do
+  describe ".collect_reflections" do
     it "returns base class" do
       expect(Author.collect_reflections([])).to eq([])
     end
@@ -713,7 +713,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
   end
 
-  describe "collect_reflections_with_virtual" do
+  describe ".collect_reflections_with_virtual" do
     it "returns base class" do
       expect(Book.collect_reflections_with_virtual([])).to eq([])
     end
@@ -883,6 +883,14 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     expect(tc.attributes.size).to eq(2)
     tc.save
     expect(tc.attributes.size).to eq(2)
+  end
+
+  describe "#changes" do
+    it "ignores virtual attributes" do
+      Author.create(:name => "name", :nickname => "nick")
+      a = Author.select(:nick_or_name).first
+      expect(a.changed?).to eq(false)
+    end
   end
 
   it "doesn't botch up the attributes with includes.references", :with_test_class do
