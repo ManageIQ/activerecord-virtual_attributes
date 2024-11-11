@@ -1,5 +1,3 @@
-require "ostruct"
-
 RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
   context "TestClass", :with_test_class do
     it "should not have any virtual columns" do
@@ -248,27 +246,31 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
 
     describe "#virtual_has_many" do
       it "use collect for virtual_ids column" do
-        c = Class.new(TestClassBase) do
-          self.table_name = 'test_classes'
-          virtual_has_many(:hosts)
-          def hosts
-            [OpenStruct.new(:id => 5), OpenStruct.new(:id => 6)]
+        c = Class.new(Author) do
+          virtual_has_many :local_books
+
+          def local_books
+            [Book.new(:id => 5), Book.new(:id => 6)]
           end
         end.new
 
-        expect(c.host_ids).to eq([5, 6])
+        expect(c.local_book_ids).to eq([5, 6])
       end
 
       it "use Relation#ids for virtual_ids column" do
-        c = Class.new(TestClassBase) do
-          self.table_name = 'test_classes'
-          virtual_has_many(:hosts)
-          def hosts
-            OpenStruct.new(:ids => [5, 6])
+        c = Class.new(Author) do
+          virtual_has_many(:local_books)
+
+          def local_books
+            Class.new do
+              def ids
+                [5, 6]
+              end
+            end.new
           end
         end.new
 
-        expect(c.host_ids).to eq([5, 6])
+        expect(c.local_book_ids).to eq([5, 6])
       end
     end
 
@@ -402,7 +404,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
         let(:test_sub_class) do
           Class.new(TestClass) do
             def self.reflections
-              super.merge(:ref2 => OpenStruct.new(:name => :ref2, :options => {}, :klass => TestClass))
+              super.merge(:ref2 => ActiveRecord::Reflection::BelongsToReflection.new(:ref2, nil, {}, TestClass))
             end
 
             virtual_has_one :vrefsub1
