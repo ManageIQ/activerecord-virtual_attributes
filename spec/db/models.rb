@@ -5,6 +5,9 @@ class VirtualTotalTestBase < ActiveRecord::Base
 end
 
 class Author < VirtualTotalTestBase
+  # basically a :parent_id relationship
+  belongs_to :teacher, :foreign_key => :teacher_id, :class_name => "Author"
+  has_many :students, :foreign_key => :teacher_id, :class_name => "Author"
   has_many :books
   has_many :ordered_books,   -> { ordered },   :class_name => "Book"
   has_many :published_books, -> { published }, :class_name => "Book"
@@ -36,6 +39,9 @@ class Author < VirtualTotalTestBase
   virtual_sum :sum_recently_published_books_rating, :recently_published_books, :rating
   virtual_delegate :description, :to => :current_photo, :prefix => true, :type => :string
   virtual_delegate :description, :to => :fancy_photo, :prefix => true, :type => :string
+  # delegate to parent relationship
+  virtual_delegate :name, :to => :teacher, :prefix => true, :type => :string
+  virtual_delegate :teacher_name, :to => :teacher, :prefix => true, :type => :string
 
   # This is here to provide a virtual_total of a virtual_has_many that depends upon an array of associations.
   # NOTE: this is tailored to the use case and is not an optimal solution

@@ -4,6 +4,7 @@ ActiveRecord::Schema.define(:version => 0) do
   self.verbose = false
 
   create_table "authors", :force => true do |t|
+    t.integer  "teacher_id", :index => true
     t.string   "name"
     t.string   "nickname"
   end
