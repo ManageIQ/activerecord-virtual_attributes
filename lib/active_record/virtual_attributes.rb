@@ -75,12 +75,22 @@ module ActiveRecord
         )
       end
 
+      def virtual_attribute_alias?(name)
+        return false unless respond_to?(:attribute_alias?)
+
+        attribute_alias?(name) && virtual_attributes_to_define.keys.include?(name)
+      end
+
+      def virtual_attribute_alias_names
+        return [] unless respond_to?(:attribute_alias?)
+
+        virtual_attributes_to_define.keys.select {|name| attribute_alias?(name) }
+      end
+
       def virtual_attribute_names
-        if respond_to?(:column_names)
-          attribute_names - column_names
-        else
-          attribute_names
-        end
+        names = attribute_names | virtual_attribute_alias_names
+        names -= column_names if respond_to?(:column_names)
+        names
       end
 
       private
@@ -101,7 +111,7 @@ module ActiveRecord
       end
 
       def define_virtual_attribute(name, cast_type, uses: nil, arel: nil)
-        attribute_types[name] = cast_type
+        attribute_types[name] = cast_type unless virtual_attribute_alias?(name)
         define_virtual_include(name, uses) if uses
         define_virtual_arel(name, arel) if arel
       end
