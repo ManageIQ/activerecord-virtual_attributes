@@ -272,10 +272,8 @@ module ActiveRecord
         to_table = to_klass.arel_table
         # if a self join, alias the second table to a different name
         if to_table.name == src_relation.name
-          # use a dup to not modify the primary table in the model
-          to_table = to_table.dup
           # use a table alias to not conflict with table name in the primary query
-          to_table.instance_variable_set(:@table_alias, "#{to_table.name}_sub")
+          to_table = to_table.alias("#{to_table.name}_sub")
         end
         to_table
       end
