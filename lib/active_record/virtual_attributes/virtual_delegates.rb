@@ -271,11 +271,9 @@ module ActiveRecord
       def self.select_from_alias_table(to_klass, src_relation)
         to_table = to_klass.arel_table
         # if a self join, alias the second table to a different name
-        if to_table.table_name == src_relation.table_name
-          # use a dup to not modify the primary table in the model
-          to_table = to_table.dup
+        if to_table.name == src_relation.name
           # use a table alias to not conflict with table name in the primary query
-          to_table.table_alias = "#{to_table.table_name}_sub"
+          to_table = to_table.alias("#{to_table.name}_sub")
         end
         to_table
       end
