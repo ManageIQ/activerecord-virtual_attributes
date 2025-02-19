@@ -4,6 +4,11 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 
 ## [Unreleased]
 
+## [7.1.0] - 2025-02-19
+
+* Use TableAlias for table aliasing [#168](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/168)
+* Rails 7.1 support
+
 ## [7.0.0] - 2024-08-01
 
 * Use Arel.literal [#154](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/154)
@@ -106,7 +111,8 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.0.0...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.1.0...HEAD
+[7.1.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.0.0...v7.1.0
 [7.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.2...v7.0.0
 [6.1.2]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.1...v6.1.2
 [6.1.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v6.1.0...v6.1.1
