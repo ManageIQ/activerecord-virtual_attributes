@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-gem "activerecord", "~>7.1.5"
+gem "activerecord", "~>8.0.0"
 gem "mysql2"
 gem "pg"
 gem "sqlite3", "< 2"
