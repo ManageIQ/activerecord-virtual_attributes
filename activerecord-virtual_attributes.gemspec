@@ -35,7 +35,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "database_cleaner-active_record", "~> 2.1"
   spec.add_development_dependency "db-query-matchers"
-  spec.add_development_dependency "manageiq-style", ">= 1.5.3"
+  spec.add_development_dependency "manageiq-style", ">= 1.5.4"
+
   spec.add_development_dependency "mysql2"
   spec.add_development_dependency "pg"
   spec.add_development_dependency "rake", "~> 13.0"
