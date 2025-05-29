@@ -28,9 +28,7 @@ Gem::Specification.new do |spec|
 
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "concurrent-ruby", "< 1.3.5" # Temporary pin down as concurrent-ruby 1.3.5 breaks Rails 7.0, and rails-core doesn't
-                                                   # plan to ship a new 7.0 to fix it. See https://github.com/rails/rails/pull/54264
-  spec.add_runtime_dependency "activerecord", "~> 7.0", ">=7.0.8.7"
+  spec.add_runtime_dependency "activerecord", "~> 7.1", ">=7.1.5.1"
 
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "database_cleaner-active_record", "~> 2.1"
