@@ -1,6 +1,8 @@
 if ENV['CI']
   require 'simplecov'
-  SimpleCov.start
+  SimpleCov.start do
+    add_filter %r{^/spec/}
+  end
 end
 
 $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../lib')
