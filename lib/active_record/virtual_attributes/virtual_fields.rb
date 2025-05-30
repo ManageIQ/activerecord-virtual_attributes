@@ -170,6 +170,8 @@ module ActiveRecord
       class Branch
         prepend(Module.new {
           # from branched.rb 7.0
+          # not going to modify rails code for rubocops
+          # rubocop:disable Lint/AmbiguousOperatorPrecedence
           def grouped_records
             h = {}
             polymorphic_parent = !root? && parent.polymorphic?
@@ -184,6 +186,7 @@ module ActiveRecord
             end
             h
           end
+          # rubocop:enable Lint/AmbiguousOperatorPrecedence
 
           # branched.rb 7.0
           def preloaders_for_reflection(reflection, reflection_records)
