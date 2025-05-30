@@ -10,8 +10,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        class_attribute :virtual_delegates_to_define, :instance_accessor => false
-        self.virtual_delegates_to_define = {}
+        class_attribute :virtual_delegates_to_define, :instance_accessor => false, :default => {}
       end
 
       module ClassMethods

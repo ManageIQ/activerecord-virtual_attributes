@@ -38,8 +38,7 @@ module ActiveRecord
     ActiveRecord::Type.register(:symbol, Type::Symbol)
 
     included do
-      class_attribute :virtual_attributes_to_define, :instance_accessor => false
-      self.virtual_attributes_to_define = {}
+      class_attribute :virtual_attributes_to_define, :instance_accessor => false, :default => {}
     end
 
     module ClassMethods
