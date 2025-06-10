@@ -5,6 +5,6 @@ source "https://rubygems.org"
 gem "activerecord", "~>7.1.5"
 gem "mysql2"
 gem "pg"
-gem "sqlite3", "< 2"
+gem "sqlite3", "< 3"
 
 gemspec
