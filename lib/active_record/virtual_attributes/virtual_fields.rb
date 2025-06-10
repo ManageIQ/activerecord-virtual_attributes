@@ -152,8 +152,12 @@ module ActiveRecord
 
           # convert the includes with virtual attributes to includes with proper associations
           records_by_assoc = records.group_by { |rec| assoc_cache[rec.class] }
-          # if these are the same includes, then do the preloader work
-          return super if records_by_assoc.size == 1 && records_by_assoc.keys.first == associations
+          # If the association were already translated, then short circuit / do the standard preloader work.
+          # When replace_virtual_fields removes the outer array, match that too.
+          if records_by_assoc.size == 1 &&
+            (associations == records_by_assoc.keys.first || associations == [records_by_assoc.keys.first])
+            return super
+          end
 
           # for each of the associations, run a preloader
           records_by_assoc.each do |klass_associations, klass_records|
