@@ -24,6 +24,10 @@ module ActiveRecord
             raise ArgumentError, 'Delegation needs an association. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
           end
 
+          unless options[:type]
+            raise ArgumentError, 'Delegation needs a type. Supply an options hash with a :type.'
+          end
+
           to = to.to_s
           if to.include?(".") && methods.size > 1
             raise ArgumentError, 'Delegation only supports specifying a method name when defining a single virtual method'
@@ -72,7 +76,6 @@ module ActiveRecord
           col = col.to_s
           type = options[:type] || to_ref.klass.type_for_attribute(col)
           type = ActiveRecord::Type.lookup(type) if type.kind_of?(Symbol)
-          raise "unknown attribute #{to}##{col} referenced in #{name}" unless type
 
           arel = virtual_delegate_arel(col, to_ref)
           define_virtual_attribute(method_name, type, :uses => (options[:uses] || to), :arel => arel)
