@@ -18,7 +18,7 @@ module ActiveRecord
         # Definition
         #
 
-        def virtual_delegate(*methods, to:, type:, prefix: nil, allow_nil: nil, default: nil, **options) # rubocop:disable Naming/MethodParameterName
+        def virtual_delegate(*methods, to:, type:, prefix: nil, allow_nil: nil, default: nil, uses: nil, **options) # rubocop:disable Naming/MethodParameterName
           to = to.to_s
           if to.include?(".") && (methods.size > 1 || prefix)
             raise ArgumentError, 'Delegation only supports specifying a target method name when defining a single virtual method with no prefix'
@@ -32,8 +32,13 @@ module ActiveRecord
           # This better supports reloading of the class and changing the definitions
           methods.each do |method|
             method_name, to, method = determine_method_names(method, to, prefix)
-            define_delegate(method_name, method, :to => to, :allow_nil => allow_nil, :default => default)
+            unless (to_ref = reflection_with_virtual(to))
+              raise ArgumentError, "Delegation needs an association. Association #{to} does not exist"
+            end
 
+            define_delegate(method_name, method, :to => to, :allow_nil => allow_nil, :default => default)
+            define_virtual_include(method_name, uses || to)
+            define_virtual_arel(method_name, virtual_delegate_arel(method, to_ref))
             self.virtual_delegates_to_define =
               virtual_delegates_to_define.merge(method_name.to_s => [method, options.merge(:to => to, :type => type)])
           end
@@ -52,16 +57,10 @@ module ActiveRecord
         # @option options :uses [Array|Symbol|Hash] sql includes hash. (default: to)
         # @option options :type [Symbol|ActiveModel::Type::Value] type for the attribute
         def define_virtual_delegate(method_name, col, options)
-          unless (to = options[:to]) && (to_ref = reflection_with_virtual(to.to_s))
-            raise ArgumentError, 'Delegation needs an association. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
-          end
-
-          col = col.to_s
           type = options[:type]
           type = ActiveRecord::Type.lookup(type) if type.kind_of?(Symbol)
 
-          arel = virtual_delegate_arel(col, to_ref)
-          define_virtual_attribute(method_name, type, :uses => (options[:uses] || to), :arel => arel)
+          define_virtual_attribute(method_name, type)
         end
 
         # see activesupport module/delegation.rb
