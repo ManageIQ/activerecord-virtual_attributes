@@ -50,8 +50,14 @@ module ActiveRecord
               options[:to] = to
             end
 
+            unless (to_ref = reflection_with_virtual(to.to_s))
+              raise ArgumentError, "Delegation needs an association. Association #{to} does not exist"
+            end
+
             define_delegate(method_name, method, :to => to, :allow_nil => allow_nil, :default => default)
 
+            define_virtual_include(method_name, options[:uses] || to)
+            define_virtual_arel(method_name, virtual_delegate_arel(method.to_s, to_ref))
             self.virtual_delegates_to_define =
               virtual_delegates_to_define.merge(method_name => [method, options])
           end
@@ -69,16 +75,10 @@ module ActiveRecord
         # @option options :arel [Proc] (optional and not common)
         # @option options :uses [Array|Symbol|Hash] sql includes hash. (default: to)
         def define_virtual_delegate(method_name, col, options)
-          unless (to = options[:to]) && (to_ref = reflection_with_virtual(to.to_s))
-            raise ArgumentError, 'Delegation needs an association. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
-          end
-
-          col = col.to_s
-          type = options[:type] || to_ref.klass.type_for_attribute(col)
+          type = options[:type]
           type = ActiveRecord::Type.lookup(type) if type.kind_of?(Symbol)
 
-          arel = virtual_delegate_arel(col, to_ref)
-          define_virtual_attribute(method_name, type, :uses => (options[:uses] || to), :arel => arel)
+          define_virtual_attribute(method_name, type)
         end
 
         # see activesupport module/delegation.rb

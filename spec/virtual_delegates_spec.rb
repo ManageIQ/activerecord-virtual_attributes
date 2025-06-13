@@ -241,9 +241,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     end
 
     it "catches invalid references" do
-      TestOtherClass.virtual_delegate :col4, :to => :others, :type => :integer
-
-      expect { model.new }.to raise_error(NameError)
+      expect { TestOtherClass.virtual_delegate :col4, :to => :others, :type => :integer }.to raise_error(ArgumentError)
     end
 
     it "catches invalid column" do
