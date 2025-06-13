@@ -98,10 +98,6 @@ module ActiveRecord
 
           define_virtual_attribute(name, type)
         end
-
-        virtual_delegates_to_define.each do |method_name, (method, options)|
-          define_virtual_delegate(method_name, method, options)
-        end
       end
 
       def define_virtual_attribute(name, cast_type)

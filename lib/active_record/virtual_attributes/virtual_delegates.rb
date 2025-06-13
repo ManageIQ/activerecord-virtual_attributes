@@ -9,10 +9,6 @@ module ActiveRecord
     module VirtualDelegates
       extend ActiveSupport::Concern
 
-      included do
-        class_attribute :virtual_delegates_to_define, :instance_accessor => false, :default => {}
-      end
-
       module ClassMethods
         #
         # Definition
@@ -37,31 +33,11 @@ module ActiveRecord
             end
 
             define_delegate(method_name, method, :to => to, :allow_nil => allow_nil, :default => default)
-            define_virtual_include(method_name, uses || to)
-            define_virtual_arel(method_name, virtual_delegate_arel(method, to_ref))
-            self.virtual_delegates_to_define =
-              virtual_delegates_to_define.merge(method_name.to_s => [method, options.merge(:to => to, :type => type)])
+            virtual_attribute(method_name, type, :uses => (uses || to), :arel => virtual_delegate_arel(method, to_ref), **options)
           end
         end
 
         private
-
-        # define virtual_attribute for delegates
-        #
-        # this is called at schema load time (and not at class definition time)
-        #
-        # @param  method_name [Symbol] name of the attribute on the source class to be defined
-        # @param  col [Symbol] name of the attribute on the associated class to be referenced
-        # @option options :to [Symbol] name of the association from the source class to be referenced
-        # @option options :arel [Proc] (optional and not common)
-        # @option options :uses [Array|Symbol|Hash] sql includes hash. (default: to)
-        # @option options :type [Symbol|ActiveModel::Type::Value] type for the attribute
-        def define_virtual_delegate(method_name, col, options)
-          type = options[:type]
-          type = ActiveRecord::Type.lookup(type) if type.kind_of?(Symbol)
-
-          define_virtual_attribute(method_name, type)
-        end
 
         # see activesupport module/delegation.rb
         # rubocop:disable Style/TernaryParentheses
