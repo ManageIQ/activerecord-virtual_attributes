@@ -116,4 +116,4 @@ module VirtualAttributes
   end
 end
 
-ActiveRecord::Base.include VirtualAttributes::VirtualTotal
+ActiveSupport.on_load(:active_record) { include VirtualAttributes::VirtualTotal }

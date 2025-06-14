@@ -6,7 +6,7 @@ end
 
 class Author < VirtualTotalTestBase
   # basically a :parent_id relationship
-  belongs_to :teacher, :foreign_key => :teacher_id, :class_name => "Author"
+  belongs_to :teacher, :class_name => "Author"
   has_many :students, :foreign_key => :teacher_id, :class_name => "Author"
   has_many :books
   has_many :ordered_books,   -> { ordered },   :class_name => "Book"

@@ -9,10 +9,6 @@ module ActiveRecord
     module VirtualDelegates
       extend ActiveSupport::Concern
 
-      included do
-        class_attribute :virtual_delegates_to_define, :instance_accessor => false, :default => {}
-      end
-
       module ClassMethods
         #
         # Definition
@@ -22,6 +18,10 @@ module ActiveRecord
           options = methods.extract_options!
           unless (to = options[:to])
             raise ArgumentError, 'Delegation needs an association. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
+          end
+
+          unless options[:type]
+            raise ArgumentError, 'Delegation needs a type. Supply an options hash with a :type.'
           end
 
           to = to.to_s
@@ -46,39 +46,23 @@ module ActiveRecord
               options[:to] = to
             end
 
+            unless (to_ref = reflection_with_virtual(to.to_s))
+              raise ArgumentError, "Delegation needs an association. Association #{to} does not exist"
+            end
+
             define_delegate(method_name, method, :to => to, :allow_nil => allow_nil, :default => default)
 
-            self.virtual_delegates_to_define =
-              virtual_delegates_to_define.merge(method_name => [method, options])
+            define_virtual_include(method_name, options[:uses] || to)
+            define_virtual_arel(method_name, virtual_delegate_arel(method.to_s, to_ref))
+            self.virtual_attributes_to_define =
+              virtual_attributes_to_define.merge(method_name => [options[:type], {}])
           end
         end
 
         private
 
-        # define virtual_attribute for delegates
-        #
-        # this is called at schema load time (and not at class definition time)
-        #
-        # @param  method_name [Symbol] name of the attribute on the source class to be defined
-        # @param  col [Symbol] name of the attribute on the associated class to be referenced
-        # @option options :to [Symbol] name of the association from the source class to be referenced
-        # @option options :arel [Proc] (optional and not common)
-        # @option options :uses [Array|Symbol|Hash] sql includes hash. (default: to)
-        def define_virtual_delegate(method_name, col, options)
-          unless (to = options[:to]) && (to_ref = reflection_with_virtual(to.to_s))
-            raise ArgumentError, 'Delegation needs an association. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
-          end
-
-          col = col.to_s
-          type = options[:type] || to_ref.klass.type_for_attribute(col)
-          type = ActiveRecord::Type.lookup(type) if type.kind_of?(Symbol)
-          raise "unknown attribute #{to}##{col} referenced in #{name}" unless type
-
-          arel = virtual_delegate_arel(col, to_ref)
-          define_virtual_attribute(method_name, type, :uses => (options[:uses] || to), :arel => arel)
-        end
-
         # see activesupport module/delegation.rb
+        # rubocop:disable Style/TernaryParentheses
         def define_delegate(method_name, method, to: nil, allow_nil: nil, default: nil) # rubocop:disable Naming/MethodParameterName
           location = caller_locations(2, 1).first
           file, line = location.path, location.lineno
@@ -124,6 +108,7 @@ module ActiveRecord
           method_def = method_def.split("\n").map(&:strip).join(';')
           module_eval(method_def, file, line)
         end
+        # rubocop:enable Style/TernaryParentheses
 
         def virtual_delegate_name_prefix(prefix, to) # rubocop:disable Naming/MethodParameterName
           "#{prefix == true ? to : prefix}_" if prefix
