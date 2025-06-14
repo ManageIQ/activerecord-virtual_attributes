@@ -34,7 +34,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     Author.create(:name => "c2", :teacher_id => p.id)
 
     ret = Author.select(:name, :teacher_teacher_name, :teacher_name).order(:id).where(:teacher_id => p.id)
-    expect(ret.map { |c| [c.teacher_teacher_name, c.teacher_name, c.name]}).to eq([["grand", "parent", "c1"],["grand", "parent", "c2"]])
+    expect(ret.map { |c| [c.teacher_teacher_name, c.teacher_name, c.name] }).to eq([["grand", "parent", "c1"], ["grand", "parent", "c2"]])
   end
 
   context "invalid" do

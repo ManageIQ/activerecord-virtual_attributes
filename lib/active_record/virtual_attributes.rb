@@ -86,7 +86,7 @@ module ActiveRecord
       end
 
       def attribute_types
-        @attribute_types || super.tap do | hash|
+        @attribute_types || super.tap do |hash|
           virtual_attributes_to_define.each do |name, (type, options)|
             type = type.call if type.respond_to?(:call)
             type = ActiveRecord::Type.lookup(type, **options.except(:uses, :arel)) if type.kind_of?(Symbol)
