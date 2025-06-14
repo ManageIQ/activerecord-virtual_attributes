@@ -34,7 +34,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     Author.create(:name => "c2", :teacher_id => p.id)
 
     ret = Author.select(:name, :teacher_teacher_name, :teacher_name).order(:id).where(:teacher_id => p.id)
-    expect(ret.map { |c| [c.teacher_teacher_name, c.teacher_name, c.name]}).to eq([["grand", "parent", "c1"],["grand", "parent", "c2"]])
+    expect(ret.map { |c| [c.teacher_teacher_name, c.teacher_name, c.name] }).to eq([["grand", "parent", "c1"], ["grand", "parent", "c2"]])
   end
 
   context "invalid" do
@@ -45,7 +45,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     end
 
     it "expects a ':type' for delegation" do
-      expect(ActiveRecord::VirtualAttributes.deprecator).to receive(:warn).with(/type/, anything())
+      expect(ActiveRecord::VirtualAttributes.deprecator).to receive(:warn).with(/type/, anything)
       TestClass.virtual_delegate :col1, :to => :ref1
       TestClass.new
     end
@@ -146,7 +146,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
   context "with has_one and order (and many records)" do
     before do
       # OperatingSystem (child)
-      class TestOtherClass < ActiveRecord::Base
+      class TestOtherClass < ActiveRecord::Base # rubocop:disable Rails/ApplicationRecord
         def self.connection
           TestClassBase.connection
         end
@@ -176,7 +176,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
 
   context "with relation in foreign table" do
     before do
-      class TestOtherClass < ActiveRecord::Base
+      class TestOtherClass < ActiveRecord::Base # rubocop:disable Rails/ApplicationRecord
         def self.connection
           TestClassBase.connection
         end

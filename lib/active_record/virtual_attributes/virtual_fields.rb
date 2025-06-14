@@ -143,7 +143,7 @@ module ActiveRecord
 
   module Associations
     class Preloader
-      prepend(Module.new {
+      prepend(Module.new do
         # preloader is called with virtual attributes - need to resolve
         def call
           # Possibly overkill since all records probably have the same class and associations
@@ -165,13 +165,14 @@ module ActiveRecord
             end
           end
         end
-      })
+      end)
 
       class Branch
-        prepend(Module.new {
+        prepend(Module.new do
           # from branched.rb 7.0
           # not going to modify rails code for rubocops
           # rubocop:disable Lint/AmbiguousOperatorPrecedence
+          # rubocop:disable Layout/EmptyLineAfterGuardClause
           def grouped_records
             h = {}
             polymorphic_parent = !root? && parent.polymorphic?
@@ -186,6 +187,7 @@ module ActiveRecord
             end
             h
           end
+          # rubocop:enable Layout/EmptyLineAfterGuardClause
           # rubocop:enable Lint/AmbiguousOperatorPrecedence
 
           # branched.rb 7.0
@@ -209,13 +211,13 @@ module ActiveRecord
               preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
             end
           end
-        })
+        end)
       end
     end
   end
 
   class Relation
-    include(Module.new {
+    include(Module.new do
       # From ActiveRecord::QueryMethods (rails 5.2 - 6.1)
       def build_select(arel)
         if select_values.any?
@@ -246,6 +248,6 @@ module ActiveRecord
         associations = klass.replace_virtual_fields(associations) || {}
         super
       end
-    })
+    end)
   end
 end

@@ -5,7 +5,6 @@ module ActiveRecord
       include ActiveRecord::VirtualAttributes::VirtualIncludes
 
       module ClassMethods
-
         #
         # Definition
         #
