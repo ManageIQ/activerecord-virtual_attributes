@@ -85,16 +85,13 @@ module ActiveRecord
         end
       end
 
-      private
-
-      def load_schema!
-        super
-
-        virtual_attributes_to_define.each do |name, (type, options)|
-          type = type.call if type.respond_to?(:call)
-          type = ActiveRecord::Type.lookup(type, **options.except(:uses, :arel)) if type.kind_of?(Symbol)
-
-          define_virtual_attribute(name, type)
+      def attribute_types
+        @attribute_types || super.tap do | hash|
+          virtual_attributes_to_define.each do |name, (type, options)|
+            type = type.call if type.respond_to?(:call)
+            type = ActiveRecord::Type.lookup(type, **options.except(:uses, :arel)) if type.kind_of?(Symbol)
+            hash[name] = type
+          end
         end
       end
 
