@@ -482,7 +482,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       end
 
       it "supports delegates" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
 
         expect(TestClass.attribute_supported_by_sql?(:parent_col1)).to be_truthy
       end
@@ -530,7 +530,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       end
 
       it "supports delegates" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
 
         expect(TestClass.attribute_supported_by_sql?(:parent_col1)).to be_truthy
       end
@@ -598,42 +598,42 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
       let(:parent) { TestClass.create(:col1 => 4) }
 
       it "delegates to child" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
         tc = TestClass.new(:ref1 => parent)
         expect(tc.parent_col1).to eq(4)
       end
 
       it "delegates to nil child" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :type => :integer
         tc = TestClass.new
         expect(tc.parent_col1).to be_nil
       end
 
       it "defines virtual attribute" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
         expect(TestClass.virtual_attribute_names).to include("parent_col1")
       end
 
       it "defines with a new name" do
-        TestClass.virtual_delegate 'funky_name', :to => "ref1.col1"
+        TestClass.virtual_delegate 'funky_name', :to => "ref1.col1", :type => :integer
         tc = TestClass.new(:ref1 => parent)
         expect(tc.funky_name).to eq(4)
       end
 
       it "defaults for to nil child (array)" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => []
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => [], :type => :integer
         tc = TestClass.new
         expect(tc.parent_col1).to eq([])
       end
 
       it "defaults for to nil child (integer)" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => 0
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => 0, :type => :integer
         tc = TestClass.new
         expect(tc.parent_col1).to eq(0)
       end
 
       it "defaults for to nil child (string)" do
-        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => "def"
+        TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :default => "def", :type => :integer
         tc = TestClass.new
         expect(tc.parent_col1).to eq("def")
       end
