@@ -1,6 +1,7 @@
 require "active_support/concern"
 require "active_record"
 
+require "active_record/virtual_attributes/version"
 require "active_record/virtual_attributes/virtual_includes"
 require "active_record/virtual_attributes/virtual_arel"
 require "active_record/virtual_attributes/virtual_delegates"
@@ -36,6 +37,10 @@ module ActiveRecord
     ActiveRecord::Type.register(:numeric_set, Type::NumericSet)
     ActiveRecord::Type.register(:string_set, Type::StringSet)
     ActiveRecord::Type.register(:symbol, Type::Symbol)
+
+    def self.deprecator
+      @deprecator ||= ActiveSupport::Deprecation.new(ActiveRecord::VirtualAttributes::VERSION, "virtual_attributes")
+    end
 
     included do
       class_attribute :virtual_attributes_to_define, :instance_accessor => false, :default => {}
