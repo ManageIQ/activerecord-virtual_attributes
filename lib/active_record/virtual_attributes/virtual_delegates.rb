@@ -18,11 +18,7 @@ module ActiveRecord
         # Definition
         #
 
-        def virtual_delegate(*methods, to:, type: nil, prefix: nil, allow_nil: nil, default: nil, **options) # rubocop:disable Naming/MethodParameterName
-          unless type
-            ActiveRecord::VirtualAttributes.deprecator.warn("Calling virtual_delegate without :type is now deprecated", caller)
-          end
-
+        def virtual_delegate(*methods, to:, type:, prefix: nil, allow_nil: nil, default: nil, **options) # rubocop:disable Naming/MethodParameterName
           to = to.to_s
           if to.include?(".") && (methods.size > 1 || prefix)
             raise ArgumentError, 'Delegation only supports specifying a target method name when defining a single virtual method with no prefix'
@@ -54,15 +50,15 @@ module ActiveRecord
         # @option options :to [Symbol] name of the association from the source class to be referenced
         # @option options :arel [Proc] (optional and not common)
         # @option options :uses [Array|Symbol|Hash] sql includes hash. (default: to)
+        # @option options :type [Symbol|ActiveModel::Type::Value] type for the attribute
         def define_virtual_delegate(method_name, col, options)
           unless (to = options[:to]) && (to_ref = reflection_with_virtual(to.to_s))
             raise ArgumentError, 'Delegation needs an association. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
           end
 
           col = col.to_s
-          type = options[:type] || to_ref.klass.type_for_attribute(col)
+          type = options[:type]
           type = ActiveRecord::Type.lookup(type) if type.kind_of?(Symbol)
-          raise "unknown attribute #{to}##{col} referenced in #{name}" unless type
 
           arel = virtual_delegate_arel(col, to_ref)
           define_virtual_attribute(method_name, type, :uses => (options[:uses] || to), :arel => arel)

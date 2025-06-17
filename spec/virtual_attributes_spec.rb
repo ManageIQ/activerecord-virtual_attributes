@@ -7,8 +7,8 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
 
     context ".virtual_column" do
-      it "with invalid parameters" do
-        expect { TestClass.virtual_column :vcol1 }.to raise_error(ArgumentError)
+      it "expects a :type parameter" do
+        expect { TestClass.virtual_column :vcol1 }.to raise_error(ArgumentError, /missing keyword: :type/)
       end
 
       it "with symbol name" do
