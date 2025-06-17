@@ -83,6 +83,7 @@ module ActiveRecord
         end
 
         # see activesupport module/delegation.rb
+        # rubocop:disable Style/TernaryParentheses
         def define_delegate(method_name, method, to: nil, allow_nil: nil, default: nil) # rubocop:disable Naming/MethodParameterName
           location = caller_locations(2, 1).first
           file, line = location.path, location.lineno
@@ -128,6 +129,7 @@ module ActiveRecord
           method_def = method_def.split("\n").map(&:strip).join(';')
           module_eval(method_def, file, line)
         end
+        # rubocop:enable Style/TernaryParentheses
 
         def virtual_delegate_name_prefix(prefix, to) # rubocop:disable Naming/MethodParameterName
           "#{prefix == true ? to : prefix}_" if prefix

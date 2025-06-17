@@ -871,9 +871,9 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualFields do
     end
 
     it "distinct orders by has_one with an order clause" do
-      Author.all.order(:id).each_with_index do |author, i|
+      Author.order(:id).each_with_index do |author, i|
         author.photos.create(:description => "photo#{i}") # ignored photo
-        author.photos.create(:description => "photo#{5-i}") # reverse order
+        author.photos.create(:description => "photo#{5 - i}") # reverse order
       end
 
       expect(Author.select(Arel.star, :current_photo_description).distinct.order(:current_photo_description)).to eq(authors.reverse)

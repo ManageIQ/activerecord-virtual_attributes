@@ -6,15 +6,13 @@ class Database
   VALID_ADAPTERS = %w[sqlite3 postgresql mysql2].freeze
 
   def self.adapter
-    # Handle missing and short-form DB values
-    case ENV['DB']
-    when nil, "sqlite" then ENV['DB'] = "sqlite3"
-    when "pg"          then ENV['DB'] = "postgresql"
-    when "mysql"       then ENV['DB'] = "mysql2"
+    case ENV.fetch('DB', "sqlite")
+    when "sqlite", "sqlite3" then ENV['DB'] = "sqlite3"
+    when "pg", "postgresql"  then ENV['DB'] = "postgresql"
+    when "mysql", "mysql2"   then ENV['DB'] = "mysql2"
+    else
+      raise "ENV['DB'] value invalid, must be one of: #{VALID_ADAPTERS.join(", ")}"
     end
-    raise "ENV['DB'] value invalid, must be one of: #{VALID_ADAPTERS.join(", ")}" unless VALID_ADAPTERS.include?(ENV['DB'])
-
-    ENV['DB']
   end
 
   attr_accessor :dirname
