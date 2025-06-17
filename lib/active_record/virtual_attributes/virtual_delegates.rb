@@ -81,6 +81,7 @@ module ActiveRecord
           # On the other hand it could be that the target has side-effects,
           # whereas conceptually, from the user point of view, the delegator should
           # be doing one call.
+          # NOTE: This is based upon ActiveSupport 6.0 delegate.rb, but we added has_attribute? and default
           if allow_nil
             method_def = <<-METHOD
               def #{method_name}(#{definition})
