@@ -24,6 +24,10 @@ module ActiveRecord
             raise ArgumentError, 'Delegation needs an association. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
           end
 
+          unless options[:type]
+            ActiveRecord::VirtualAttributes.deprecator.warn("Calling virtual_delegate without :type is now deprecated", caller)
+          end
+
           to = to.to_s
           if to.include?(".") && methods.size > 1
             raise ArgumentError, 'Delegation only supports specifying a method name when defining a single virtual method'

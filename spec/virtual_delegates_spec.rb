@@ -3,24 +3,24 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
   let(:parent) { TestClass.create(:col1 => 4) }
 
   it "delegates to parent" do
-    TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+    TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
     tc = TestClass.new(:ref1 => parent)
     expect(tc.parent_col1).to eq(4)
   end
 
   it "delegates to nil parent" do
-    TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true
+    TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :allow_nil => true, :type => :integer
     tc = TestClass.new
     expect(tc.parent_col1).to be_nil
   end
 
   it "defines parent virtual attribute" do
-    TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+    TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
     expect(TestClass.virtual_attribute_names).to include("parent_col1")
   end
 
   it "delegates to parent (sql)" do
-    TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1
+    TestClass.virtual_delegate :col1, :prefix => 'parent', :to => :ref1, :type => :integer
     TestClass.create(:ref1 => parent)
     tcs = TestClass.select(:id, :col1, TestClass.arel_table[:parent_col1].as("x"))
     expect(tcs.map(&:x)).to match_array([nil, 4])
@@ -44,21 +44,27 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       end.to raise_error(ArgumentError, /needs an association/)
     end
 
+    it "expects a ':type' for delegation" do
+      expect(ActiveRecord::VirtualAttributes.deprecator).to receive(:warn).with(/type/, anything())
+      TestClass.virtual_delegate :col1, :to => :ref1
+      TestClass.new
+    end
+
     it "only allows 1 method when delegating to a specific method" do
       expect do
-        TestClass.virtual_delegate :col1, :col2, :to => "ref1.method"
+        TestClass.virtual_delegate :col1, :col2, :to => "ref1.method", :type => :string
       end.to raise_error(ArgumentError, /single virtual method/)
     end
 
     it "only allows 1 level deep delegation" do
       expect do
-        TestClass.virtual_delegate :col1, :to => "ref1.method.method2"
+        TestClass.virtual_delegate :col1, :to => "ref1.method.method2", :type => :string
       end.to raise_error(ArgumentError, /single association/)
     end
 
     it "detects invalid destination" do
       expect do
-        TestClass.virtual_delegate :col1, :to => "bogus_ref.method"
+        TestClass.virtual_delegate :col1, :to => "bogus_ref.method", :type => :string
         TestClass.new
       end.to raise_error(ArgumentError, /needs an association/)
     end
@@ -72,24 +78,24 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     let(:child) { TestClass.create }
 
     it "delegates to child" do
-      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
       tc = TestClass.create(:ref2 => child)
       expect(tc.child_col1).to eq(tc.id)
     end
 
     it "delegates to nil child" do
-      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :allow_nil => true
+      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :allow_nil => true, :type => :integer
       tc = TestClass.new
       expect(tc.child_col1).to be_nil
     end
 
     it "defines child virtual attribute" do
-      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
       expect(TestClass.virtual_attribute_names).to include("child_col1")
     end
 
     it "delegates to child (sql)" do
-      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
       tc = TestClass.create(:ref2 => child)
       tcs = TestClass.select(:id, :col1, :child_col1).to_a
       expect { expect(tcs.map(&:child_col1)).to match_array([nil, tc.id]) }.to_not make_database_queries
@@ -98,7 +104,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     # this may fail in the future as our way of building queries may change
     # just want to make sure it changed due to intentional changes
     it "uses table alias for subquery" do
-      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
       sql = TestClass.select(:id, :col1, :child_col1).to_sql
       expect(sql).to match(/["`]test_classes_[^"`]*["`][.]["`]col1["`]/i)
     end
@@ -114,7 +120,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     # ensure virtual attribute referencing a relation with a select()
     # does not throw an exception due to multi-column select
     it "properly generates sub select" do
-      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
       TestClass.create(:ref2 => child)
       expect { TestClass.select(:id, :child_col1).to_a }.to_not raise_error
     end
@@ -131,7 +137,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     # ensure virtual attribute referencing a relation with a select()
     # does not throw an exception due to multi-column select
     it "properly generates sub select" do
-      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2
+      TestClass.virtual_delegate :col1, :prefix => 'child', :to => :ref2, :type => :integer
       TestClass.create(:ref2 => child)
       expect { TestClass.select(:id, :child_col1).to_a }.to_not raise_error
     end
@@ -150,7 +156,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       end
       # TODO: -> { order(:col1) }
       TestClass.has_one :child, :class_name => 'TestOtherClass', :foreign_key => :ocol1
-      TestClass.virtual_delegate :child_str, :to => "child.ostr"
+      TestClass.virtual_delegate :child_str, :to => "child.ostr", :type => :string
     end
 
     after do
@@ -185,7 +191,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     end
 
     it "delegates to another table" do
-      TestOtherClass.virtual_delegate :col1, :to => :oref1
+      TestOtherClass.virtual_delegate :col1, :to => :oref1, :type => :integer
       TestOtherClass.create(:oref1 => TestClass.create)
       TestOtherClass.create(:oref1 => TestClass.create(:col1 => 99))
       tcs = TestOtherClass.select(:id, :ocol1, TestOtherClass.arel_table[:col1].as("x"))
@@ -198,7 +204,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     # this may fail in the future as our way of building queries may change
     # just want to make sure it changed due to intentional changes
     it "delegates to another table without alias" do
-      TestOtherClass.virtual_delegate :col1, :to => :oref1
+      TestOtherClass.virtual_delegate :col1, :to => :oref1, :type => :integer
       sql = TestOtherClass.select(:id, :ocol1, TestOtherClass.arel_table[:col1].as("x")).to_sql
       expect(sql).to match(/["`]test_classes["`].["`]col1["`]/i)
     end
