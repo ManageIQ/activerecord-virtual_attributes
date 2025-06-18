@@ -41,7 +41,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     it "expects a ':to' for delegation" do
       expect do
         TestClass.virtual_delegate :col1
-      end.to raise_error(ArgumentError, /needs an association/)
+      end.to raise_error(ArgumentError, /missing keyword: :to/)
     end
 
     it "expects a ':type' for delegation" do

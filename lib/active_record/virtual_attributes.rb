@@ -52,10 +52,7 @@ module ActiveRecord
       #
 
       # Compatibility method: `virtual_attribute` is a more accurate name
-      def virtual_column(name, **options)
-        type = options.delete(:type)
-        raise ArgumentError, "missing :type attribute" unless type
-
+      def virtual_column(name, type:, **options)
         virtual_attribute(name, type, **options)
       end
 
