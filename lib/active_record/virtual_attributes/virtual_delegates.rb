@@ -18,13 +18,8 @@ module ActiveRecord
         # Definition
         #
 
-        def virtual_delegate(*methods)
-          options = methods.extract_options!
-          unless (to = options[:to])
-            raise ArgumentError, 'Delegation needs an association. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter).'
-          end
-
-          unless options[:type]
+        def virtual_delegate(*methods, to:, type: nil, prefix: nil, allow_nil: nil, default: nil, **options) # rubocop:disable Naming/MethodParameterName
+          unless type
             ActiveRecord::VirtualAttributes.deprecator.warn("Calling virtual_delegate without :type is now deprecated", caller)
           end
 
@@ -34,26 +29,22 @@ module ActiveRecord
           end
 
           if to.count(".") > 1
-            raise ArgumentError, 'Delegation needs a single association. Supply an option hash with a :to key with only 1 period (e.g. delegate :hello, to: "greeter.greeting")'
+            raise ArgumentError, 'Delegation needs a single association. Supply keyword :to with only 1 period (e.g. delegate :hello, to: "greeter.greeting")'
           end
-
-          allow_nil = options[:allow_nil]
-          default = options[:default]
 
           # put method entry per method name.
           # This better supports reloading of the class and changing the definitions
           methods.each do |method|
-            method_prefix = virtual_delegate_name_prefix(options[:prefix], to)
+            method_prefix = virtual_delegate_name_prefix(prefix, to)
             method_name = "#{method_prefix}#{method}"
             if to.include?(".") # to => "target.method"
               to, method = to.split(".").map(&:to_sym)
-              options[:to] = to
             end
 
             define_delegate(method_name, method, :to => to, :allow_nil => allow_nil, :default => default)
 
             self.virtual_delegates_to_define =
-              virtual_delegates_to_define.merge(method_name => [method, options])
+              virtual_delegates_to_define.merge(method_name => [method, options.merge(:to => to, :type => type)])
           end
         end
 
