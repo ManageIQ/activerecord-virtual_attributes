@@ -111,7 +111,7 @@ module ActiveRecord
         private
 
         def define_virtual_arel(name, arel) # :nodoc:
-          self._virtual_arel = _virtual_arel.merge(name => arel)
+          self._virtual_arel = _virtual_arel.merge(name.to_s => arel)
         end
       end
     end

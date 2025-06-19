@@ -102,7 +102,7 @@ module ActiveRecord
       end
 
       def define_virtual_attribute(name, cast_type, uses: nil, arel: nil)
-        attribute_types[name] = cast_type
+        attribute_types[name.to_s] = cast_type
         define_virtual_include(name, uses) if uses
         define_virtual_arel(name, arel) if arel
       end

@@ -25,7 +25,7 @@ module ActiveRecord
         private
 
         def define_virtual_include(name, uses)
-          self._virtual_includes = _virtual_includes.merge(name => uses)
+          self._virtual_includes = _virtual_includes.merge(name.to_s => uses)
         end
       end
     end
