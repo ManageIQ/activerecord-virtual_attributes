@@ -299,4 +299,25 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       expect(actual).to eq(author)
     end
   end
+
+  describe "#determine_method_names (private)" do
+    it "works with column and to" do
+      expect(determine_method_names("column", "relation", nil)).to eq([:column, :relation, :column])
+      expect(determine_method_names("column", "relation", true)).to eq([:relation_column, :relation, :column])
+      expect(determine_method_names("column", "relation", "pre")).to eq([:pre_column, :relation, :column])
+      expect(determine_method_names("column", "relation.column2", false)).to eq([:column, :relation, :column2])
+      expect(determine_method_names("column", "relation.column2", true)).to eq([:relation_column, :relation, :column2])
+
+      TestClass.virtual_delegate :str, :to => :ref1, :prefix => true, :type => :string
+      expect(TestClass.new.respond_to?(:ref1_str)).to eq(true)
+
+      expect do
+        TestClass.virtual_delegate :my_method, :to => "ref1.str", :prefix => true, :type => :string
+      end.to raise_exception(ArgumentError)
+    end
+  end
+
+  def determine_method_names(*args)
+    TestClass.send(:determine_method_names, *args)
+  end
 end

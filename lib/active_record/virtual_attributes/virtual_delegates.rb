@@ -24,8 +24,8 @@ module ActiveRecord
           end
 
           to = to.to_s
-          if to.include?(".") && methods.size > 1
-            raise ArgumentError, 'Delegation only supports specifying a method name when defining a single virtual method'
+          if to.include?(".") && (methods.size > 1 || prefix)
+            raise ArgumentError, 'Delegation only supports specifying a target method name when defining a single virtual method with no prefix'
           end
 
           if to.count(".") > 1
@@ -35,12 +35,7 @@ module ActiveRecord
           # put method entry per method name.
           # This better supports reloading of the class and changing the definitions
           methods.each do |method|
-            method_prefix = virtual_delegate_name_prefix(prefix, to)
-            method_name = "#{method_prefix}#{method}"
-            if to.include?(".") # to => "target.method"
-              to, method = to.split(".").map(&:to_sym)
-            end
-
+            method_name, to, method = determine_method_names(method, to, prefix)
             define_delegate(method_name, method, :to => to, :allow_nil => allow_nil, :default => default)
 
             self.virtual_delegates_to_define =
@@ -122,8 +117,25 @@ module ActiveRecord
         end
         # rubocop:enable Style/TernaryParentheses
 
-        def virtual_delegate_name_prefix(prefix, to) # rubocop:disable Naming/MethodParameterName
-          "#{prefix == true ? to : prefix}_" if prefix
+        # Sometimes the `to` contains the column name target.column, split it up to the source method_name and target column
+        # If `to` does specify the column name, `to` becomes the target (i.e.: association)
+        #
+        # @param column [Symbol|String] the name of the column
+        # @param to [Symbol|String]
+        # @param prefix [Boolean|Nil|Symbol]
+        # @return [Symbol, Symbol, Symbol] method_name, relation, relation's column name
+        def determine_method_names(column, to, prefix) # rubocop:disable Naming/MethodParameterName
+          method_name = column = column.to_sym
+
+          tos = to.to_s
+          if tos.include?(".") # to => "target.method"
+            to, column = tos.split(".").map(&:to_sym)
+          end
+
+          method_prefix = "#{prefix == true ? to : prefix}_" if prefix
+          method_name = "#{method_prefix}#{method_name}".to_sym
+
+          [method_name, to.to_sym, column]
         end
 
         # @param col [String] attribute name
