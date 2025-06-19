@@ -9,26 +9,23 @@ module ActiveRecord
         # Definition
         #
 
-        def virtual_has_one(name, options = {})
-          uses = options.delete(:uses)
+        def virtual_has_one(name, uses: nil, **options)
           reflection = ActiveRecord::Associations::Builder::HasOne.build(self, name, nil, options)
-          add_virtual_reflection(reflection, name, uses, options)
+          add_virtual_reflection(reflection, name, uses)
         end
 
-        def virtual_has_many(name, options = {})
+        def virtual_has_many(name, uses: nil, **options)
           define_method(:"#{name.to_s.singularize}_ids") do
             records = send(name)
             records.respond_to?(:ids) ? records.ids : records.collect(&:id)
           end
-          uses = options.delete(:uses)
           reflection = ActiveRecord::Associations::Builder::HasMany.build(self, name, nil, options)
-          add_virtual_reflection(reflection, name, uses, options)
+          add_virtual_reflection(reflection, name, uses)
         end
 
-        def virtual_belongs_to(name, options = {})
-          uses = options.delete(:uses)
+        def virtual_belongs_to(name, uses: nil, **options)
           reflection = ActiveRecord::Associations::Builder::BelongsTo.build(self, name, nil, options)
-          add_virtual_reflection(reflection, name, uses, options)
+          add_virtual_reflection(reflection, name, uses)
         end
 
         def virtual_reflection?(name)
@@ -94,7 +91,7 @@ module ActiveRecord
 
         private
 
-        def add_virtual_reflection(reflection, name, uses, _options)
+        def add_virtual_reflection(reflection, name, uses)
           raise ArgumentError, "macro must be specified" unless reflection
 
           reset_virtual_reflection_information
