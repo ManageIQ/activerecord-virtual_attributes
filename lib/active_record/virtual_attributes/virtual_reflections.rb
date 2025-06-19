@@ -14,11 +14,12 @@ module ActiveRecord
           add_virtual_reflection(reflection, name, uses)
         end
 
-        def virtual_has_many(name, uses: nil, **options)
+        def virtual_has_many(name, uses: nil, source: nil, through: nil, **options)
           define_method(:"#{name.to_s.singularize}_ids") do
             records = send(name)
             records.respond_to?(:ids) ? records.ids : records.collect(&:id)
           end
+          define_delegate(name, source || name, :to => through, :allow_nil => true, :default => []) if through
           reflection = ActiveRecord::Associations::Builder::HasMany.build(self, name, nil, options)
           add_virtual_reflection(reflection, name, uses)
         end

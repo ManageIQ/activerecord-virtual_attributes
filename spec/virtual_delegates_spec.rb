@@ -300,6 +300,24 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     end
   end
 
+  describe "virtual_has_many with :through" do
+    it "with :source works" do
+      Author.create_with_books(2)
+      author = Author.create_with_books(3)
+      books = author.books.order(:id)
+
+      expect(books.first.author_books.order(:id)).to eq(books)
+    end
+
+    it "without :source works" do
+      Author.create_with_books(2)
+      author = Author.create_with_books(3)
+      books = author.books.order(:id)
+
+      expect(books.first.books.order(:id)).to eq(books)
+    end
+  end
+
   describe "#determine_method_names (private)" do
     it "works with column and to" do
       expect(determine_method_names("column", "relation", nil)).to eq([:column, :relation, :column])
