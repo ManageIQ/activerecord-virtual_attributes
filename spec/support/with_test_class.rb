@@ -13,7 +13,7 @@ require 'active_record'
 #
 RSpec.shared_context 'with test_class', :with_test_class do
   before do
-    class TestClassBase < ActiveRecord::Base
+    class TestClassBase < ActiveRecord::Base # rubocop:disable Rails/ApplicationRecord
       self.abstract_class = true
 
       include VirtualFields
