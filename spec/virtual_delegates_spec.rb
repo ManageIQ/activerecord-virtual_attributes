@@ -40,14 +40,15 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
   context "invalid" do
     it "expects a ':to' for delegation" do
       expect do
-        TestClass.virtual_delegate :col1
+        TestClass.virtual_delegate :col1, :type => :integer
       end.to raise_error(ArgumentError, /missing keyword: :to/)
     end
 
     it "expects a ':type' for delegation" do
-      expect(ActiveRecord::VirtualAttributes.deprecator).to receive(:warn).with(/type/, anything)
-      TestClass.virtual_delegate :col1, :to => :ref1
-      TestClass.new
+      expect do
+        TestClass.virtual_delegate :col1, :to => :ref1
+        TestClass.new
+      end.to raise_error(ArgumentError, /missing keyword: :type/)
     end
 
     it "only allows 1 method when delegating to a specific method" do
