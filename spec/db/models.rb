@@ -150,8 +150,6 @@ class Book < VirtualTotalTestBase
   # this tests delegate
   # this also tests an attribute :uses clause with a single symbol
   virtual_attribute :author_name, :string, :through => :author, :source => :name
-  # this tests delegates to named child attribute
-  virtual_delegate :author_name2, :to => "author.name", :type => :string
   # delegate with no source
   virtual_attribute :blurb, :string, :through => :author
 
