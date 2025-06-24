@@ -56,12 +56,15 @@ module ActiveRecord
         virtual_attribute(name, type, **options)
       end
 
-      def virtual_attribute(name, type, **options)
+      def virtual_attribute(name, type, uses: nil, arel: nil, **options)
         name = name.to_s
         reload_schema_from_cache
 
         self.virtual_attributes_to_define =
           virtual_attributes_to_define.merge(name => [type, options])
+
+        define_virtual_include(name, uses)
+        define_virtual_arel(name, arel)
       end
 
       #
@@ -91,20 +94,14 @@ module ActiveRecord
 
         virtual_attributes_to_define.each do |name, (type, options)|
           type = type.call if type.respond_to?(:call)
-          type = ActiveRecord::Type.lookup(type, **options.except(:uses, :arel)) if type.kind_of?(Symbol)
+          type = ActiveRecord::Type.lookup(type, **options) if type.kind_of?(Symbol)
 
-          define_virtual_attribute(name, type, **options.slice(:uses, :arel))
-        end
-
-        virtual_delegates_to_define.each do |method_name, (method, options)|
-          define_virtual_delegate(method_name, method, options)
+          define_virtual_attribute(name, type)
         end
       end
 
-      def define_virtual_attribute(name, cast_type, uses: nil, arel: nil)
+      def define_virtual_attribute(name, cast_type)
         attribute_types[name.to_s] = cast_type
-        define_virtual_include(name, uses) if uses
-        define_virtual_arel(name, arel) if arel
       end
     end
   end
