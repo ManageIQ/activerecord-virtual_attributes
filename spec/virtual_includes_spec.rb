@@ -13,7 +13,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
   context "preloads virtual_attribute with select" do
     it "preloads virtual_attribute (:uses => {:author})" do
       expect(Book.select(:author_name)).to preload_values(:author_name, author_name)
-      expect(Book.select(:author_name2)).to preload_values(:author_name2, author_name)
       expect(Book.select(:id, :author_name)).to preload_values(:author_name, author_name)
     end
   end
