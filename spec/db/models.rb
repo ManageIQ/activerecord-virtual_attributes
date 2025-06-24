@@ -1,4 +1,4 @@
-class VirtualTotalTestBase < ActiveRecord::Base  # rubocop:disable Rails/ApplicationRecord
+class VirtualTotalTestBase < ActiveRecord::Base # rubocop:disable Rails/ApplicationRecord
   self.abstract_class = true
 
   include VirtualFields
