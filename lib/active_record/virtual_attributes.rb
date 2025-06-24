@@ -56,12 +56,25 @@ module ActiveRecord
         virtual_attribute(name, type, **options)
       end
 
-      def virtual_attribute(name, type, uses: nil, arel: nil, **options)
+      def virtual_attribute(name, type, through: nil, uses: through, arel: nil, source: name, default: nil, **options)
         name = name.to_s
         reload_schema_from_cache
 
         self.virtual_attributes_to_define =
           virtual_attributes_to_define.merge(name => [type, options])
+
+        if through
+          define_delegate(name, source, :to => through, :allow_nil => true, :default => default)
+
+          unless (to_ref = reflection_with_virtual(through))
+            raise ArgumentError, "Delegation needs an association. Association #{through} does not exist"
+          end
+
+          # We can not validate target#source exists
+          #   Because we may not have loaded the class yet
+          #   And we definitely have not loaded the database yet
+          arel ||= virtual_delegate_arel(source, to_ref)
+        end
 
         define_virtual_include(name, uses)
         define_virtual_arel(name, arel)
