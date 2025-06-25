@@ -7,6 +7,7 @@ ActiveRecord::Schema.define(:version => 0) do
     t.integer  "teacher_id", :index => true
     t.string   "name"
     t.string   "nickname"
+    t.string   "blurb"
   end
 
   create_table "books", :force => true do |t|

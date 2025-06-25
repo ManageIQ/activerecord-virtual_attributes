@@ -116,7 +116,7 @@ class Author < VirtualTotalTestBase
   virtual_has_many :famous_co_authors, :uses => [:book_with_most_bookmarks, {:books => :co_authors}]
 
   def self.create_with_books(count)
-    create!(:name => "foo").tap { |author| author.create_books(count) }
+    create!(:name => "foo", :blurb => "blah blah blah").tap { |author| author.create_books(count) }
   end
 
   def create_books(count, create_attrs = {})
@@ -147,6 +147,9 @@ class Book < VirtualTotalTestBase
   virtual_delegate :name, :to => :author, :prefix => true, :type => :string
   # this tests delegates to named child attribute
   virtual_delegate :author_name2, :to => "author.name", :type => :string
+  # delegate without a prefix
+  virtual_delegate :blurb, :to => :author, :type => :string
+
   # delegate to a polymorphic
   virtual_delegate :description, :to => :current_photo, :prefix => true, :type => :string, :allow_nil => true
 

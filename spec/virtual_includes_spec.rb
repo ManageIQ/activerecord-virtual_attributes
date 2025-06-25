@@ -5,6 +5,8 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
 
   let(:author_name) { "foo" }
   let(:book_name) { "bar" }
+  let(:blurb_text) { "blah blah blah" }
+
   # NOTE: each of the 1 authors has an array of books. so this value is [[Book, Book]]
   let(:named_books) { [Book.where.not(:name => nil).order(:id).load] }
 
@@ -41,8 +43,8 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
 
     it "preloads virtual_attribute (:uses => :author, :uses => :author)" do
-      expect(Book.includes(:author_name, :author_name2)).to preload_values(:author_name, author_name)
-      expect(Book.includes(:author_name2 => {})).to preload_values(:author_name, author_name)
+      expect(Book.includes(:author_name, :blurb)).to preload_values(:author_name, author_name)
+      expect(Book.includes(:author_name => {})).to preload_values(:blurb, blurb_text)
     end
 
     it "preloads virtual_attribute (:uses => :upper_author_name) (:uses => :author_name)" do
@@ -526,7 +528,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
 
     it "handles hash form of delegates" do
-      expect(Book.replace_virtual_fields([{:author_name => {}}, {:author_name2 => {}}])).to eq([:author, :author])
+      expect(Book.replace_virtual_fields([{:author_name => {}}, {:blurb => {}}])).to eq([:author, :author])
     end
 
     it "handles non-'includes' virtual_attributes" do
