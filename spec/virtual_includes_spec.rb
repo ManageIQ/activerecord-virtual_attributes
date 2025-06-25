@@ -182,12 +182,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
       expect(Author.includes(:books => :author_name).references(:books)).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:books => [:author_name]).references(:books)).to preload_values(:first_book_author_name, author_name)
       expect(Author.includes(:books => {:author_name => {}}).references(:books)).to preload_values(:first_book_author_name, author_name)
-    end
-
-    it "uses preloaded fields" do
-      expect(Author.includes(:books => :author_name).references(:books)).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:books => [:author_name]).references(:books)).to preload_values(:first_book_author_name, author_name)
-      expect(Author.includes(:books => {:author_name => {}}).references(:books)).to preload_values(:first_book_author_name, author_name)
       inc = Author.virtual_includes(:first_book_author_name)
       expect(Author.includes(inc).references(:books)).to preload_values(:first_book_author_name, author_name)
     end
@@ -310,10 +304,6 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "uses included fields" do
       expect(preloaded(Author.all.to_a, :books => :author_name)).to preload_values(:first_book_author_name, author_name)
     end
-
-    it "uses preloaded fields" do
-      expect(preloaded(Author.all.to_a, :books => :author_name)).to preload_values(:first_book_author_name, author_name)
-    end
   end
 
   context "preloads virtual_reflection with includes" do
@@ -388,9 +378,48 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     end
   end
 
+  describe ".eager_load" do
+    it "preloads standard associations (:books)" do
+      expect(Author.eager_load(:books)).to preload_values(:first_book_name, book_name)
+      expect(Author.eager_load([:books])).to preload_values(:first_book_name, book_name)
+      expect(Author.eager_load([[:books]])).to preload_values(:first_book_name, book_name)
+      expect(Author.eager_load(:books => {})).to preload_values(:first_book_name, book_name)
+    end
+
+    it "preloads associations (:uses => :books)" do
+      expect(Author.eager_load(:first_book_name)).to preload_values(:first_book_name, book_name)
+      expect(Author.eager_load([:first_book_name])).to preload_values(:first_book_name, book_name)
+      expect(Author.eager_load([[:first_book_name]])).to preload_values(:first_book_name, book_name)
+      expect(Author.eager_load(:first_book_name => {})).to preload_values(:first_book_name, book_name)
+    end
+  end
+
+  describe ".preload" do
+    it "preloads standard associations (:books)" do
+      expect(Author.preload(:books)).to preload_values(:first_book_name, book_name)
+      expect(Author.preload([:books])).to preload_values(:first_book_name, book_name)
+      expect(Author.preload([[:books]])).to preload_values(:first_book_name, book_name)
+      expect(Author.preload(:books => {})).to preload_values(:first_book_name, book_name)
+    end
+
+    it "preloads associations (:uses => :books)" do
+      expect(Author.preload(:first_book_name)).to preload_values(:first_book_name, book_name)
+      expect(Author.preload([:first_book_name])).to preload_values(:first_book_name, book_name)
+      expect(Author.preload([[:first_book_name]])).to preload_values(:first_book_name, book_name)
+      expect(Author.preload(:first_book_name => {})).to preload_values(:first_book_name, book_name)
+    end
+  end
+
   context "preloads virtual_reflection with preloader" do
     it "preloads virtual_reflection (:uses => :books)" do
       expect(preloaded(Author.all.to_a, :named_books)).to preload_values(:named_books, named_books)
+    end
+
+    it "preloads virtual_reflection ([:books])" do
+      expect(preloaded(Author.all.to_a, :books)).to preload_values(:named_books, named_books)
+      # NOTE: the next test shows a double preloader call
+      expect(preloaded(Author.all.to_a, [:books])).to preload_values(:named_books, named_books)
+      expect(preloaded(Author.all.to_a, :books => {})).to preload_values(:named_books, named_books)
     end
 
     it "preloads virtual_reflection (:uses => {:books => :author_name})" do
