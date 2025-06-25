@@ -5,8 +5,7 @@ if ENV['CI']
   end
 end
 
-$LOAD_PATH.unshift(File.dirname(__FILE__) + '/../lib')
-
+$LOAD_PATH.unshift File.expand_path("../../lib", __dir__)
 require "bundler/setup"
 require "active_record/virtual_attributes"
 require "active_record/virtual_attributes/rspec"

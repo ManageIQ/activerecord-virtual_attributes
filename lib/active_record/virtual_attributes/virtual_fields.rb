@@ -191,6 +191,7 @@ module ActiveRecord
           # rubocop:enable Lint/AmbiguousOperatorPrecedence
 
           # branched.rb 7.0
+          # rubocop:disable Style/MultilineBlockChain
           def preloaders_for_reflection(reflection, reflection_records)
             reflection_records.group_by do |record|
               # begin virtual_attributes changes
@@ -212,6 +213,7 @@ module ActiveRecord
             end
           end
         end)
+        # rubocop:enable Style/MultilineBlockChain
       end
     end
   end
