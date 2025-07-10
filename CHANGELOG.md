@@ -4,6 +4,10 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 
 ## [Unreleased]
 
+## [8.0.0.0] - 2025-07-10
+
+* Rails 8.0 support [#194](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/194)
+
 ## [7.2.0.1] - 2025-07-18
 
 * Fix includes and associations with empty uses [#195](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/195)
