@@ -1,5 +1,5 @@
 module ActiveRecord
   module VirtualAttributes
-    VERSION = "7.2.0.0".freeze
+    VERSION = "7.2.0.1".freeze
   end
 end
