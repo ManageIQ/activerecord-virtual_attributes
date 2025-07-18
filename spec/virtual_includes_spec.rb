@@ -106,6 +106,13 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualIncludes do
     it "counts" do
       expect { expect(Author.includes(:books => :author_name).count).to eq(1) }.not_to raise_error
     end
+
+    # we are trying to get the includes with a nil uses to blow things up
+    it "preloads through polymorphic to an association without a uses" do
+      author = Author.first
+      photo = author.photos.create
+      expect(author.photos.includes(:imageable => :thoughts).first).to eq(photo)
+    end
   end
 
   # references follow a different path than just includes

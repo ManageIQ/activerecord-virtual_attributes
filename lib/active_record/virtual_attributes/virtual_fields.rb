@@ -183,6 +183,7 @@ module ActiveRecord
             source_records.each do |record|
               # begin virtual_attributes changes
               association = record.class.replace_virtual_fields(self.association)
+              next if association.nil?
               # end virtual_attributes changes
 
               reflection = record.class._reflect_on_association(association)

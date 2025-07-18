@@ -115,6 +115,12 @@ class Author < VirtualTotalTestBase
   #   vs a more condensed format: {:bwmb => {}, :books => co_a}
   virtual_has_many :famous_co_authors, :uses => [:book_with_most_bookmarks, {:books => :co_authors}]
 
+  virtual_has_many :thoughts
+
+  def thoughts
+    ["one", "two"]
+  end
+
   def self.create_with_books(count)
     create!(:name => "foo", :blurb => "blah blah blah").tap { |author| author.create_books(count) }
   end

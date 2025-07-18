@@ -4,6 +4,10 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 
 ## [Unreleased]
 
+## [7.2.0.1] - 2025-07-18
+
+* Fix includes and associations with empty uses [#195](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/195)
+
 ## [7.2.0.0] - 2025-06-25
 
 * virtual_delegate requires type [#185](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/185)
@@ -125,7 +129,8 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.2.0.0...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.2.0.1...HEAD
+[7.2.0.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.2.0.0...v7.2.0.1
 [7.2.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.1.2...v7.2.0.0
 [7.1.2]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.1.1...v7.1.2
 [7.1.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.1.0...v7.1.1
