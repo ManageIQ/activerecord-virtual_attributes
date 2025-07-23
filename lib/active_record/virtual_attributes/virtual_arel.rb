@@ -83,7 +83,6 @@ module ActiveRecord
         # - it is an attribute that is non virtual
         # - it is an attribute that is virtual and has arel defined
         def attribute_supported_by_sql?(name)
-          load_schema
           try(:attribute_alias?, name) ||
             (has_attribute?(name) && (!virtual_attribute?(name) || !!_virtual_arel[name.to_s]))
         end

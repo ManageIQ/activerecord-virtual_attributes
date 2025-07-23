@@ -18,7 +18,6 @@ module ActiveRecord
 
       module ClassMethods
         def virtual_includes(name)
-          load_schema
           _virtual_includes[name.to_s]
         end
 

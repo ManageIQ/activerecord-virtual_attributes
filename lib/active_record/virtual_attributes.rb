@@ -72,7 +72,6 @@ module ActiveRecord
       #
 
       def virtual_attribute?(name)
-        load_schema
         has_attribute?(name) && (
           !respond_to?(:column_for_attribute) ||
           column_for_attribute(name).kind_of?(ActiveRecord::ConnectionAdapters::NullColumn)
