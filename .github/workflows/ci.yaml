@@ -26,7 +26,7 @@ jobs:
         ports:
         - 5432:5432
       mysql:
-        image: mysql:9.3
+        image: mysql:9.4
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: virtual_attributes
