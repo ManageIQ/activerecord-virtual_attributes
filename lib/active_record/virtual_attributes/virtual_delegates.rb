@@ -105,7 +105,7 @@ module ActiveRecord
           end
 
           method_prefix = "#{prefix == true ? to : prefix}_" if prefix
-          method_name = "#{method_prefix}#{method_name}".to_sym
+          method_name = :"#{method_prefix}#{method_name}"
 
           [method_name, to.to_sym, column]
         end
