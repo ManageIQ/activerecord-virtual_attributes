@@ -6,6 +6,7 @@ module ActiveRecord
       include ActiveRecord::VirtualAttributes::VirtualReflections
 
       # rubocop:disable Style/SingleLineMethods
+      # rubocop:disable Naming/PredicateMethod
       module NonARModels
         def dangerous_attribute_method?(_); false; end
 
@@ -15,6 +16,7 @@ module ActiveRecord
 
         def belongs_to_required_by_default; false; end
       end
+      # rubocop:enable Naming/PredicateMethod
       # rubocop:enable Style/SingleLineMethods
 
       included do
