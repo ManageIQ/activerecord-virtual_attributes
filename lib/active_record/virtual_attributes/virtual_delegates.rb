@@ -15,6 +15,8 @@ module ActiveRecord
         #
 
         def virtual_delegate(*methods, to:, type:, prefix: nil, allow_nil: nil, default: nil, uses: nil, **options) # rubocop:disable Naming/MethodParameterName
+          ActiveRecord::VirtualAttributes.deprecator.warn("virtual_delegate is now deprecated. use virtual_attribute :through instead", caller_locations)
+
           to = to.to_s
           if to.include?(".") && (methods.size > 1 || prefix)
             raise ArgumentError, 'Delegation only supports specifying a target method name when defining a single virtual method with no prefix'
