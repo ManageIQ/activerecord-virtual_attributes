@@ -12,6 +12,7 @@ require "active_record/virtual_attributes/rspec"
 require "database_cleaner/active_record"
 require "db-query-matchers"
 
+ActiveRecord::VirtualAttributes.deprecator.behavior = :silence # needed for virtual_delegate calls
 Dir['./spec/support/**/*.rb'].sort.each { |f| require f }
 
 RSpec.configure do |config|
