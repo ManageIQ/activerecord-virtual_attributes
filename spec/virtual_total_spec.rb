@@ -79,7 +79,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
         expect do
           expect(author.total_books).to eq(2)
-        end.to_not make_database_queries
+        end.not_to make_database_queries
       end
 
       it "calculates totals with preloaded associations with no associated records" do
@@ -88,7 +88,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
         expect do
           expect(author.total_books).to eq(0)
-        end.to_not make_database_queries
+        end.not_to make_database_queries
       end
 
       it "calculates totals with attribute" do
@@ -107,7 +107,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         query = Author.select(:id, :total_books).load
         expect do
           expect(query.map(&:total_books)).to match_array([0])
-        end.to_not make_database_queries
+        end.not_to make_database_queries
       end
     end
 
@@ -421,7 +421,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
         expect do
           expect(query).to match_array([auth1, auth2])
           expect(query.map(&:total_ordered_books)).to match_array([0, 2])
-        end.to_not make_database_queries
+        end.not_to make_database_queries
       end
 
       def model_with_children(count)
@@ -465,7 +465,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
           expect do
             expect(authors.map(&:sum_recently_published_books_rating)).to eq([6, 5, nil, nil])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
 
         it "calculates sum from attribute" do
@@ -473,7 +473,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           query = Author.select(:id, :sum_recently_published_books_rating).order(:id).load
           expect do
             expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
 
         it "calculates sum from attribute (and preloaded association)" do
@@ -481,7 +481,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           query = Author.includes(:recently_published_books).select(:id, :sum_recently_published_books_rating).order(:id).load
           expect do
             expect(query.map(&:sum_recently_published_books_rating)).to eq([6, 5, 0, 0])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
 
         it "orders by values with a nil (having the nil (defaulted to 0) first" do
@@ -505,7 +505,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
           expect do
             expect(authors.map(&:average_recently_published_books_rating)).to eq([3, 5, 0, 0])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
 
         it "calculates avg from attribute" do
@@ -513,7 +513,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           query = Author.select(:id, :average_recently_published_books_rating).order(:id).load
           expect do
             expect(query.map(&:average_recently_published_books_rating)).to eq([3, 5, 0, 0])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
 
         it "calculates avg from attribute (and preloaded association)" do
@@ -521,7 +521,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           query = Author.includes(:recently_published_books).select(:id, :average_recently_published_books_rating).order(:id).load
           expect do
             expect(query.map(&:average_recently_published_books_rating)).to eq([3, 5, 0, 0])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
       end
 
@@ -540,7 +540,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
           expect do
             expect(authors.map(&:maximum_recently_published_books_rating)).to eq([4, 5, nil, nil])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
 
         it "calculates max from attribute" do
@@ -548,7 +548,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           query = Author.select(:id, :maximum_recently_published_books_rating).order(:id).load
           expect do
             expect(query.map(&:maximum_recently_published_books_rating)).to eq([4, 5, 0, 0])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
 
         it "calculates max from attribute (and preloaded association)" do
@@ -556,7 +556,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           query = Author.includes(:recently_published_books).select(:id, :maximum_recently_published_books_rating).order(:id).load
           expect do
             expect(query.map(&:maximum_recently_published_books_rating)).to eq([4, 5, 0, 0])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
       end
 
@@ -575,7 +575,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
 
           expect do
             expect(authors.map(&:minimum_recently_published_books_rating)).to eq([2, 5, nil, nil])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
 
         it "calculates min from attribute" do
@@ -583,7 +583,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           query = Author.select(:id, :minimum_recently_published_books_rating).order(:id).load
           expect do
             expect(query.map(&:minimum_recently_published_books_rating)).to eq([2, 5, 0, 0])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
 
         it "calculates min from attribute (and preloaded association)" do
@@ -591,7 +591,7 @@ RSpec.describe VirtualAttributes::VirtualTotal do
           query = Author.includes(:recently_published_books).select(:id, :minimum_recently_published_books_rating).order(:id).load
           expect do
             expect(query.map(&:minimum_recently_published_books_rating)).to eq([2, 5, 0, 0])
-          end.to_not make_database_queries
+          end.not_to make_database_queries
         end
       end
 
