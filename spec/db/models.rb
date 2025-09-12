@@ -37,12 +37,12 @@ class Author < VirtualTotalTestBase
   virtual_minimum :minimum_recently_published_books_rating, :recently_published_books, :rating
   virtual_maximum :maximum_recently_published_books_rating, :recently_published_books, :rating
   virtual_sum :sum_recently_published_books_rating, :recently_published_books, :rating
-  virtual_delegate :description, :to => :current_photo, :prefix => true, :type => :string
-  virtual_delegate :description, :to => :fancy_photo, :prefix => true, :type => :string
+  virtual_attribute :current_photo_description, :string, :through => :current_photo, :source => :description
+  virtual_attribute :fancy_photo_description, :string, :through => :fancy_photo, :source => :description
   # delegate to parent relationship
-  virtual_delegate :name, :to => :teacher, :prefix => true, :type => :string
-  virtual_delegate :teacher_name, :to => :teacher, :prefix => true, :type => :string
-
+  virtual_attribute :teacher_name, :string, :through => :teacher, :source => :name
+  # delegate to a delegate
+  virtual_attribute :grand_teacher_name, :string, :through => :teacher, :source => :teacher_name, :uses => {:teacher => :teacher}
   # This is here to provide a virtual_total of a virtual_has_many that depends upon an array of associations.
   # NOTE: this is tailored to the use case and is not an optimal solution
   def named_books
@@ -150,14 +150,12 @@ class Book < VirtualTotalTestBase
   scope :wip,       -> { where(:published => false) }
   # this tests delegate
   # this also tests an attribute :uses clause with a single symbol
-  virtual_delegate :name, :to => :author, :prefix => true, :type => :string
-  # this tests delegates to named child attribute
-  virtual_delegate :author_name2, :to => "author.name", :type => :string
-  # delegate without a prefix
-  virtual_delegate :blurb, :to => :author, :type => :string
+  virtual_attribute :author_name, :string, :through => :author, :source => :name
+  # delegate with no source
+  virtual_attribute :blurb, :string, :through => :author
 
   # delegate to a polymorphic
-  virtual_delegate :description, :to => :current_photo, :prefix => true, :type => :string, :allow_nil => true
+  virtual_attribute :current_photo_description, :string, :through => :current_photo, :source => :description
 
   # simple uses to a virtual attribute
   virtual_attribute :upper_author_name, :string, :uses => [:author_name]
