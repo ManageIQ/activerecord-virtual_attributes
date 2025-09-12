@@ -41,7 +41,8 @@ class Author < VirtualTotalTestBase
   virtual_attribute :fancy_photo_description, :string, :through => :fancy_photo, :source => :description
   # delegate to parent relationship
   virtual_attribute :teacher_name, :string, :through => :teacher, :source => :name
-  virtual_attribute :teacher_teacher_name, :string, :through => :teacher, :source => :teacher_name
+  # delegate to a delegate
+  virtual_attribute :grand_teacher_name, :string, :through => :teacher, :source => :teacher_name, :uses => {:teacher => :teacher}
   # This is here to provide a virtual_total of a virtual_has_many that depends upon an array of associations.
   # NOTE: this is tailored to the use case and is not an optimal solution
   def named_books

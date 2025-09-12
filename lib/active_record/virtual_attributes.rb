@@ -56,7 +56,7 @@ module ActiveRecord
         virtual_attribute(name, type, **options)
       end
 
-      def virtual_attribute(name, type, through: nil, uses: through, arel: nil, source: name, default: nil, **options)
+      def virtual_attribute(name, type, through: nil, uses: nil, arel: nil, source: name, default: nil, **options)
         name = name.to_s
         reload_schema_from_cache
 
@@ -69,6 +69,9 @@ module ActiveRecord
           unless (to_ref = reflection_with_virtual(through))
             raise ArgumentError, "Delegation needs an association. Association #{through} does not exist"
           end
+
+          # ensure that the through table is in the uses clause
+          uses = merge_includes({through => {}}, uses)
 
           # We can not validate target#source exists
           #   Because we may not have loaded the class yet

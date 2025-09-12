@@ -26,15 +26,26 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     expect(tcs.map(&:x)).to match_array([nil, 4])
   end
 
-  # NOTE: this is intentonally delegating to self. Testing table aliases
+  it "properly sets virtual includes values" do
+    expect(Author.virtual_includes(:teacher_name)).to eq(:teacher => {})
+    expect(Author.virtual_includes(:grand_teacher_name)).to eq(:teacher => {:teacher => {}})
+
+    # technically :abc is invalid/immeterial. just want to make sure if we specify a uses, they tack on the to value
+    TestClass.virtual_attribute :ref1_str, :string, :through => :ref1, :source => :str, :uses => :abc
+    expect(TestClass.virtual_includes(:ref1_str)).to eq({:ref1 => {}, :abc => {}})
+  end
+
+  # NOTE: this is intentionally delegating to self. Testing table aliases
   it "double delegates to parent information" do
     g = Author.create(:name => "grand")
     p = Author.create(:name => "parent", :teacher_id => g.id)
     Author.create(:name => "c1", :teacher_id => p.id)
     Author.create(:name => "c2", :teacher_id => p.id)
 
-    ret = Author.select(:name, :teacher_teacher_name, :teacher_name).order(:id).where(:teacher_id => p.id)
-    expect(ret.map { |c| [c.teacher_teacher_name, c.teacher_name, c.name] }).to eq([["grand", "parent", "c1"], ["grand", "parent", "c2"]])
+    ret = Author.select(:name, :grand_teacher_name, :teacher_name).order(:id).where(:teacher_id => p.id).load
+    expect do
+      expect(ret.map { |c| [c.grand_teacher_name, c.teacher_name, c.name] }).to eq([["grand", "parent", "c1"], ["grand", "parent", "c2"]])
+    end.not_to make_database_queries
   end
 
   context "invalid" do
