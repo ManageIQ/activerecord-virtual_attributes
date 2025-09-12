@@ -53,7 +53,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       expect do
         TestClass.virtual_attribute :col1, :integer, :through => :bogus_ref
         TestClass.new
-      end.to raise_error(ArgumentError, /needs an association/)
+      end.to raise_error(ArgumentError, /references unknown :through association :bogus_ref/)
     end
 
     # currently, we can not detect a bad source

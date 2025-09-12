@@ -31,14 +31,11 @@ module ActiveRecord
           # This better supports reloading of the class and changing the definitions
           methods.each do |method|
             method_name, to, method = determine_method_names(method, to, prefix)
-            unless (to_ref = reflection_with_virtual(to))
-              raise ArgumentError, "Delegation needs an association. Association #{to} does not exist"
-            end
 
             # NOTE: delete_blank will remove a default of []. we only want to remove nils
-            va_params = options.merge(:uses => uses, :through => to, :source => method, :default => default).delete_if {|n, v| v.nil? }
+            va_params = options.merge(:uses => uses, :through => to, :source => method, :default => default).delete_if { |_n, v| v.nil? }
 
-            ActiveRecord::VirtualAttributes.deprecator.warn("suggestion: #{name}.virtual_attribute #{method_name.inspect}, #{type.inspect}, #{va_params.map {|k, v| "#{k.inspect} => #{v.inspect}"}.join(", ")}", src_loc)
+            ActiveRecord::VirtualAttributes.deprecator.warn("suggestion: #{name}.virtual_attribute #{method_name.inspect}, #{type.inspect}, #{va_params.map { |k, v| "#{k.inspect} => #{v.inspect}" }.join(", ")}", src_loc)
             virtual_attribute(method_name, type, **va_params)
           end
         end
