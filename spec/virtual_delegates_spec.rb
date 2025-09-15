@@ -53,7 +53,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       expect do
         TestClass.virtual_attribute :col1, :integer, :through => :bogus_ref
         TestClass.new
-      end.to raise_error(ArgumentError, /needs an association/)
+      end.to raise_error(ArgumentError, /references unknown :through association :bogus_ref/)
     end
 
     # currently, we can not detect a bad source
@@ -93,7 +93,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
       TestClass.virtual_attribute :child_col1, :integer, :through => :ref2, :source => :col1
       tc = TestClass.create(:ref2 => child)
       tcs = TestClass.select(:id, :col1, :child_col1).to_a
-      expect { expect(tcs.map(&:child_col1)).to match_array([nil, tc.id]) }.to_not make_database_queries
+      expect { expect(tcs.map(&:child_col1)).to match_array([nil, tc.id]) }.not_to make_database_queries
     end
 
     # this may fail in the future as our way of building queries may change
@@ -117,7 +117,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     it "properly generates sub select" do
       TestClass.virtual_attribute :child_col1, :integer, :through => :ref2, :source => :col1
       TestClass.create(:ref2 => child)
-      expect { TestClass.select(:id, :child_col1).to_a }.to_not raise_error
+      expect { TestClass.select(:id, :child_col1).to_a }.not_to raise_error
     end
   end
 
@@ -134,7 +134,7 @@ RSpec.describe ActiveRecord::VirtualAttributes::VirtualDelegates, :with_test_cla
     it "properly generates sub select" do
       TestClass.virtual_attribute :child_col1, :integer, :through => :ref2, :source => :col1
       TestClass.create(:ref2 => child)
-      expect { TestClass.select(:id, :child_col1).to_a }.to_not raise_error
+      expect { TestClass.select(:id, :child_col1).to_a }.not_to raise_error
     end
   end
 

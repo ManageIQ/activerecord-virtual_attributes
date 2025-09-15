@@ -67,7 +67,7 @@ module ActiveRecord
           define_delegate(name, source, :to => through, :allow_nil => true, :default => default)
 
           unless (to_ref = reflection_with_virtual(through))
-            raise ArgumentError, "Delegation needs an association. Association #{through} does not exist"
+            raise ArgumentError, "#{self.name}.virtual_attribute #{name.inspect} references unknown :through association #{through.inspect}"
           end
 
           # ensure that the through table is in the uses clause
