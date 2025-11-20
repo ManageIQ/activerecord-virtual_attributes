@@ -45,7 +45,7 @@ jobs:
       MYSQL_HOST: 127.0.0.1
       MYSQL_PWD: password
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
