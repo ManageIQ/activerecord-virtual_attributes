@@ -1,8 +1,6 @@
 # VirtualAttributes
 
 [![CI](https://github.com/ManageIQ/activerecord-virtual_attributes/actions/workflows/ci.yaml/badge.svg)](https://github.com/ManageIQ/activerecord-virtual_attributes/actions/workflows/ci.yaml)
-[![Maintainability](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes.svg)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/maintainability)
-[![Test Coverage](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/coverage.svg)](https://codeclimate.com/github/ManageIQ/activerecord-virtual_attributes/test_coverage)
 
 VirtualAttributes allows you to define a ruby method that acts like an attribute or relation.
 
