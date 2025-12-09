@@ -1,12 +1,18 @@
 name: CI
-
 on:
-  push:
   pull_request:
-  workflow_dispatch:
+  push:
+    branches-ignore:
+    - dependabot/*
+    - renovate/*
   schedule:
-  - cron: '0 0 * * 0'
-
+  - cron: 0 0 * * 0
+  workflow_dispatch:
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+permissions:
+  contents: read
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -23,7 +29,7 @@ jobs:
         env:
           POSTGRES_PASSWORD: password
           POSTGRES_DB: virtual_attributes
-        options: --health-cmd pg_isready --health-interval 2s --health-timeout 5s --health-retries 5
+        options: "--health-cmd pg_isready --health-interval 2s --health-timeout 5s --health-retries 5"
         ports:
         - 5432:5432
       mysql:
@@ -35,39 +41,30 @@ jobs:
         ports:
         - 3306:3306
     env:
-      CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-      # for the pg cli (psql, pg_isready) and rails
       PGHOST: localhost
       PGPORT: 5432
       PGUSER: postgres
       PGPASSWORD: password
-      # for the mysql cli (mysql, mysqladmin)
       MYSQL_HOST: 127.0.0.1
       MYSQL_PWD: password
     steps:
-      - uses: actions/checkout@v6
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
-          bundler-cache: true
-        timeout-minutes: 30
-      - name: Run SQLite tests
-        env:
-          DB: sqlite3
-        run: bundle exec rake
-      - name: Run PostgreSQL tests
-        env:
-          DB: postgresql
-          COLLATE_SYMBOLS: false
-        run: bundle exec rake
-      - name: Run MySQL tests
-        env:
-          DB: mysql2
-        run: bundle exec rake
-      - name: Report code coverage
-        if: ${{ github.ref == 'refs/heads/master' && matrix.ruby-version == '3.1' }}
-        continue-on-error: true
-        uses: paambaati/codeclimate-action@v9
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+    - uses: actions/checkout@v6
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: "${{ matrix.ruby-version }}"
+        bundler-cache: true
+      timeout-minutes: 30
+    - name: Run SQLite tests
+      env:
+        DB: sqlite3
+      run: bundle exec rake
+    - name: Run PostgreSQL tests
+      env:
+        DB: postgresql
+        COLLATE_SYMBOLS: false
+      run: bundle exec rake
+    - name: Run MySQL tests
+      env:
+        DB: mysql2
+      run: bundle exec rake
