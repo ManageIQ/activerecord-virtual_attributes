@@ -14,6 +14,17 @@ This also allows you to calculate counts and treat those as a field accessible w
 
 As of v6.1.0, the versioning of this gem follows ActiveRecord versioning, and does not follow SemVer (e.g. virtual attributes v6.1.x supports all versions of Rails 6.1). Version v3.0.0 supports Rails 6.0 and lower.
 
+Refer to the table below:
+
+Version | Rails
+--------|-------
+v3.0.x  | 6.0.x and lower
+v6.1.x  | 6.1.x
+v7.0.x  | 7.0.x
+v7.1.x  | 7.1.x
+v7.2.x  | 7.2.x
+v8.0.x  | 8.0.x
+
 Use the latest version of both this gem and Rails where the first 2 digits match.
 
 ## Installation
