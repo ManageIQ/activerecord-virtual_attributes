@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
 
   spec.require_paths = ["lib"]
 
-  spec.add_runtime_dependency "activerecord", "~> 7.2.2", ">=7.2.2.2"
+  spec.add_runtime_dependency "activerecord", "~> 8.0.4"
 
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "database_cleaner-active_record", "~> 2.1"
@@ -40,5 +40,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "simplecov", ">= 0.21.2"
-  spec.add_development_dependency "sqlite3", "< 2"
+  spec.add_development_dependency "sqlite3"
 end
