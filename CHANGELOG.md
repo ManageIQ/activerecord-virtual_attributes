@@ -4,7 +4,13 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 
 ## [Unreleased]
 
+## [8.0.0] - 2026-01-22
+
+* Drop unnecessary load_schema statements [#197](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/197)
+* Attribute delegation [#192](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/192)
+* Spec wording, better error message for bogus va :through [#202](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/202)
 * Support rails 8, drop support for 7.2 [#216](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/216)
+* Make the virtual_delegate deprecation warning less noisy [#217](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/217)
 
 ## [7.2.0.1] - 2025-07-18
 
@@ -131,7 +137,8 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.2.0.1...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v8.0.0...HEAD
+[8.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.2.0.1...v8.0.0
 [7.2.0.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.2.0.0...v7.2.0.1
 [7.2.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.1.2...v7.2.0.0
 [7.1.2]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.1.1...v7.1.2
