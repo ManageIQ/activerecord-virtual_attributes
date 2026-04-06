@@ -29,7 +29,7 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     puts "\e[93mUsing database adapter #{Database.adapter}\e[0m"
-    Database.new.setup.migrate
+    Database.new.migrate
 
     # truncate at startup
     DatabaseCleaner.clean_with :truncation

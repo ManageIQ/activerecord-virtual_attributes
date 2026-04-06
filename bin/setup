@@ -7,7 +7,6 @@ bundle install
 echo
 
 echo "Setting up the postgres database for specs..."
-echo "SELECT 'CREATE DATABASE virtual_attributes' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'virtual_attributes')\gexec" | psql -U postgres
-
+DB=pg rake db:create
 echo "Setting up the mysql database for specs..."
-mysql -u root -e 'CREATE SCHEMA IF NOT EXISTS 'virtual_attributes';'
+DB=mysql rake db:create
