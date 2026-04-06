@@ -20,7 +20,7 @@
 RSpec::Matchers.define :preload_values do |field, expected_values|
   match(:notify_expectation_failures => true) do |block|
     records = block.respond_to?(:call) ? block.call : block
-    records = records.try(:order, :id) if records.respond_to?(:order) && records.try(:order_values).blank?
+    records = order_by_id(records)
     records.try(:load)
 
     counter = DBQueryMatchers::QueryCounter.new
@@ -33,11 +33,16 @@ RSpec::Matchers.define :preload_values do |field, expected_values|
         actual = records.send(field)
       end
 
+      # assuming an array and not a hash
+      if records.respond_to?(:map)
+        actual = actual.map { |v| v.respond_to?(:each) && !v.try(:loaded?) ? order_by_id(v) : v }
+        expected_values = expected_values.map { |v| v.respond_to?(:each) && !v.try(:loaded?) ? order_by_id(v) : v }
+      end
+
       # we are mapping actual and expected
       # hold onto them for a little bit in cause they do not match (i.e.: @match == false)
       @expected_values = expected_values
       @actual_values   = actual
-      # note: this is order dependent. has issues if field is an association
       @match = values_match?(actual, expected_values)
 
       counter.count
@@ -58,4 +63,14 @@ RSpec::Matchers.define :preload_values do |field, expected_values|
   end
 
   supports_block_expectations
+
+  def order_by_id(value)
+    if value.respond_to?(:order)
+      value.try(:order_values).blank? ? value.order(:id) : value
+    elsif value.respond_to?(:sort_by)
+      value.sort_by(&:id)
+    else
+      value
+    end
+  end
 end
