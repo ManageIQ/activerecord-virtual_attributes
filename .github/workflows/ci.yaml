@@ -65,5 +65,5 @@ jobs:
       run: bundle exec rake
     - name: Run MySQL tests
       env:
-        DB: mysql2
+        DB: mysql
       run: bundle exec rake

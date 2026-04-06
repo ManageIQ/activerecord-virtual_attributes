@@ -14,11 +14,12 @@ postgresql:
   username: postgres
   wait_timeout: 5
 
-mysql2:
-  adapter: mysql2
+trilogy:
+  adapter: trilogy
   database: virtual_attributes
   encoding: utf8
   host: 127.0.0.1
   pool: 3
   username: root
+  password: <%= ENV["MYSQL_PWD"] %>
   wait_timeout: 5

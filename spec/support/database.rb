@@ -3,16 +3,20 @@ require "active_record"
 require "erb"
 
 class Database
-  VALID_ADAPTERS = %w[sqlite3 postgresql mysql2].freeze
+  VALID_ADAPTERS = %w[sqlite3 postgresql trilogy].freeze
 
   def self.adapter
     case ENV.fetch('DB', "sqlite")
-    when "sqlite", "sqlite3" then ENV['DB'] = "sqlite3"
-    when "pg", "postgresql"  then ENV['DB'] = "postgresql"
-    when "mysql", "mysql2"   then ENV['DB'] = "mysql2"
+    when "sqlite", "sqlite3"          then ENV["DB"] = "sqlite3"
+    when "pg", "postgresql"           then ENV["DB"] = "postgresql"
+    when "mysql", "mysql2", "trilogy" then ENV["DB"] = "trilogy"
     else
       raise "ENV['DB'] value invalid, must be one of: #{VALID_ADAPTERS.join(", ")}"
     end
+  end
+
+  def self.mysql?
+    adapter == "trilogy" || adapter == "mysql2"
   end
 
   attr_accessor :dirname
