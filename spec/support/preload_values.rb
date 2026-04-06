@@ -32,14 +32,25 @@ RSpec::Matchers.define :preload_values do |field, expected_values|
       else
         actual = records.send(field)
       end
-      expect(actual).to eq(expected_values)
+
+      # we are mapping actual and expected
+      # hold onto them for a little bit in cause they do not match (i.e.: @match == false)
+      @expected_values = expected_values
+      @actual_values   = actual
+      # note: this is order dependent. has issues if field is an association
+      @match = values_match?(actual, expected_values)
+
       counter.count
     end
-    @count == 0
+    @match && @count == 0
   end
 
   failure_message do |_actual|
-    "Expected to preload #{@field} but executed #{@count} queries instead"
+    if !@match
+      "Did not fully preload #{@field}. expected: #{@expected_values} got: #{@actual_values}"
+    else
+      "Expected to preload #{@field} but executed #{@count} queries instead"
+    end
   end
 
   failure_message_when_negated do |_actual|
