@@ -4,6 +4,10 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 
 ## [Unreleased]
 
+## [8.1.0] - 2026-10-30
+
+* Rails 8.1 support [#250](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/250)
+
 ## [8.0.0] - 2026-01-22
 
 * Drop unnecessary load_schema statements [#197](https://github.com/ManageIQ/activerecord-virtual_attributes/pull/197)
@@ -137,7 +141,8 @@ The versioning of this gem follows ActiveRecord versioning, and does not follow 
 * Initial Release
 * Extracted from ManageIQ/manageiq
 
-[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v8.0.0...HEAD
+[Unreleased]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v8.1.0...HEAD
+[8.1.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v8.0.0...v8.1.0
 [8.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.2.0.1...v8.0.0
 [7.2.0.1]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.2.0.0...v7.2.0.1
 [7.2.0.0]: https://github.com/ManageIQ/activerecord-virtual_attributes/compare/v7.1.2...v7.2.0.0
