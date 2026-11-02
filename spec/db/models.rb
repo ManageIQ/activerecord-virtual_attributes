@@ -61,32 +61,19 @@ class Author < VirtualTotalTestBase
   virtual_total :total_named_books, :named_books
   alias v_total_named_books total_named_books
 
-  def nick_or_name
-    has_attribute?("nick_or_name") ? self["nick_or_name"] : nickname || name
-  end
-
-  # sorry. no creativity on this one (just copied nick_or_name)
-  def name_no_group
-    has_attribute?("name_no_group") ? self["name_no_group"] : nickname || name
-  end
 
   # a (local) virtual_attribute without a uses, but with arel
   virtual_attribute :nick_or_name, :string, :arel => (lambda do |t|
-    t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [t[:nickname], t[:name]]))
-  end)
-
-  # We did not support arel returning something other than Grouping.
-  # this is here to test what happens when we do
-  virtual_attribute :name_no_group, :string, :arel => (lambda do |t|
     Arel::Nodes::NamedFunction.new('COALESCE', [t[:nickname], t[:name]])
-  end)
-
-  def first_book_name
-    has_attribute?("first_book_name") ? self["first_book_name"] : books.first.name
+  end) do
+   nickname || name
   end
 
-  def first_book_author_name
-    has_attribute?("first_book_author_name") ? self["first_book_author_name"] : books.first.author_name
+  # This tests that we still support defining arel lambdas that return a Grouping.
+  virtual_attribute :name_no_group, :string, :arel => (lambda do |t|
+    t.grouping(Arel::Nodes::NamedFunction.new('COALESCE', [t[:nickname], t[:name]]))
+  end) do
+    nickname || name
   end
 
   def upper_first_book_author_name
@@ -104,9 +91,14 @@ class Author < VirtualTotalTestBase
 
   virtual_has_one :book_with_most_bookmarks, :uses => {:books => :bookmarks}
   # attribute using a relation
-  virtual_attribute :first_book_name, :string, :uses => [:books]
+  virtual_attribute :first_book_name, :string, :uses => [:books] do
+    books.first.name
+  end
   # attribute on a double relation
-  virtual_attribute :first_book_author_name, :string, :uses => {:books => :author_name}
+  virtual_attribute :first_book_author_name, :string, :uses => {:books => :author_name} do
+    books.first.author_name
+  end
+
   # uses another virtual attribute that uses a relation
   virtual_attribute :upper_first_book_author_name, :string, :uses => :first_book_author_name
   # :uses points to a virtual_attribute that has a :uses with a hash

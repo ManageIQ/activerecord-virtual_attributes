@@ -56,7 +56,7 @@ module ActiveRecord
         virtual_attribute(name, type, **options)
       end
 
-      def virtual_attribute(name, type, through: nil, uses: nil, arel: nil, source: name, default: nil, **options)
+      def virtual_attribute(name, type, through: nil, uses: nil, arel: nil, source: name, default: nil, **options, &block)
         name = name.to_s
         reload_schema_from_cache
 
@@ -77,6 +77,10 @@ module ActiveRecord
           #   Because we may not have loaded the class yet
           #   And we definitely have not loaded the database yet
           arel ||= virtual_delegate_arel(source, to_ref)
+        elsif block_given?
+          define_method(name) do
+            has_attribute?(name) ? self[name] : instance_eval(&block)
+          end
         end
 
         define_virtual_include(name, uses)
